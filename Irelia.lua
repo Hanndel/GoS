@@ -69,13 +69,6 @@ SpellTable =
 	[_R] = { Dmg = function() return 30+GetCastLevel(myHero, _E)*50 + GetBonusAP(myHero)*0.5 end }
 	[_R] = { Dmg = function() return 40+GetCastLevel(myHero, _R)*40 + GetBonusAP(myHero)*0.5 + GetBonusDmg(myHero)*0.6) end, delay = 0.250, speed = 1700, width = 25, range = 1000}
 	}
-self.spellData = 
-	{
-	[_Q] = {dmg = function () return 45 + 35*GetCastLevel(myHero,_Q) + 0.8*GetBonusAP(myHero) end, range = 625, mana = function () return 55 + 5*GetCastLevel(myHero,_Q) end},
-	[_W] = {dmg = function () return 25 + 45*GetCastLevel(myHero,_W) + 0.85*GetBonusAP(myHero) end , range = 625, mana = function () return 60 + 10*GetCastLevel(myHero,_W) end},
-	[_E] = {dmg = function () return 10 + 10*GetCastLevel(myHero,_E) + 0.2*GetBonusAP(myHero) end , mana = 20 },
-	[_R] = {dmg = function () return 50 + 125*GetCastLevel(myHero,_R) + 0.8*GetBonusAP(myHero) end, range = 600, radius = 250, mana = 100 },
-	}
 
 OnDraw(function(myHero)
 	if IreliaM.D.Sk:Value() ~= 1 then
