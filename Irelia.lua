@@ -62,13 +62,6 @@ local WEndBuff = 0
 local trinity = false
 local target = GetCurrentTarget()
 local R = {delay = 0.250, speed = 1700, width = 25, range = 1000}
-SpellTable =
-	{
-	[_Q] = { Dmg = function() return 20+GetCastLevel(myHero, _Q)*30-30 + (GetBonusDmg(myHero) + GetBaseDamage(myHero)) end }
-	[_W] = { Dmg = function() return 15*GetCastLevel(myHero, _W) end }
-	[_R] = { Dmg = function() return 30+GetCastLevel(myHero, _E)*50 + GetBonusAP(myHero)*0.5 end }
-	[_R] = { Dmg = function() return 40+GetCastLevel(myHero, _R)*40 + GetBonusAP(myHero)*0.5 + GetBonusDmg(myHero)*0.6) end, delay = 0.250, speed = 1700, width = 25, range = 1000}
-	}
 
 OnDraw(function(myHero)
 	if IreliaM.D.Sk:Value() ~= 1 then
@@ -92,7 +85,7 @@ OnTick(function(myHero)
 	if IOW:Mode() == "Combo" then 
 		if IsReady(_Q) and IsReady(_E) and IreliaM.C.GP:Value() then
 			for _, mob in pairs(minionManager.objects) do
-				if GetTeam(mob) ~= GetTeam(myHero) and GetDistance(mob, target) < 425 and (GetCurrentHP(mob) < CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) or GetCurrentHP(mob) < CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() and WBuff and WTimer > 0) then
+				if GetTeam(mob) ~= GetTeam(myHero) and GetDistance(mob, target) < 425 and (GetCurrentHP(mob) < OpDmg("Q", mob) or GetCurrentHP(mob) < OpDmg("Q", mob) + OpDmg("W") and WBuff and WTimer > 0) then
 					CastTargetSpell(mob, _Q)
 						DelayAction(function() CastTargetSpell(target, _E) end, 0.1)
 				end
@@ -116,13 +109,13 @@ OnTick(function(myHero)
 		local Trinity = GetItemSlot(myHero, 3078)
 		local Sheen = GetItemSlot(myHero, 3057)
 		if IsReady(_R) and (Trinity > 0 and IsReady(Trinity) or Sheen > 0 and IsReady(Sheen) and not trinity) and ValidTarget(target, GetRange(myHero)) and GetPercentHP(myHero) > IreliaM.C.HP:Value() then
-			local pI = GetPrediction(target, Spelltable[_R])
+			local pI = GetPrediction(target, R)
 			if pI and pI.hitChance >= (IreliaM.HC.R:Value())/100 then
 				CastSkillShot(_R, pI.castPos)
 			end
 
 		elseif IsReady(_R) and ValidTarget(target, GetRange(myHero)) and (GetPercentHP(myHero) < IreliaM.C.HP:Value() or not Trinity > 0 and not Sheen > 0)  then
-			local pI = GetPrediction(target, Spelltable[_R])
+			local pI = GetPrediction(target, R)
 			if pI and pI.hitChance >= (IreliaM.HC.R:Value())/100 then
 				CastSkillShot(_R, pI.castPos)
 			end
@@ -132,10 +125,10 @@ OnTick(function(myHero)
 	if IOW:Mode() == "LaneClear" then
 		for _, mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == MINION_ENEMY and GetPercentMP(myHero) > IreliaM.LC.MP:Value() then
-				if IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.LC.Q:Value() and GetCurrentHP(mob) <= CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) then
+				if IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.LC.Q:Value() and GetCurrentHP(mob) <= OpDmg("Q", mob) then
 					CastTargetSpell(mob, _Q)
 
-				elseif IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.LC.Q:Value() and GetCurrentHP(mob) <= CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() and WBuff and WTimer > 0 then
+				elseif IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.LC.Q:Value() and GetCurrentHP(mob) <= OpDmg("Q", mob) + OpDmg("W") and WBuff and WTimer > 0 then
 					CastTargetSpell(mob, _Q)
 				end
 
@@ -144,7 +137,7 @@ OnTick(function(myHero)
 				end
 
 				if IsReady(_R) and ValidTarget(mob, 1000) and IreliaM.LC.R:Value() then
-					local pI = GetPrediction(mob, Spelltable[_R])
+					local pI = GetPrediction(mob, R)
 					if pI and pI.hitChance >= (IreliaM.HC.R:Value())/100 then
 						CastSkillShot(_R, pI.castPos)
 					end
@@ -152,10 +145,10 @@ OnTick(function(myHero)
 			end
 
 			if GetTeam(mob) == MINION_JUNGLE and GetPercentMP(myHero) > IreliaM.JC.MP:Value() then
-				if IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.JC.Q:Value() and GetCurrentHP(mob) <= CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) then
+				if IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.JC.Q:Value() and GetCurrentHP(mob) <= OpDmg("Q", mob) then
 					CastTargetSpell(mob, _Q)
 
-				elseif IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.JC.Q:Value() and GetCurrentHP(mob) <= CalcDamage(myHero, mob, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() and WBuff and WTimer > 0 then
+				elseif IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.JC.Q:Value() and GetCurrentHP(mob) <= OpDmg("Q", mob) + OpDmg("W") and WBuff and WTimer > 0 then
 					CastTargetSpell(mob, _Q)
 
 				elseif IsReady(_Q) and ValidTarget(mob, 650) and IreliaM.JC.Q:Value() and WBuff and WTimer < 0.5 then
@@ -178,39 +171,39 @@ OnTick(function(myHero)
 	end 
 
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if IreliaM.KS.Q:Value() and IsReady(_Q) and ValidTarget(enemy, 650) and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_Q].Dmg(), 0) then
+		if IreliaM.KS.Q:Value() and IsReady(_Q) and ValidTarget(enemy, 650) and GetCurrentHP(enemy) < OpDmg("Q", enemy) then
 			CastTargetSpell(enemy, _Q)
 
-		elseif IreliaM.KS.Q:Value() and IsReady(_Q) and IsReady(_W) and ValidTarget(enemy, 650) and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() then
+		elseif IreliaM.KS.Q:Value() and IsReady(_Q) and IsReady(_W) and ValidTarget(enemy, 650) and GetCurrentHP(enemy) < OpDmg("Q", enemy) + OpDmg("W") then
 			CastSpell(_W)
 				DelayAction(function() CastTargetSpell(enemy, _Q)end, 0.1)
 
-		elseif IreliaM.KS.Q:Value() and IsReady(_Q) and ValidTarget(enemy, 650) and WBuff and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() then
+		elseif IreliaM.KS.Q:Value() and IsReady(_Q) and ValidTarget(enemy, 650) and WBuff and GetCurrentHP(enemy) < OpDmg("Q", enemy) + OpDmg("W") then
 			CastTargetSpell(enemy, _Q)
 
-		elseif IreliaM.KS.Q:Value() and IreliaM.KS.E:Value() and IsReady(_Q) and IsReady(_E) and ValidTarget(enemy, 425) and WBuff and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_Q].Dmg(), 0) + Spelltable[_W].Dmg() + CalcDamage(myHero, enemy, 0, Spelltable[_E].Dmg()) then
+		elseif IreliaM.KS.Q:Value() and IreliaM.KS.E:Value() and IsReady(_Q) and IsReady(_E) and ValidTarget(enemy, 425) and WBuff and GetCurrentHP(enemy) < OpDmg("Q", enemy) + OpDmg("W") + OpDmg("E", enemy) then
 			CastTargetSpell(enemy, _E)
 				DelayAction(function() CastTargetSpell(enemy, _Q)end, 0.3)
 
-		elseif IreliaM.KS.Q:Value() and IreliaM.KS.E:Value() and IsReady(_Q) and IsReady(_E) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_Q].Dmg(), 0) + CalcDamage(myHero, enemy, 0, Spelltable[_E].Dmg()) then
+		elseif IreliaM.KS.Q:Value() and IreliaM.KS.E:Value() and IsReady(_Q) and IsReady(_E) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < OpDmg("Q", enemy) + OpDmg("E", enemy) then
 			CastTargetSpell(enemy, _E)
 				DelayAction(function() CastTargetSpell(enemy, _Q)end, 0.3)
 		end
 
-		if IreliaM.KS.E:Value() and IsReady(_E) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, 0, Spelltable[_E].Dmg()) then
+		if IreliaM.KS.E:Value() and IsReady(_E) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < OpDmg("E", enemy) then
 			CastTargetSpell(enemy, _E)
 		end
 
-		if IreliaM.KS.R:Value() and IsReady(_R) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < CalcDamage(myHero, enemy, Spelltable[_R].Dmg(), 0) then
-			local pI = GetPrediction(enemy, Spelltable[_R])
+		if IreliaM.KS.R:Value() and IsReady(_R) and ValidTarget(enemy, 425) and GetCurrentHP(enemy) < OpDmg("R", enemy) then
+			local pI = GetPrediction(enemy, R)
 			if pI and pI.hitChance >= (IreliaM.HC.R:Value())/100 then
 				CastSkillShot(_R, pI.castPos)
 			end	
 		end
 
-		if IsReady(5) and GetCastName(myHero, 5) == "summonerdot" and IreliaM.KS.IG:Value() and ValidTarget(enemy, 500) and GetCurrentHP(enemy)+GetHPRegen(enemy)*5 < 50+GetLevel(myHero)*20 then
+		if IsReady(5) and GetCastName(myHero, 5) == "summonerdot" and IreliaM.KS.IG:Value() and ValidTarget(enemy, 500) and GetCurrentHP(enemy)+GetHPRegen(enemy)*5 < OpDmg("IG") then
 			CastTargetSpell(enemy, 5)
-		elseif IsReady(6) and GetCastName(myHero, 6) == "summonerdot" and IreliaM.KS.IG:Value() and ValidTarget(enemy, 500) and GetCurrentHP(enemy)+GetHPRegen(enemy)*5 < 50+GetLevel(myHero)*20 then
+		elseif IsReady(6) and GetCastName(myHero, 6) == "summonerdot" and IreliaM.KS.IG:Value() and ValidTarget(enemy, 500) and GetCurrentHP(enemy)+GetHPRegen(enemy)*5 < OpDmg("IG") then
 			CastTargetSpell(enemy, 5)
 		end
 	end
@@ -314,3 +307,23 @@ OnRemoveBuff(function(Object,buffProc)
 		end
 	end
 end)
+
+function OpDmg(Slot, Unit)
+	local Unit = Unit or nil
+	local APdmg = 0
+	local ADdmg = 0
+	local Truedmg = 0
+
+	if Slot = "IG" then 
+		Truedmg =50+GetLevel(myHero)*20
+	elseif Slot = "Q" then
+		ADdmg = 20+GetCastLevel(myHero, _Q)*30-30 + (GetBonusDmg(myHero) + GetBaseDamage(myHero))
+	elseif Slot = "W" then
+		Truedmg = 15*GetCastLevel(myHero, _W)
+	elseif Slot = "E" then
+		APdmg = 30+GetCastLevel(myHero, _E)*50 + GetBonusAP(myHero)*0.5
+	elseif Slot = "R" then
+		ADdmg = 40+GetCastLevel(myHero, _R)*40 + GetBonusAP(myHero)*0.5 + GetBonusDmg(myHero)*0.6)
+	end
+	return CalcDamage(myHero, Unit, ADdmg, APdmg) + Truedmg
+end	
