@@ -7,18 +7,24 @@ function IsCCable(Unit)
 	end
 end
 
+Buffs = {4, 15, 17}
+
 OnUpdateBuff(function(Object,buffProc)
-	if GetNetWorkID(Object) == CCable then
-		if buffProc.Type == 4 or buffProc.Type == 15 or buffProc.Type == 17 then
-			table.insert(NoCCables, GetNetworkID(Object))
+	for i, buff in pairs(Buffs)
+		if GetNetWorkID(Object) == CCable then
+			if buffProc.Type == buff  then
+				table.insert(NoCCables, GetNetworkID(Object))
+			end
 		end
 	end
 end)
 
 OnRemoveBuff(function(Object,buffProc)
-	if GetNetWorkID(Object) == CCable then
-		if buffProc.Type == 4 or buffProc.Type == 15 or buffProc.Type == 17 then
-			table.remove(NoCCables, GetNetworkID(Object))
+	for i, buff in pairs(Buffs)
+		if GetNetWorkID(Object) == CCable then
+			if buffProc.Type == buff  then
+				table.remove(NoCCables, GetNetworkID(Object))
+			end
 		end
 	end
 end)
