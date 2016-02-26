@@ -1,5 +1,4 @@
 function IsCCable(Unit)
-	NoCCables = {}
 	local CCable = GetNetworkID(Unit)
 
 	if NoCCables[GetNetworkID(Unit)] ~= CCable then
@@ -8,7 +7,7 @@ function IsCCable(Unit)
 end
 
 Buffs = {4, 15, 17}
-
+NoCCables = {}
 OnUpdateBuff(function(Object,buffProc)
 	for i, buff in pairs(Buffs)
 		if GetNetWorkID(Object) == CCable then
