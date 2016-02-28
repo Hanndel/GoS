@@ -186,7 +186,7 @@ OnTick(function(myHero)
 			if ZyraM.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
 			elseif ZyraM.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
-			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1000, 2000)) --kappa
+			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(0.5, 2)) --kappa
 		end
 	end 
 end)
@@ -198,7 +198,7 @@ OnProcessSpell(function(Object,spellProc)
 		if spellProc.name == "ZyraQFissure" and IsReady(_W) and ZyraM.C.W:Value() and GetPercentHP(myHero) >= ZyraM.C.HP:Value() then
 			CastSkillShot(_W, spelProc.endPos)
 				QCast = true
-				DelayAction(function()QCast = false end, 1000)
+				DelayAction(function()QCast = false end, 1)
 		end
 
 		if spellProc.name == "ZyraGraspingRoots" and IsReady(_W) and ZyraM.C.W:Value() and GetPercentHP(myHero) >= ZyraM.C.HP:Value()then
@@ -209,7 +209,7 @@ OnProcessSpell(function(Object,spellProc)
 			end
 			CastSkillShot(_W, EPoint)
 				ECast = true
-				DelayAction(function()ECast = false end, 1500)
+				DelayAction(function()ECast = false end, 1.5)
 		end
 	end
 end)
