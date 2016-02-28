@@ -173,7 +173,7 @@ function AutoLvL()
  			if OlafM.M.AL:Value() == 1 then Deftlevel = {_Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
  			elseif OlafM.M.AL:Value() == 2 then Deftlevel = {_E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W}
     		end 
-  			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(500, 2000))
+  			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(0.5, 2))
   		end 
   	end
 end
