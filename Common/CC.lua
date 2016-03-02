@@ -1,29 +1,20 @@
 function IsCCable(Unit)
-	local CCable = GetNetworkID(Unit)
-
-	if NoCCables[GetNetworkID(Unit)] ~= CCable then
+	if NoCCables[GetNetworkID(Unit)] ~= GetNetworkID(Unit) then
 		return true
 	end
 end
 
-Buffs = {4, 15, 17}
 NoCCables = {}
-OnUpdateBuff(function(Object,buffProc)
-	for i, buff in pairs(Buffs)
-		if GetNetWorkID(Object) == CCable then
-			if buffProc.Type == buff  then
-				table.insert(NoCCables, GetNetworkID(Object))
-			end
-		end
+Buffs = {4, 15, 17}
+
+OnUpdateBuff(function(Object,buffProc) 
+	if Buffs[buffProc.Type] ~= Buffs then
+		table.insert(NoCCables, GetNetworkID(Object))
 	end
 end)
 
 OnRemoveBuff(function(Object,buffProc)
-	for i, buff in pairs(Buffs)
-		if GetNetWorkID(Object) == CCable then
-			if buffProc.Type == buff  then
-				table.remove(NoCCables, GetNetworkID(Object))
-			end
-		end
+	if Buffs[buffProc.Type] ~= Buffs  then
+		table.remove(NoCCables, GetNetworkID(Object))
 	end
 end)
