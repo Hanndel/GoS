@@ -203,7 +203,7 @@ OnProcessSpell(function(Object,spellProc)
 
 		if spellProc.name == "ZyraGraspingRoots" and IsReady(_W) and ZyraM.C.W:Value() and GetPercentHP(myHero) >= ZyraM.C.HP:Value()then
 			if GetDistance(ETarget) > 800 or not ValidTarget(ETarget, 800) then
-				EPoint = GetOrigin(myHero) + Vector(spellProc.endPos - spellProc.startPos):normalized()*750+math.random(0,50)
+				EPoint = GetOrigin(myHero) + Vector(spellProc.endPos - spellProc.startPos):normalized()*750+math.random(0,0.05)
 			elseif GetDistance(ETarget) < 800 then
 				EPoint = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(ETarget)
 			end
