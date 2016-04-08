@@ -23,7 +23,7 @@ local ver = "0.1"
 class "Start"
 
 function Start:__init()
-	PrintChat("Welcome to QWER Series!")
+	PrintChat("Welcome "..GetUser().." to QWER Series!")
 	PrintChat(GetObjectName(myHero).." Loaded!")
 	function AutoUpdate(data)
     	if tonumber(data) > tonumber(ver) then
@@ -68,7 +68,6 @@ function Zyra:__init()
 	self.Target = nil
 	self.DebuffTable = {5, 8, 11, 21, 22, 24, 28, 29, 30}
 	self.IsTargetFucked = false
-	PrintChat("Welcome "..GetUser().." have fun!")
 
 self.Menu = MenuConfig("Zyra", "Zyra")
 
