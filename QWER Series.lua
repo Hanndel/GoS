@@ -18,7 +18,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.2"
+local ver = "0.3"
 
 class "Start"
 
@@ -220,7 +220,7 @@ function Zyra:Harass(Target)
 end
 
 function Zyra:LaneClear()
-	for _, mobs in pairs(minionManager.objets) do
+	for _, mobs in pairs(minionManager.objects) do
 		if ValidTarget(mob, 850) then
 			if self.Menu.LC.Q:Value() and Ready(0) then
 				CastSkillShot(0, GetOrigin(mob))
