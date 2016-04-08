@@ -1,11 +1,35 @@
 require "OpenPredict"
 
+local ChampTable =
+	{
+	["Kindred"] = true,
+	["Zyra"] = true,
+	}
+
 Callback.Add("Load", function()
-
-if not _G[GetObjectName(myHero)] then PrintChat(" "..GetObjectName(myHero).." Is Not Supported !") return end
-_G[GetObjectName(myHero)]()
-
+	if ChampTable[GetObjectName(myHero)] then
+		_G[GetObjectName(myHero)]()
+	else
+		PrintChat(GetObjectName(myHero).." Is not supported!")
+	end
+	if GetObjectName(myHero) == "Kindred" then
+		require('MapPositionGOS')
+	end
 end)
+
+local ver = "0.1"
+
+function AutoUpdate(data)
+    if tonumber(data) > tonumber(ver) then
+        PrintChat("New version found! " .. data)
+        PrintChat("Downloading update, please wait...")
+        DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
+    else
+        PrintChat("No updates found!")
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)]]
 
 class "Zyra"
 
@@ -152,7 +176,7 @@ function Zyra:Draw()
 			DrawText("Killiable!",12,enemy.x,enemy.y,GoS.White)
 		end
 	end]]
-	if self.Menu.D.DD.D:Value() then
+	if self.Menu.D.DR.D:Value() then
 		if self.Menu.D.DR.DQ:Value() and Ready(0) then
 			DrawCircle(GetOrigin(myHero), 800, 1, self.Menu.D.DR.DH:Value(), GoS.Red)
 		end
@@ -332,9 +356,9 @@ function Zyra:Autolvl()
 end
 
 function Zyra:SkinChanger()
-	if ZyraM.M.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, ZyraM.M.S:Value() - 1)
-	elseif ZyraM.M.S:Value() == 5 then
+	if self.Menu.M.S:Value() ~= 5 then 
+		HeroSkinChanger(myHero, self.Menu.M.S:Value() - 1)
+	elseif self.Menu.M.S:Value() == 5 then
 		HeroSkinChanger(myHero, 0)
 	end
 end
@@ -393,13 +417,12 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 	local BestRHit = 0
 	for i, enemies in pairs(GetEnemyHeroes()) do
 		if GetOrigin(enemies) ~= nil and ValidTarget(enemies, 700) then
-			local hit = EnemiesAround(GetOrigin(enemies), 500)
-				if hit > BestHit and GetDistance(enemies) < 700 then
-					BestHit = hit
-					BestPos = Vector(enemies)
-					if BestHit == #GetEnemyHeroes() then
-						break
-					end
+		local hit = EnemiesAround(GetOrigin(enemies), 500)
+			if hit > BestHit and GetDistance(enemies) < 700 then
+				BestHit = hit
+				BestPos = Vector(enemies)
+				if BestHit == #GetEnemyHeroes() then
+					break
 				end
 			end
 		end
