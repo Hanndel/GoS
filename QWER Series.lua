@@ -17,7 +17,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.1"
+local ver = "0.2"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
