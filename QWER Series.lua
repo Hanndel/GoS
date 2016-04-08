@@ -221,11 +221,13 @@ end
 
 function Zyra:LaneClear()
 	for _, mobs in pairs(minionManager.objets) do
-		if self.Menu.C.Q:Value() then
-			self:CastQ(mobs)
-		end
-		if self.Menu.C.E:Value() then
-			self:CastE(mobs)
+		if ValidTarget(mob, 850) then
+			if self.Menu.LC.Q:Value() and Ready(0) then
+				CastSkillShot(0, GetOrigin(mob))
+			end
+			if self.Menu.LC.E:Value() and Ready(2)  then
+				CastSkillShot(2, GetOrigin(mob))
+			end
 		end
 	end
 end
@@ -331,7 +333,7 @@ end
 
 function Zyra:CastE(Unit)
 	local E = GetPrediction(Unit, self.Spells[2])
-	if Ready(0) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (self.Menu.HC.E:Value())/100 and E then
+	if Ready(2) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (self.Menu.HC.E:Value())/100 and E then
 		CastSkillShot(2, E.castPos)
 		ECast = true
 		DelayAction(function() ECast = false end, GetDistance(self.Target)/self.Spells[3].speed)
