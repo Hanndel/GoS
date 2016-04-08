@@ -15,22 +15,28 @@ Callback.Add("Load", function()
 	if GetObjectName(myHero) == "Kindred" then
 		require('MapPositionGOS')
 	end
-	PrintChat("Keepo")
+	Start()
 end)
 
-local ver = "0.3"
+local ver = "0.1"
 
-function AutoUpdate(data)
-    if tonumber(data) > tonumber(ver) then
-        PrintChat("New version found! " .. data)
-        PrintChat("Downloading update, please wait...")
-        DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
-    else
-        PrintChat("No updates found!")
-    end
+class "Start"
+
+function Start:__init()
+	PrintChat("Welcome to QWER Series!")
+	PrintChat(GetObjectName(myHero).." Loaded!")
+	function AutoUpdate(data)
+    	if tonumber(data) > tonumber(ver) then
+        	PrintChat("New version found! " .. data)
+        	PrintChat("Downloading update, please wait...")
+        	DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
+   		else
+        	PrintChat("No updates found!")
+   		end
+	end
+	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 
 class "Zyra"
 
