@@ -29,7 +29,7 @@ function AutoUpdate(data)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)]]
+GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 
 class "Zyra"
 
