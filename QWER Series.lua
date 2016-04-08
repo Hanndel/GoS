@@ -18,7 +18,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.3"
+local ver = "0.4"
 
 class "Start"
 
@@ -257,7 +257,7 @@ function Zyra:Ks()
 			end
 		end
 
-		if self:Passiveup() and Ready(0) and ValidTarget(enemy, 1400) and GetCurrentHP(enemy) <= self.Dmg[-3](enemy) and self.Menu.C.P:Value() and PPred >= (self.Menu.HC.P:Value())/100 then
+		if self:Passiveup() and Ready(0) and ValidTarget(enemy, 1400) and GetCurrentHP(enemy) <= self.Dmg[-3](enemy) and self.Menu.C.P:Value() and P.hitChance >= (self.Menu.HC.P:Value())/100 then
 			CastSkillShot(0, P.castPos)
 		end
 	end
