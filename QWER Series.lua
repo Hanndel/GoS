@@ -220,7 +220,7 @@ function Zyra:Harass(Target)
 end
 
 function Zyra:LaneClear()
-	for _, mobs in pairs(minionManager.objects) do
+	for _, mob in pairs(minionManager.objects) do
 		if ValidTarget(mob, 850) then
 			if self.Menu.LC.Q:Value() and Ready(0) then
 				CastSkillShot(0, GetOrigin(mob))
