@@ -541,7 +541,6 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		GetReady()
 		self.target = GetCurrentTarget()
 
 		if self.Menu.Orb.C:Value() then
