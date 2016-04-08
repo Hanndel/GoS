@@ -18,7 +18,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.1"
+local ver = "0.2"
 
 class "Start"
 
@@ -474,7 +474,8 @@ function Kindred:__init()
 	OnProcessSpell(function(unit, spell) self:OnProc(unit, spell) end)
 	self.Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
 	self.target = nil
-
+	
+	self.Menu = MenuConfig("Zyra", "Zyra")
 	self.Menu:Menu("Combo", "Combo")
 	self.Menu.Combo:Boolean("Q", "Use Q", true)
 	self.Menu.Combo:Boolean("W", "Use W", true)
@@ -573,7 +574,7 @@ function Kindred:Tick()
 end
 
 function Kindred:Draw()
-	if self.Menu.D.DD.D:Value() then
+	if self.Menu.D.DR.D:Value() then
 		if self.Menu.D.DR.DQ:Value() and Ready(0) then
 			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, self.Menu.D.DR.DH:Value(), GoS.Red)
 		end
