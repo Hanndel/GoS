@@ -15,9 +15,10 @@ Callback.Add("Load", function()
 	if GetObjectName(myHero) == "Kindred" then
 		require('MapPositionGOS')
 	end
+	PrintChat("Keepo")
 end)
 
-local ver = "0.2"
+local ver = "0.3"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
