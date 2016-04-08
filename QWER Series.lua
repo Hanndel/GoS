@@ -475,7 +475,7 @@ function Kindred:__init()
 	self.Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
 	self.target = nil
 	
-	self.Menu = MenuConfig("Zyra", "Zyra")
+	self.Menu = MenuConfig("Kindred", "Kindred")
 	self.Menu:Menu("Combo", "Combo")
 	self.Menu.Combo:Boolean("Q", "Use Q", true)
 	self.Menu.Combo:Boolean("W", "Use W", true)
