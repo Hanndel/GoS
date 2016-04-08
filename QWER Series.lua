@@ -384,11 +384,9 @@ function Zyra:OnProcComplete(Object, spellProc)
 				end
 			end
 		elseif self.Menu.Orb.LC:Value() then
-			for i, mobs in pairs(minionManager.objects) do
-				if spellProc.name == GetCastName(myHero, 0) then
-					CastSkillShot(1, spellProc.endPos)
-					DelayAction(function() CastSkillShot(1, spellProc.endPos) end, 0.5)
-				end
+			if spellProc.name == GetCastName(myHero, 0) then
+				CastSkillShot(1, spellProc.endPos)
+				DelayAction(function() CastSkillShot(1, spellProc.endPos) end, 0.5)
 			end
 		end
 	end
