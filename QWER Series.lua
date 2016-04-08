@@ -496,7 +496,7 @@ function Kindred:__init()
 
 	self.Menu:Menu("Orb", "Hotkeys")
 	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+--	self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
 	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
 	self.Menu:Menu("Misc", "Misc")
