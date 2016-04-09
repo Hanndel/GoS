@@ -18,7 +18,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.4"
+local ver = "0.5"
 
 class "Start"
 
@@ -501,7 +501,7 @@ function Kindred:__init()
 
 	self.Menu:Menu("Misc", "Misc")
 	self.Menu.Misc:DropDown("AL", "Priority", 1, {"Q-E-W","Q-E-W lv3 E","Q-W-E","Q-W-E lv3 E", "Off"})
-	self.Menu.Draw:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
+	self.Menu.Misc:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
 	self.Menu.Misc:Boolean("B", "Buy Farsight", true)
 	self.Menu.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
 	self.Menu.Misc:Key("WP", "Jumps", string.byte("G"))
@@ -544,7 +544,7 @@ function Kindred:Tick()
 		self.target = GetCurrentTarget()
 
 		if self.Menu.Orb.C:Value() then
-			self:Combo(self.Target)
+			--self:Combo(self.Target)
 		elseif self.Menu.Orb.LC:Value() then
 			self:LaneClear()
 		end
@@ -667,9 +667,9 @@ function Kindred:Autolvl()
 end
 
 function Kindred:SkinChanger()
-	if self.Menu.M.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, self.Menu.M.S:Value() - 1)
-	elseif self.Menu.M.S:Value() == 5 then
+	if self.Menu.Misc.S:Value() ~= 5 then 
+		HeroSkinChanger(myHero, self.Menu.Misc.S:Value() - 1)
+	elseif self.Menu.Misc.S:Value() == 5 then
 		HeroSkinChanger(myHero, 0)
 	end
 end
