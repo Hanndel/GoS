@@ -18,7 +18,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.5"
+local ver = "0.6"
 
 class "Start"
 
@@ -544,7 +544,7 @@ function Kindred:Tick()
 		self.target = GetCurrentTarget()
 
 		if self.Menu.Orb.C:Value() then
-			--self:Combo(self.Target)
+			self:Combo(self.target)
 		elseif self.Menu.Orb.LC:Value() then
 			self:LaneClear()
 		end
@@ -678,7 +678,7 @@ function Kindred:OnProcComplete(unit, spell)
 	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
-			if Mode == "LaneClear" then 
+			if self.Menu.Orb.LC:Value() then 
 				for _, mob in pairs(minionManager.objects) do	
 					if self.Menu.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and self.Menu.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.LaneClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos())
@@ -687,7 +687,7 @@ function Kindred:OnProcComplete(unit, spell)
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
-			elseif Mode == "Combo" then
+			elseif self.Menu.Orb.C:Value() then
 				if self.Menu.QOptions.QC:Value() and Ready(0) and self.Menu.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
