@@ -2,8 +2,9 @@ require "OpenPredict"
 
 local ChampTable =
 	{
-	["Kindred"] = true,
-	["Zyra"] = true,
+	["Kindred"] 	= true,
+	["Zyra"] 	= true,
+	["Poppy"] 	= true,
 	}
 
 Callback.Add("Load", function()
@@ -354,7 +355,7 @@ end
 
 function Zyra:Autolvl()
 	if self.Menu.M.AL:Value() ~= 3 then
-		if GetLevelPoints(myHero) == 1 then
+		if GetLevelPoints(myHero) >= 1 then
 			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
 			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
@@ -748,5 +749,320 @@ function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
 	
 	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
 		return true
+	end
+end
+
+class "Poppy"
+
+function Poppy:__init()
+
+	self.Spells =
+				{
+				[0] = { range = 430, speed = math.huge, delay = 0.25, width = 100},
+				[1] = { range = 400, mana = 50,},
+				[2] = { range = 425, push = 300, mana = 70, speed = 1150, delay = 0.25},
+				[3] = { range = 425, mana = 100, speed = 1150, delay = 0.25},--475
+				}
+
+	self.DashTable = 
+				{
+				["AAtrox"] 		= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Ahri"] 		= { SpellSlot = 3, type = "Untarget", 	Name = "R"},
+				["Akali"] 		= { SpellSlot = 3, type = "Target", 	Name = "R"},
+				["Alistar"] 	= { SpellSlot = 1, type = "Target", 	Name = "Q"},
+				--["Amumu"] 	= { SpellSlot = }
+				--["Aurelion"] 	= { SpellSlot = }
+				["Azir"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Braum"] 		= { SpellSlot = 1, type = "Target", 	Name = "W"},
+				["Caitlyn"] 	= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Corki"] 		= { SpellSlot = 1, type = "Untarget", 	Name = "W"},
+				["Diana"] 		= { SpellSlot = 3, type = "Target", 	Name = "R"},
+				["Ekko"]		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Fiora"] 		= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Fizz"]		= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Gnar"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Gragas"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Graves"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Hecarim"] 	= { SpellSlot = 3, type = "Untarget",	Name = "R"},
+				["Irelia"] 		= { SpellSlot = 0, type = "Target", 	Name = "Q"},
+				--["JarvanIV"] 	= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Jax"] 		= { SpellSlot = 0, type = "Target", 	Name = "Q"},
+				["Jayce"] 		= { SpellSlot = 0, type = "Target", 	Name = "Q"},
+				["Kalista"] 	= { SpellSlot = 0, type = "Target", 	Name = "Q"},
+				["Khazix"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Kindred"] 	= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["LeeSin"] 		= { SpellSlot = 0, type = "Target", 	Name = "Q"},
+				["Leona"] 		= { SpellSlot = 2, type = "Target", 	Name = "E"},
+				["Lucian"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Malphite"] 	= { SpellSlot = 3, type = "Untarget", 	Name = "R"},
+				["Nidalee"] 	= { SpellSlot = 1, type = "Untarget", 	Name = "W"},
+				["Nocturne"] 	= { SpellSlot = 3, type = "Target", 	Name = "R"},
+				--["Nocturne"]   	= {Spellslot = _R},
+				["Pantheon"] 	= { SpellSlot = 1, type = "Target", 	Name = "W"},
+				["Quinn"] 		= { SpellSlot = 2, type = "Target", 	Name = "E"},
+				["RekSai"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Renekton"] 	= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Riven"] 		= { SpellSlot = 1, type = "Untarget", 	Name = "Q"},
+				["Riven"]		= {	SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Sejuani"] 	= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Shen"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Shyvana"] 	= { SpellSlot = 3, type = "Untarget", 	Name = "R"},
+				--["Thresh"] 	= { SpellSlot = ?, type = "Target", 	Name = ?},
+				["Tristana"] 	= { SpellSlot = 2, type = "Untarget", 	Name = "W"},
+				["Tryndamere"] 	= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				["Vayne"] 		= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Vi"] 			= { SpellSlot = 0, type = "Untarget", 	Name = "Q"},
+				["Wukong"] 		= { SpellSlot = 2, type = "Target", 	Name = "E"},
+				["XinZhao"] 	= { SpellSlot = 2, type = "Target", 	Name = "E"},
+				["Yasuo"] 		= { SpellSlot = 2, type = "Target", 	Name = "E"},
+				["Zac"] 		= { SpellSlot = 2, type = "Untarget", 	Name = "E"},
+				}
+	
+	self.ChannelTable =
+				{
+			    ["Caitlyn"]         = { SpellSlot = 3, Name = "R"},
+			    ["FiddleSticks"]	= { SpellSlot = 1, Name = "W"},
+			    ["FiddleSticks"]	= { SpellSlot = 3, Name = "R"},
+			    ["Galio"]           = { SpellSlot = 3, Name = "R"},
+			    ["Janna"]           = { SpellSlot = 3, Name = "R"},
+				["Jhin"]			= { SpellSlot = 3, Name = "R"},
+			    ["Karthus"]         = { SpellSlot = 3, Name = "R"},
+			    ["Katarina"]        = { SpellSlot = 3, Name = "R"},
+			    ["Lucian"]          = { SpellSlot = 3, Name = "R"},
+			    ["Malzahar"]        = { SpellSlot = 3, Name = "R"},
+			    ["MissFortune"]     = { SpellSlot = 3, Name = "R"},
+			    ["Nunu"]            = { SpellSlot = 3, Name = "R"},                       
+			    ["Pantheon"]        = { SpellSlot = 3, Name = "R"},
+			    ["Shen"]            = { SpellSlot = 3, Name = "R"},
+			    ["TwistedFate"]    	= { SpellSlot = 3, Name = "R"},
+			    ["Urgot"]          	= { SpellSlot = 3, Name = "R"},
+			    ["Varus"]           = { SpellSlot = 0, Name = "R"},
+			    ["Velkoz"]          = { SpellSlot = 3, Name = "R"},
+			    ["Warwick"]         = { SpellSlot = 3, Name = "R"},
+			    ["Xerath"]        	= { SpellSlot = 3, Name = "R"},
+	
+				}
+	self.Object = nil
+	self.Flash = nil
+	self.Target = nil
+	if GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") then
+		self.Flash = SUMMONER_1
+	elseif GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") then
+		self.Flash = SUMMONER_2
+	else
+		self.Flash = nil
+	end
+
+	self.Menu = Menu("Poppy", "Poppy")
+
+	self.Menu:Menu("C", "Combo")
+	self.Menu.C:Boolean("Q", "Use Q", true)
+	self.Menu.C:Boolean("E", "Use E", true)
+	self.Menu.C:Boolean("R", "Use R", true)
+	self.Menu.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
+	self.Menu.C.ASC:Boolean("AS", "Auto Stun enable?", true)
+	self.Menu.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
+
+	self.Menu:Menu("H", "Harass")
+	self.Menu.H:Boolean("Q", "Use Q", true)
+	self.Menu.H:Boolean("E", "Use E", true)
+
+	self.Menu:Menu("LC", "LaneClear")
+	self.Menu.LC:Boolean("Q", "Use Q", true)
+	self.Menu.LC:Slider("MM", "Mana manager", 50, 1, 100)
+
+	self.Menu:Menu("JC", "JunglerClear")
+	self.Menu.JC:Boolean("Q", "Use Q", true)
+	self.Menu.JC:Boolean("E", "Use E", true)
+	self.Menu.JC:Slider("MM", "Mana manager", 50, 1, 100)
+
+
+	self.Menu:Menu("M", "Misc")
+	self.Menu.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	self.Menu.M:DropDown("S", "Skin", 1, {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"})
+
+	self.Menu:Menu("Orb", "Hotkeys")
+	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+
+	self.Menu:Menu("F", "Fuck Dashes")
+
+	self.Menu:Menu("ASA", "Auto Stun")
+	self.Menu.ASA:Boolean("AS", "Auto Stun enable?")
+	self.Menu.ASA:KeyBinding("T", "Flash-Stun", string.byte("T"), false)
+
+	self.Menu:Menu("IN", "Interrupt")
+
+	DelayAction(function()
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if self.DashTable[GetObjectName(enemies)] then 
+				self.Menu.F:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." Dash "..self.DashTable[GetObjectName(enemies)].Name, true)
+			end
+			if self.ChannelTable[GetObjectName(enemies)] then
+				self.Menu.IN:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." _"..self.ChannelTable[GetObjectName(enemies)].Name, true)
+			end
+
+			self.Menu.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+			self.Menu.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+		end
+	end, 0.1)
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
+end
+
+function Poppy:Tick(myHero)
+	self:Stun()
+	self:Insec()
+	self:SkinChanger()
+	self:Autolvl()
+	self.Target = GetCurrentTarget()
+	if self.Menu.Orb.C:Value() then
+		self:Combo(self.Target)
+	end
+	if self.Menu.Orb.H:Value() then
+		self:Harass(self.Target)
+	end
+	if self.Menu.Orb.LC:Value() then
+		self:LaneClear()
+	end
+end
+
+function Poppy:SkinChanger()
+	if self.Menu.Misc.S:Value() ~= 8 then 
+		HeroSkinChanger(myHero, self.Menu.Misc.S:Value() - 1)
+	elseif self.Menu.Misc.S:Value() == 8 then
+		HeroSkinChanger(myHero, 0)
+	end
+end
+
+function Poppy:Combo(Unit)
+	if ValidTarget(Unit, 200) then
+		self:UseQ(Unit)
+		self:UseE(Unit)
+		self:UseR(Unit)
+	elseif ValidTarget(Unit, 400) then
+		self:UseE(Unit)
+		DelayAction(function() self:UseQ(Unit) end, GetDistance(Unit)/self.Spells[2].speed)
+		self:UseR(Unit)
+	end
+end
+
+function Poppy:Harass(Unit)
+	if ValidTarget(Unit, GetRange(myHero)) then
+		self:UseQ(Unit)
+		self:UseE(Unit)
+	elseif ValidTarget(Unit, 400) then
+		self:UseE(Unit)
+		DelayAction(function() self:UseQ(Unit) end, GetDistance(Unit)/self.Spells[2].speed)
+	end
+end
+
+function Poppy:LaneClear()
+	local QMana = (30+5*GetCastLevel(myHero, 0)*100)/GetMaxMana(myHero)
+	local EMana = (self.Spells[2].mana*100)/GetMaxMana(myHero)
+	for _, mobs in pairs(minionManager.objects) do
+		if ValidTarget(mobs, 400) then
+			if GetTeam(mobs) == 200 then
+				if Ready(0) and self.Menu.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
+					CastSkillShot(0, GetOrigin(mobs))
+				end
+			elseif GetTeam(mobs) == 300 then
+				local MyPos = GetOrigin(myHero) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*GetDistance(mobs) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*325
+				if Ready(0) and self.Menu.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
+					CastSkillShot(0, GetOrigin(mobs))
+				end
+				if Ready(2) and self.Menu.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= self.Menu.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
+						CastTargetSpell(mobs, 2)
+				end
+			end
+		end
+	end
+end
+
+function Poppy:UseQ(Unit)
+	local Q = GetPrediction(Unit, self.Spells[0])
+	if Ready(0) and ValidTarget(Unit, self.Spells[0].range) and self.Menu.C.Q:Value() and Q and Q.hitChance >= 0.20 then
+		CastSkillShot(0, Q.castPos)
+	end
+end
+
+function Poppy:UseE(Unit)
+	if Ready(2) and ValidTarget(Unit, self.Spells[2].range) and self.Menu.C.E:Value() then
+		CastTargetSpell(Unit, 2)
+	end
+end
+
+function Poppy:UseR(Unit)
+	local R = GetPrediction(Unit, self.Spells[3])
+	if Ready(3) and ValidTarget(Unit, 425) and self.Menu.C.R:Value() and R and R.hitChance >= 0.20 then
+		CastSkillShot(3, GetOrigin(myHero))
+		DelayAction(function()
+			CastSkillShot2(3, R.castPos)
+		end, 0.1)
+	end
+end
+
+function Poppy:Stun()
+	for _, enemies in pairs(GetEnemyHeroes()) do
+		local MousePos = GetMousePos()
+		local MyPos = GetOrigin(myHero) + Vector(GetOrigin(enemies) - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(GetOrigin(enemies) - Vector(GetOrigin(myHero))):normalized()*325
+		local MyMousePos = MousePos + Vector(GetOrigin(enemies) - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(GetOrigin(enemies) - Vector(MousePos)):normalized()*325
+		if ValidTarget(enemies, 400) and Ready(2) then
+			if not self.Menu.ASA.AS:Value() and self.Menu.C.ASC.AS:Value() and self.Menu.C.ASC["Pleb"..GetObjectName(enemies)] and self.Menu.Orb.C:Value() and MapPosition:inWall(MyPos) then
+				CastTargetSpell(enemies, 2)
+			elseif self.Menu.ASA.AS:Value() and not self.Menu.C.ASC.AS:Value() and self.Menu.AS["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
+				CastTargetSpell(enemies, 2)
+			end
+		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and self.Menu.ASA.T:Value() and Ready(2) then
+			CastSkillShot(self.Flash, MousePos)
+			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
+		end
+
+	end
+end
+
+function Poppy:OnProc(Object, spellProc)
+	for i, enemies in pairs(GetEnemyHeroes()) do
+		DelayAction(function()
+			if self.DashTable[GetObjectName(enemies)] then
+				if self.DashTable[GetObjectName(enemies)].type == "Untarget" then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
+						CastSpell(1)
+					end
+				elseif self.DashTable[GetObjectName(enemies)].type == "Target" then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
+						CastSpell(1)
+					end
+				end
+			end
+			if self.ChannelTable[GetObjectName(enemies)] then
+				if spellProc.name == GetCastName(enemies, self.ChannelTable[GetObjectName(enemies)].SpellSlot) and ValidTarget(enemies, 400) and Ready(2) then
+					CastTargetSpell(enemies, 2)
+				end
+			end
+		end, 0.1)
+	end
+end
+
+function Poppy:Insec()
+	for _, enemies in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemies, 400) and Ready(2) and self.Menu.C.I:Value() then
+			local FlashPos = GetOrigin(myHero) + Vector(GetOrigin(enemies)-Vector(GetOrigin(myHero))):normalized()*425
+			CastSkillShot(self.Flash, FlashPos)
+			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
+		end
+	end
+end
+
+function Poppy:Autolvl()
+	if self.Menu.M.AL:Value() ~= 3 then
+		if GetLevelPoints(myHero) >= 1 then
+			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
+			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
+			end
+			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
+		end
 	end
 end
