@@ -425,10 +425,10 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 	for i, enemies in pairs(GetEnemyHeroes()) do
 		if GetOrigin(enemies) ~= nil and ValidTarget(enemies, 700) then
 		local hit = EnemiesAround(GetOrigin(enemies), 500)
-			if hit > BestHit and GetDistance(enemies) < 700 then
-				BestHit = hit
-				BestPos = Vector(enemies)
-				if BestHit == #GetEnemyHeroes() then
+			if hit > BestRHit and GetDistance(enemies) < 700 then
+				BestRHit = hit
+				BestRPos = Vector(enemies)
+				if BestRHit == #GetEnemyHeroes() then
 					break
 				end
 			end
