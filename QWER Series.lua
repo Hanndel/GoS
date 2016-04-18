@@ -13,7 +13,7 @@ Callback.Add("Load", function()
 	else
 		PrintChat(GetObjectName(myHero).." Is not supported!")
 	end
-	if GetObjectName(myHero) == "Kindred" then
+	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" then
 		require('MapPositionGOS')
 	end
 	Start()
