@@ -1006,20 +1006,20 @@ end
 
 function Poppy:Stun()
 	for _, enemies in pairs(GetEnemyHeroes()) do
+		local E = GetPrediction(enemies, self.Spells[2])
 		local MousePos = GetMousePos()
-		local MyPos = GetOrigin(myHero) + Vector(GetOrigin(enemies) - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(GetOrigin(enemies) - Vector(GetOrigin(myHero))):normalized()*325
-		local MyMousePos = MousePos + Vector(GetOrigin(enemies) - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(GetOrigin(enemies) - Vector(MousePos)):normalized()*325
+		local MyPos = GetOrigin(myHero) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*325
+		local MyMousePos = MousePos + Vector(E.castPos - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(E.castPos - Vector(MousePos)):normalized()*325
 		if ValidTarget(enemies, 400) and Ready(2) then
 			if not self.Menu.ASA.AS:Value() and self.Menu.C.ASC.AS:Value() and self.Menu.C.ASC["Pleb"..GetObjectName(enemies)] and self.Menu.Orb.C:Value() and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
-			elseif self.Menu.ASA.AS:Value() and not self.Menu.C.ASC.AS:Value() and self.Menu.AS["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
+			elseif self.Menu.ASA.AS:Value() and not self.Menu.C.ASC.AS:Value() and self.Menu.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
 			end
 		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and self.Menu.ASA.T:Value() and Ready(2) then
 			CastSkillShot(self.Flash, MousePos)
 			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
 		end
-
 	end
 end
 
