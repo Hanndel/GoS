@@ -5,6 +5,7 @@ local ChampTable =
 	["Kindred"] 	= true,
 	["Zyra"] 	= true,
 	["Poppy"] 	= true,
+	["Elise"]	= true,
 	}
 
 Callback.Add("Load", function()
@@ -19,7 +20,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.91"
+local ver = "0.92"
 
 class "Start"
 
@@ -1063,6 +1064,295 @@ function Poppy:Autolvl()
 			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
 			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
+		end
+	end
+end
+
+class "Elise"
+
+function Elise:__init()
+
+	self.HSpells =
+				{
+				[0] = {range = 625},
+				[1] = {range = 950},
+				[2] = {range = 1075, width = 70, speed = 1450, delay = 0.250}
+				}
+
+	self.SSpells =
+				{
+				[0] = {range = 475},
+				[2] = {range = 750},
+				}
+	self.HDmg =
+				{
+				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
+				[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
+				}
+	self.SDmg = 
+				{
+				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
+				}
+
+	self.HReady =
+			{
+			[0] = true,
+			[1] = true,
+			[2] = true,
+			}
+	self.SReady =
+			{
+			[0] = true,
+			[1] = true,
+			[2] = true,
+			}
+	self.Spots = 
+			{
+			{x = 8414, y = 51, z = 2711},
+			{x = 7750, y = 54, z = 3979},
+			{x = 6969, y = 52, z = 5414},
+			{x = 3791, y = 52, z = 6484},
+			{x = 3800, y = 52, z = 7953},
+			{x = 2121, y = 51, z = 8432},
+			{x = 6472, y = 56, z = 12168},
+			{x = 7050, y = 56, z = 10881},
+			{x = 7850, y = 52, z = 9415},
+			{x = 10987, y = 62, z = 8370},
+			{x = 10869, y = 51, z = 7034},
+			{x = 12654, y = 51, z = 6407},	
+			}
+	self.Spider = nil
+	self.WBuff = nil
+
+	self.Menu = Menu("Elise", "Elise")
+
+	self.Menu:Menu("C", "Combo")
+	self.Menu.C:Boolean("Q", "Use Human Q in Combo", true)
+	self.Menu.C:Boolean("W", "Use Human W in Combo", true)
+	self.Menu.C:Boolean("SQ", "Use Spider Q in Combo", true)
+	self.Menu.C:Boolean("SW", "Use Spider W in Combo", true)
+	self.Menu.C:Boolean("S", "Use Logic R Combo", true)
+
+	self.Menu:Menu("JC", "JunglerClear")
+	self.Menu.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
+	self.Menu.JC:Boolean("W", "Use Human W in JunglerClear", true)
+	self.Menu.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
+	self.Menu.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
+	self.Menu.JC:Boolean("S", "Use Logic R JunglerClear", true)
+
+	self.Menu:Menu("KS", "KillSteal")
+	self.Menu.KS:Boolean("Q", "Use Human Q in KillSteal", true)
+	self.Menu.KS:Boolean("W", "Use Human W in KillSteal", true)
+	self.Menu.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
+	self.Menu.KS:Boolean("SW", "Use Spider W in KillSteal", true)
+
+	self.Menu:Menu("M", "Misc")
+	self.Menu.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+
+	self.Menu:Menu("Orb", "Hotkeys")
+	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	--self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+
+	self.Menu:Menu("E", "E Options")
+
+	self.Menu:Menu("HC", "HitChance")
+	self.Menu.HC:Slider("E", "E HitChance", 20, 1, 100)
+
+	DelayAction(function()
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			self.Menu.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
+		end
+	end, 0.1)
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnProcessSpell(function(unit, spellProc) self:OnProc(unit, spellProc) end)
+	OnUpdateBuff(function(unit, buffproc) self:OnUpdate(unit, buffproc) end)
+	OnRemoveBuff(function(unit, buffproc) self:OnRemove(unit, buffproc) end)
+end
+
+function Elise:Tick(myHero)
+	if not IsDead(myHero) then
+		if self.Menu.Orb.C:Value() then
+			self:Combo(GetCurrentTarget())
+		end
+		if self.Menu.Orb.LC:Value() then
+			self:LaneClear()
+		end
+		self:KS()
+	end
+end
+
+function Elise:Combo(Unit)
+	if not self.Spider then
+		self:CastQ(Unit)
+		self:CastW(Unit)
+		self:CastE()
+		if not self.Spider and not self.HReady[0] and not self.HReady[1] and (self.HReady[2] or not self.HReady[2]) and self.SReady[0] and self.SReady[1] and Ready(3) then
+			CastSpell(3)
+		end
+	end
+	if not self.Spider and not Ready(3) then
+		local E = GetPrediction(Unit, self.HSpells[2])
+		self:CastQ(Unit)
+		self:CastW(Unit)
+		if self.HReady[2] and E and E.hitChance >= (self.Menu.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not self.Spider then
+			CastSkillShot(2, E.castPos)
+		end
+	end
+	if self.Spider and ValidTarget(Unit, self.SSpells[0].range) then
+		if self.SReady[0] then
+			CastTargetSpell(Unit, 0)
+		end
+		if self.SReady[1] then
+			CastSpell(1)
+		end
+		if Ready(3) and not self.WBuff and self.HReady[0] and self.HReady[1] and not self.SReady[0] and not self.SReady[1] then
+			CastSpell(3)
+		end
+	end
+end
+
+function Elise:LaneClear()
+	for k, mobs in pairs(minionManager.objects) do
+		if GetTeam(mobs) == 300 and ValidTarget(mobs, self.HSpells[2].range) then
+			if self.Spider then
+				if self.SReady[1] then
+					CastSpell(1)
+				end
+				if self.SReady[0] then
+					CastTargetSpell(mobs, 0)
+				end
+			end
+			if not self.Spider then
+				self:CastQ(mobs)
+				self:CastW(mobs)
+				if not self.Spider and not self.HReady[0] and not self.HReady[1] then
+					CastSpell(3)
+				end
+			end
+		elseif GetTeam(mobs) == 200 and ValidTarget(mobs, self.HSpells[2].range) then
+			if self.Spider then
+				if self.SReady[1] then
+					CastSpell(1)
+				end
+				if self.SReady[0] then
+					CastTargetSpell(mobs, 0)
+				end
+			elseif not self.Spider then
+				self:CastQ(mobs)
+				self:CastW(mobs)
+				if not self.Spider and not self.HReady[0] and not self.HReady[1] then
+					CastSpell(3)
+				end
+			end
+		end
+	end
+end
+
+function Elise:KS()
+	for k, enemies in pairs(GetEnemyHeroes()) do
+		if ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and GetCurrentHP(enemies) <= self.HDmg[0](enemies) then
+			self:CastQ(enemies)
+		elseif ValidTarget(enemies, self.HSpells[1].range) and self.HReady[1] and GetCurrentHP(enemies) <= self.HDmg[1](enemies) then
+			self:CastW(enemies)
+		elseif ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and self.HReady[1] and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) then
+			self:CastW(enemies)
+			DelayAction(function() self:CastW(enemies) end, GetDistance(enemies)/1200)
+		elseif ValidTarget(enemies, self.SSpells[0].range) and not self.Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) + self.SDmg[0](enemies) then
+			self:CastW(enemies)
+			self:CastQ(enemies)
+			DelayAction(function() CastSpell(3) end, 0.1)
+			DelayAction(function() self:CastSQ(enemies) end, 0.3)
+		elseif ValidTarget(enemies, self.SSpells[0].range) and self.Spider and self.SReady[0] and GetCurrentHP(enemies) <= self.SDmg[0](enemies) then
+			self:CastSQ(enemies)
+		end
+	end
+end
+
+function Elise:CastQ(Unit)
+	if self.HReady[0] and ValidTarget(Unit, self.HSpells[0].range) then
+		CastTargetSpell(Unit, 0)
+	end
+end
+
+function Elise:CastW(Unit)
+	local W = GetPrediction(Unit, self.HSpells[1])
+	if self.HReady[1] and ValidTarget(Unit, self.HSpells[1].range) then
+		CastSkillShot(1, W.castPos)
+	end
+end
+
+function Elise:CastE()
+	if not self.Spider then
+		for k, enemies in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemies, self.HSpells[2].range) then
+				local E = GetPrediction(enemies, self.HSpells[2])
+				if self.Menu.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (self.Menu.HC.E:Value())/100 and not E:mCollision(1) then
+					CastSkillShot(2, E.castPos)
+				end
+			end
+		end
+	end
+end
+
+function Elise:Autolvl()
+	if self.Menu.M.AL:Value() ~= 3 then
+		if GetLevelPoints(myHero) >= 1 then
+			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
+			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
+			end
+			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
+		end
+	end
+end
+
+--[[function Elise:CastSE()
+
+end]]
+
+function Elise:OnProc(unit, spellProc)
+	if unit == myHero then
+		if spellProc.name == "EliseHumanQ" then
+			self.HReady[0] = false
+			DelayAction(function() self.HReady[0] = true end, (6*100-GetCDR(myHero))/100)
+		elseif spellProc.name == "EliseHumanW" then
+			self.HReady[1] = false
+			DelayAction(function() self.HReady[1] = true end, (12*100-GetCDR(myHero))/100)
+		elseif spellProc.name == "EliseHumanE" then
+			self.HReady[2] = false
+			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
+		elseif spellProc.name == "EliseSpiderQCast" then
+			self.SReady[0] = false
+			DelayAction(function() self.SReady[0] = true end, (6*100-GetCDR(myHero))/100)
+		elseif spellProc.name == "EliseSpiderW" then
+			self.SReady[1] = false
+			DelayAction(function() self.SReady[1] = true end, (12*100-GetCDR(myHero))/100)
+		elseif spellProc.name == "EliseSpiderEInitial" then
+			self.SReady[2] = false
+			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
+		end
+	end
+end
+
+function Elise:OnUpdate(unit, buffproc)
+	if unit == myHero then
+		if buffproc.Name == "EliseR" then
+			self.Spider = true
+		end
+		if buffproc.Name == "EliseSpiderW" then
+			self.WBuff = true
+		end
+	end
+end
+
+function Elise:OnRemove(unit, buffproc)
+	if unit == myHero then
+		if buffproc.Name == "EliseR" then
+			self.Spider = false
+		end
+		if buffproc.Name == "EliseSpiderW" then
+			self.WBuff = false
 		end
 	end
 end
