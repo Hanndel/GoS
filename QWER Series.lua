@@ -20,7 +20,7 @@ Callback.Add("Load", function()
 	Start()
 end)
 
-local ver = "0.92"
+local ver = "0.93"
 
 class "Start"
 
@@ -1321,7 +1321,7 @@ function Elise:OnProc(unit, spellProc)
 			DelayAction(function() self.HReady[1] = true end, (12*100-GetCDR(myHero))/100)
 		elseif spellProc.name == "EliseHumanE" then
 			self.HReady[2] = false
-			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
+			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))/100)
 		elseif spellProc.name == "EliseSpiderQCast" then
 			self.SReady[0] = false
 			DelayAction(function() self.SReady[0] = true end, (6*100-GetCDR(myHero))/100)
@@ -1330,7 +1330,7 @@ function Elise:OnProc(unit, spellProc)
 			DelayAction(function() self.SReady[1] = true end, (12*100-GetCDR(myHero))/100)
 		elseif spellProc.name == "EliseSpiderEInitial" then
 			self.SReady[2] = false
-			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
+			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))/100)
 		end
 	end
 end
