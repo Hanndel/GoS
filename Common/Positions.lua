@@ -1,6 +1,6 @@
 local Output = io.open(SCRIPT_PATH.."PositionsXYZ.txt", "a+")
 
-function GetPos(pos)
+function GetPos()
 		local PosX = myHero.pos.x 
 		local PosY = myHero.pos.y
 		local PosZ = myHero.pos.z
