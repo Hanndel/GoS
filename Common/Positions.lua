@@ -1,24 +1,22 @@
 local Output = io.open(SCRIPT_PATH.."PositionsXYZ.txt", "a+")
 
-
-local TablePos = {}--Positions here, separe them as a normal table :nod:
-
 function GetPos(pos)
-	if pos then
-		local PosX = pos.x 
-		local PosY = pos.y
-		local PosZ = pos.z
-		Output:write(string.format("Pos X: %s,Pos Y: %s, PosZ: %s", PosX, PosY, PosZ),"\n")
-		Output:write("\n")
-	end
+		local PosX = myHero.pos.x 
+		local PosY = myHero.pos.y
+		local PosZ = myHero.pos.z
+		local MPosX = GetMousePos().x 
+		local MPosY = GetMousePos().y
+		local MPosZ = GetMousePos().z
+	Output:write(string.format("myHero Pos X: %s, myHero Pos Y: %s, myHero Pos Z: %s", PosX, PosY, PosZ),"\n")
+	Output:write(string.format("Mouse Pos X: %s, Mouse Pos Y: %s, Mouse Pos Z: %s", MPosX, MPosY, MPosZ),"\n")	
+	Output:write("\n")
 end
 
 
 OnWndMsg(function(msg, wParam)
 	if msg == 513 then
-		for k, i in pairs(TablePos) do
-			GetPos(i)
-		end
-		print("writing "..#TablePos.." positions, please, wait")
+		GetPos()
+		print"writing positions, please, wait"
+		print"done!, press F6x2"
 	end
 end)
