@@ -3,12 +3,13 @@ require "OpenPredict"
 local ChampTable =
 	{
 	["Kindred"] 	= true,
-	["Zyra"] 	= true,
-	["Poppy"] 	= true,
-	["Elise"]	= true,
+	["Zyra"] 		= true,
+	["Poppy"] 		= true,
+	["Elise"]	 	= true,
 	}
 
 Callback.Add("Load", function()
+	Start()
 	if ChampTable[GetObjectName(myHero)] then
 		_G[GetObjectName(myHero)]()
 	else
@@ -17,10 +18,10 @@ Callback.Add("Load", function()
 	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" then
 		require('MapPositionGOS')
 	end
-	Start()
+	TargetSelector()
 end)
 
-local ver = "0.93"
+local ver = "0.94"
 
 class "Start"
 
@@ -37,6 +38,10 @@ function Start:__init()
    		end
 	end
 	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
+	local myName = myHero.charName
+	MainMenu = MenuConfig("QWER Series", "QWER Series")
+		MainMenu:Menu("T", "TargetSelector")
+		MainMenu:Menu("Champ", "QWER "..myName)
 end
 
 
@@ -71,70 +76,64 @@ function Zyra:__init()
 	self.DebuffTable = {5, 8, 11, 21, 22, 24, 28, 29, 30}
 	self.IsTargetFucked = false
 
-self.Menu = MenuConfig("Zyra", "Zyra")
 
-self.Menu:Menu("C", "Combo")
-self.Menu.C:Boolean("Q", "Use Q", true)
-self.Menu.C:Boolean("W", "Use W", true)
-self.Menu.C:Boolean("E", "Use E", true)
-self.Menu.C:Boolean("R", "Use R", true)
-self.Menu.C:Slider("ER", "Enemies to R", 3, 0, 5)
-self.Menu.C:Boolean("P", "Use Passive", true)
+MainMenu.Champ:Menu("C", "Combo")
+MainMenu.Champ.C:Boolean("Q", "Use Q", true)
+MainMenu.Champ.C:Boolean("W", "Use W", true)
+MainMenu.Champ.C:Boolean("E", "Use E", true)
+MainMenu.Champ.C:Boolean("R", "Use R", true)
+MainMenu.Champ.C:Slider("ER", "Enemies to R", 3, 0, 5)
+MainMenu.Champ.C:Boolean("P", "Use Passive", true)
 
-self.Menu:Menu("H", "Harass")
-self.Menu.H:Boolean("Q", "Use Q", true)
-self.Menu.H:Boolean("E", "Use E", true)
+MainMenu.Champ:Menu("H", "Harass")
+MainMenu.Champ.H:Boolean("Q", "Use Q", true)
+MainMenu.Champ.H:Boolean("E", "Use E", true)
 
-self.Menu:Menu("LC", "LaneClear")
-self.Menu.LC:Boolean("Q", "Use Q", true)
-self.Menu.LC:Boolean("E", "Use E", true)
+MainMenu.Champ:Menu("LC", "LaneClear")
+MainMenu.Champ.LC:Boolean("Q", "Use Q", true)
+MainMenu.Champ.LC:Boolean("E", "Use E", true)
 
-self.Menu:Menu("KS", "KillSteal")
-self.Menu.KS:Boolean("Q", "Use Q", true)
-self.Menu.KS:Boolean("E", "Use E", true)
-self.Menu.KS:Boolean("R", "Use R", true)
+MainMenu.Champ:Menu("KS", "KillSteal")
+MainMenu.Champ.KS:Boolean("Q", "Use Q", true)
+MainMenu.Champ.KS:Boolean("E", "Use E", true)
+MainMenu.Champ.KS:Boolean("R", "Use R", true)
 if self.Ignite ~= nil then
-self.Menu.KS:Boolean("IG", "Use Ignite", true)
+MainMenu.Champ.KS:Boolean("IG", "Use Ignite", true)
 end
 
-self.Menu:Menu("SO", "Seed Options")
-self.Menu.SO:Boolean("QS", "Logic Q Seeds?", true)
-self.Menu.SO:SubMenu("QSM", "No logic seeds Q")
-self.Menu.SO.QSM:Slider("QSM", "Seeds to use in Q?", 1, 1, 2)
-self.Menu.SO.QSM:Slider("DTS", "Distance to 2 seeds", 1, 500, 850)
-self.Menu.SO.QSM:Info("a", "Desactivate Logic Q Seeds")
-self.Menu.SO:Boolean("ES", "Logic E Seeds?", true)
-self.Menu.SO:SubMenu("ESM", "No logic seeds E")
-self.Menu.SO.ESM:Slider("ESM", "Seeds to use in E?", 1, 1, 2)
-self.Menu.SO.ESM:Info("a", "Desactivate Logic E Seeds")
+MainMenu.Champ:Menu("SO", "Seed Options")
+MainMenu.Champ.SO:Boolean("QS", "Logic Q Seeds?", true)
+MainMenu.Champ.SO:SubMenu("QSM", "No logic seeds Q")
+MainMenu.Champ.SO.QSM:Slider("QSM", "Seeds to use in Q?", 1, 1, 2)
+MainMenu.Champ.SO.QSM:Slider("DTS", "Distance to 2 seeds", 1, 500, 850)
+MainMenu.Champ.SO.QSM:Info("a", "Desactivate Logic Q Seeds")
+MainMenu.Champ.SO:Boolean("ES", "Logic E Seeds?", true)
+MainMenu.Champ.SO:SubMenu("ESM", "No logic seeds E")
+MainMenu.Champ.SO.ESM:Slider("ESM", "Seeds to use in E?", 1, 1, 2)
+MainMenu.Champ.SO.ESM:Info("a", "Desactivate Logic E Seeds")
 
-self.Menu:Menu("Orb", "Hotkeys")
-self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+MainMenu.Champ:Menu("Orb", "Hotkeys")
+MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-self.Menu:Menu("HC", "Hit chance")
-self.Menu.HC:Slider("Q", "Q Predict", 20, 1, 100)
-self.Menu.HC:Slider("E", "E Predict", 20, 1, 100)
-self.Menu.HC:Slider("R", "R Predict", 20, 1, 100)
-self.Menu.HC:Slider("P", "P Predict", 20, 1, 100)
+MainMenu.Champ:Menu("HC", "Hit chance")
+MainMenu.Champ.HC:Slider("Q", "Q Predict", 20, 1, 100)
+MainMenu.Champ.HC:Slider("E", "E Predict", 20, 1, 100)
+MainMenu.Champ.HC:Slider("R", "R Predict", 20, 1, 100)
+MainMenu.Champ.HC:Slider("P", "P Predict", 20, 1, 100)
 
-self.Menu:Menu("D", "Draw")
---[[self.Menu.D:SubMenu("DD", "Draw Damage")
-self.Menu.D.DD:Boolean("D", "Draw?", true)
-self.Menu.D.DD:Boolean("DQ", "Draw Q dmg", true)
-self.Menu.D.DD:Boolean("DE", "Draw E dmg", true)
-self.Menu.D.DD:Boolean("DR", "Draw R dmg", true)]]
-self.Menu.D:SubMenu("DR", "Draw Range")
-self.Menu.D.DR:Boolean("D", "Draw?", true)
-self.Menu.D.DR:Boolean("DQ", "Draw Q range", true)
-self.Menu.D.DR:Boolean("DE", "Draw E range", true)
-self.Menu.D.DR:Boolean("DR", "Draw R range", true)
-self.Menu.D.DR:Slider("DH", "Quality", 155, 1, 475)
+MainMenu.Champ:Menu("D", "Draw")
+MainMenu.Champ.D:SubMenu("DR", "Draw Range")
+MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
+MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
+MainMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
+MainMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
+MainMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
-self.Menu:Menu("M", "Misc")
-self.Menu.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
-self.Menu.M:DropDown("S", "Skin", 1, {"Classic", "Wildire", "Haunted", "Skt", "Off"})
+MainMenu.Champ:Menu("M", "Misc")
+MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+MainMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Wildire", "Haunted", "Skt", "Off"})
 
 
 OnTick(function(myHero) self:Tick() end)
@@ -148,11 +147,11 @@ end
 function Zyra:Tick()
 	self.Target = GetCurrentTarget()
 	if not IsDead(myHero) then
-		if self.Menu.Orb.C:Value() then
+		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.Target)
-		elseif self.Menu.Orb.H:Value() then
+		elseif MainMenu.Champ.Orb.H:Value() then
 			self:Harass(self.Target)
-		elseif self.Menu.Orb.LC:Value() then
+		elseif MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 		if self:Passiveup() then
@@ -164,59 +163,39 @@ function Zyra:Tick()
 end
 
 function Zyra:Draw()
-	--[[if self.Menu.D.DR.D:Value() then
-		for _, enemy in pairs(GetEnemyHeroes()) do
-		local Qdmg = self.Dmg[0](enemy)
-		local Edmg = self.Dmg[2](enemy)
-		local Rdmg = self.Dmg[3](enemy)
-		local Tdmg = Qdmg + Edmg + Rdmg
-		if Tdmg < GetCurrentHP(enemy) then
-			if self.Menu.D.DD.DQ:Value() and ValidTarget(enemy, 800) and Ready(0) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Qdmg,GoS.Red)
-			end
-			if self.Menu.D.DD.DE:Value() and ValidTarget(enemy, 1100) and Ready(2) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Edmg,GoS.Blue)
-			end
-			if self.Menu.D.DD.DR:Value() and ValidTarget(enemy, 700) and Ready(3) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Rdmg,GoS.Pink)
-			end
-		else 
-			DrawText("Killiable!",12,enemy.x,enemy.y,GoS.White)
-		end
-	end]]
-	if self.Menu.D.DR.D:Value() then
-		if self.Menu.D.DR.DQ:Value() and Ready(0) then
-			DrawCircle(GetOrigin(myHero), 800, 1, self.Menu.D.DR.DH:Value(), GoS.Red)
+	if MainMenu.Champ.D.DR.D:Value() then
+		if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
+			DrawCircle(GetOrigin(myHero), 800, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
 		end
 
-		if self.Menu.D.DR.DE:Value() and Ready(2) then
-			DrawCircle(GetOrigin(myHero), 1100, 1, self.Menu.D.DR.DH:Value(), GoS.Blue)
+		if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
+			DrawCircle(GetOrigin(myHero), 1100, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
 		end
 
-		if self.Menu.D.DR.DR:Value() and Ready(3) then
-			DrawCircle(GetOrigin(myHero), 700, 1, self.Menu.D.DR.DH:Value(), GoS.Pink)
+		if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
+			DrawCircle(GetOrigin(myHero), 700, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
 		end
 	end
 	self:SkinChanger()
 end
 
 function Zyra:Combo(Target)
-	if self.Menu.C.Q:Value() then
+	if MainMenu.Champ.C.Q:Value() then
 		self:CastQ(Target)
 	end
-	if self.Menu.C.E:Value() then
+	if MainMenu.Champ.C.E:Value() then
 		self:CastE(Target)
 	end
-	if self.Menu.C.R:Value() then
+	if MainMenu.Champ.C.R:Value() then
 		self:CastR(Target)
 	end
 end
 
 function Zyra:Harass(Target)
-	if self.Menu.C.Q:Value() then
+	if MainMenu.Champ.C.Q:Value() then
 		self:CastQ(Target)
 	end
-	if self.Menu.C.E:Value() then
+	if MainMenu.Champ.C.E:Value() then
 		self:CastE(Target)
 	end
 end
@@ -224,10 +203,10 @@ end
 function Zyra:LaneClear()
 	for _, mob in pairs(minionManager.objects) do
 		if ValidTarget(mob, 850) then
-			if self.Menu.LC.Q:Value() and Ready(0) then
+			if MainMenu.Champ.LC.Q:Value() and Ready(0) then
 				CastSkillShot(0, GetOrigin(mob))
 			end
-			if self.Menu.LC.E:Value() and Ready(2)  then
+			if MainMenu.Champ.LC.E:Value() and Ready(2)  then
 				CastSkillShot(2, GetOrigin(mob))
 			end
 		end
@@ -240,15 +219,15 @@ function Zyra:Ks()
 		local Q = GetCircularAOEPrediction(enemy, self.Spells[0])
 		local E = GetPrediction(enemy, self.Spells[2])
 		local R = GetCircularAOEPrediction(enemy, self.Spells[3])
-		if self.Menu.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (self.Menu.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy) then
+		if MainMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy) then
 			CastSkillShot(0, Q.castPos)
 		end
 
-		if self.Menu.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (self.Menu.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[2](enemy) then
+		if MainMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 		end
 
-		if self.Menu.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and self.Menu.KS.E:Value() and Q.hitChance >= (self.Menu.HC.Q:Value())/100 and E.hitChance >= (self.Menu.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy)+self.Dmg[2](enemy) then
+		if MainMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and MainMenu.Champ.KS.E:Value() and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy)+self.Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 			DelayAction(function() CastSkillShot(_Q, Q.castPos) end, GetDistance(enemy)/1500)
 		end
@@ -259,7 +238,7 @@ function Zyra:Ks()
 			end
 		end
 
-		if self:Passiveup() and Ready(0) and ValidTarget(enemy, 1400) and GetCurrentHP(enemy) <= self.Dmg[-3](enemy) and self.Menu.C.P:Value() and P.hitChance >= (self.Menu.HC.P:Value())/100 then
+		if self:Passiveup() and Ready(0) and ValidTarget(enemy, 1400) and GetCurrentHP(enemy) <= self.Dmg[-3](enemy) and MainMenu.Champ.C.P:Value() and P.hitChance >= (MainMenu.Champ.HC.P:Value())/100 then
 			CastSkillShot(0, P.castPos)
 		end
 	end
@@ -268,7 +247,7 @@ end
 function Zyra:CastP(Unit)
 	local P = GetCircularAOEPrediction(Unit, self.Spells[-3])
 	if self:Passiveup() then
-		if Ready(0) and P.hitChance >= (self.Menu.HC.P:Value())/100 and P then
+		if Ready(0) and P.hitChance >= (MainMenu.Champ.HC.P:Value())/100 and P then
 			CastSkillShot(0, P.castPos)
 		end
 	end
@@ -276,7 +255,7 @@ end
 
 function Zyra:CastQ(Unit)
 	local Q = GetCircularAOEPrediction(Unit, self.Spells[0])
-	if Ready(0) and ValidTarget(Unit, 800) and not ECast and Q.hitChance >= (self.Menu.HC.Q:Value())/100 and Q then
+	if Ready(0) and ValidTarget(Unit, 800) and not ECast and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and Q then
 		CastSkillShot(0, Q.castPos)
 		QCast = true
 		DelayAction(function() QCast = false end, 0.5)
@@ -286,44 +265,52 @@ end
 function Zyra:CastW(Point, Spell)
 	local q = 0
 	local e = 0
-	if self.IsTargetFucked and Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and self.Menu.SO.QS:Value() then
+	if self.IsTargetFucked and Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 		DelayAction(function() CastSkillShot(1, Point) end, 0.5)
 		
-	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) >= self.Menu.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and self.Menu.SO.QS:Value() then
+	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) >= MainMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 
-	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) <= self.Menu.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and self.Menu.SO.QS:Value() then
+	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) <= MainMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 		DelayAction(function() CastSkillShot(1, Point) end, 0.5)
 
-	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and self.Menu.SO.QS:Value() == false then
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() == false then
 		CastSkillShot(1, Point)
 		q = q+1
 		DelayAction(function()	
-			if q < self.Menu.SO.QSM.QSM:Value() then
+			if q < MainMenu.Champ.SO.QSM.QSM:Value() then
 				CastSkillShot(1, Point)
 				q = q+1
-				if q == self.Menu.SO.QSM.QSM:Value() then
+				if q == MainMenu.Champ.SO.QSM.QSM:Value() then
 					q = 0
 				end
 			else
 				q = 0
 			end
 		end, 0.5)
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() == false then
+		while q <= MainMenu.Champ.SO.QSM:Value() do
+			CastSkillShot(1, Point)
+			q = q+1
+			if q == MainMenu.Champ.SO.QSM:Value() then 
+				break
+			end
+		end
+		if q == MainMenu.Champ.SO.QSM:Value() then q = 0 end
 	end
-
-	if Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and self.Menu.SO.ES:Value() then
+	if Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and MainMenu.Champ.SO.ES:Value() then
 		CastSkillShot(1, Point)
 
-	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and self.Menu.SO.ES:Value() == false then
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and MainMenu.Champ.SO.ES:Value() == false then
 		CastSkillShot(1, Point)
 		e = e+1
 		DelayAction(function()	
-			if e < self.Menu.SO.ESM.ESM:Value() then
+			if e < MainMenu.Champ.SO.ESM.ESM:Value() then
 				CastSkillShot(1, Point)
 				e = e+1
-				if e == self.Menu.SO.ESM.ESM:Value() then
+				if e == MainMenu.Champ.SO.ESM.ESM:Value() then
 					e = 0
 				end
 			else
@@ -335,7 +322,7 @@ end
 
 function Zyra:CastE(Unit)
 	local E = GetPrediction(Unit, self.Spells[2])
-	if Ready(2) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (self.Menu.HC.E:Value())/100 and E then
+	if Ready(2) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and E then
 		CastSkillShot(2, E.castPos)
 		ECast = true
 		DelayAction(function() ECast = false end, GetDistance(self.Target)/self.Spells[3].speed)
@@ -344,21 +331,21 @@ end
 
 function Zyra:CastR(Unit)
 	local R = GetCircularAOEPrediction(Unit, self.Spells[3])
-	if Ready(3) and ValidTarget(Unit, 700) and R.hitChance >= (self.Menu.HC.R:Value())/100 and EnemiesAround(myHero, 1000) <= 2 and R then
+	if Ready(3) and ValidTarget(Unit, 700) and R.hitChance >= (MainMenu.Champ.HC.R:Value())/100 and EnemiesAround(myHero, 1000) <= 2 and R then
 		CastSkillShot(3, R.castPos)
 	elseif Ready(3) and ValidTarget(Unit, 700) and EnemiesAround(myHero, 1000) >= 2 then
 		local BestRPos, BestRHit = self:BestRPos()
-		if BestRPos and BestRHit >= self.Menu.C.ER:Value() then
+		if BestRPos and BestRHit >= MainMenu.Champ.C.ER:Value() then
 			CastSkillShot(3, BestRPos)
 		end
 	end
 end
 
 function Zyra:Autolvl()
-	if self.Menu.M.AL:Value() ~= 3 then
+	if MainMenu.Champ.M.AL:Value() ~= 3 then
 		if GetLevelPoints(myHero) >= 1 then
-			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
+			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
+			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
 			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
 		end
@@ -366,9 +353,9 @@ function Zyra:Autolvl()
 end
 
 function Zyra:SkinChanger()
-	if self.Menu.M.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, self.Menu.M.S:Value() - 1)
-	elseif self.Menu.M.S:Value() == 5 then
+	if MainMenu.Champ.M.S:Value() ~= 5 then 
+		HeroSkinChanger(myHero, MainMenu.Champ.M.S:Value() - 1)
+	elseif MainMenu.Champ.M.S:Value() == 5 then
 		HeroSkinChanger(myHero, 0)
 	end
 end
@@ -376,16 +363,16 @@ end
 function Zyra:OnProcComplete(Object, spellProc)
 	local EPos = nil
 	if Object == myHero then
-		if self.Menu.Orb.C:Value() then
+		if MainMenu.Champ.Orb.C:Value() then
 			if spellProc.name == GetCastName(myHero, 0) then
 				self:CastW(spellProc.endPos, GetCastName(myHero, 0))
 			elseif spellProc.name == GetCastName(myHero, 2) then
-				if self.Menu.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
+				if MainMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
 					EPos = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(self.Target)
 					self:CastW(EPos, GetCastName(myHero, 2))
 				end
 			end
-		elseif self.Menu.Orb.LC:Value() then
+		elseif MainMenu.Champ.Orb.LC:Value() then
 			if spellProc.name == GetCastName(myHero, 0) then
 				CastSkillShot(1, spellProc.endPos)
 				DelayAction(function() CastSkillShot(1, spellProc.endPos) end, 0.5)
@@ -426,10 +413,10 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 	for i, enemies in pairs(GetEnemyHeroes()) do
 		if GetOrigin(enemies) ~= nil and ValidTarget(enemies, 700) then
 		local hit = EnemiesAround(GetOrigin(enemies), 500)
-			if hit > BestRHit and GetDistance(enemies) < 700 then
-				BestRHit = hit
-				BestRPos = Vector(enemies)
-				if BestRHit == #GetEnemyHeroes() then
+			if hit > BestHit and GetDistance(enemies) < 700 then
+				BestHit = hit
+				BestPos = Vector(enemies)
+				if BestHit == #GetEnemyHeroes() then
 					break
 				end
 			end
@@ -477,65 +464,58 @@ function Kindred:__init()
 	self.Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
 	self.target = nil
 	
-	self.Menu = MenuConfig("Kindred", "Kindred")
-	self.Menu:Menu("Combo", "Combo")
-	self.Menu.Combo:Boolean("Q", "Use Q", true)
-	self.Menu.Combo:Boolean("W", "Use W", true)
-	self.Menu.Combo:Boolean("E", "Use E", true)
-	self.Menu.Combo:Boolean("QE", "Gapcloser", true)
+	MainMenu.Champ:Menu("Combo", "Combo")
+	MainMenu.Champ.Combo:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.Combo:Boolean("W", "Use W", true)
+	MainMenu.Champ.Combo:Boolean("E", "Use E", true)
+	MainMenu.Champ.Combo:Boolean("QE", "Gapcloser", true)
 
-	self.Menu:Menu("JunglerClear", "JunglerClear")
-	self.Menu.JunglerClear:Boolean("Q", "Use Q", true)
-	self.Menu.JunglerClear:Boolean("W", "Use W", true)
-	self.Menu.JunglerClear:Boolean("E", "Use E", true)
-	self.Menu.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
+	MainMenu.Champ:Menu("JunglerClear", "JunglerClear")
+	MainMenu.Champ.JunglerClear:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.JunglerClear:Boolean("W", "Use W", true)
+	MainMenu.Champ.JunglerClear:Boolean("E", "Use E", true)
+	MainMenu.Champ.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-	self.Menu:Menu("LaneClear", "LaneClear")
-	self.Menu.LaneClear:Boolean("Q", "Use Q", true)
-	self.Menu.LaneClear:Boolean("W", "Use W", true)
-	self.Menu.LaneClear:Boolean("E", "Use E", true)
-	self.Menu.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
+	MainMenu.Champ:Menu("LaneClear", "LaneClear")
+	MainMenu.Champ.LaneClear:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.LaneClear:Boolean("W", "Use W", true)
+	MainMenu.Champ.LaneClear:Boolean("E", "Use E", true)
+	MainMenu.Champ.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-	self.Menu:Menu("Orb", "Hotkeys")
-	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
---	self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	MainMenu.Champ:Menu("Orb", "Hotkeys")
+	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	self.Menu:Menu("Misc", "Misc")
-	self.Menu.Misc:DropDown("AL", "Priority", 1, {"Q-E-W","Q-E-W lv3 E","Q-W-E","Q-W-E lv3 E", "Off"})
-	self.Menu.Misc:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
-	self.Menu.Misc:Boolean("B", "Buy Farsight", true)
-	self.Menu.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
-	self.Menu.Misc:Key("WP", "Jumps", string.byte("G"))
+	MainMenu.Champ:Menu("Misc", "Misc")
+	MainMenu.Champ.Misc:DropDown("AL", "Priority", 1, {"Q-E-W","Q-E-W lv3 E","Q-W-E","Q-W-E lv3 E", "Off"})
+	MainMenu.Champ.Misc:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
+	MainMenu.Champ.Misc:Boolean("B", "Buy Farsight", true)
+	MainMenu.Champ.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
+	MainMenu.Champ.Misc:Key("WP", "Jumps", string.byte("G"))
 
-	self.Menu:Menu("ROptions", "R Options")
-	self.Menu.ROptions:Boolean("R", "Use R?", true)
-	self.Menu.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
-	self.Menu.ROptions:Boolean("RU", "Use R on urself", true)
+	MainMenu.Champ:Menu("ROptions", "R Options")
+	MainMenu.Champ.ROptions:Boolean("R", "Use R?", true)
+	MainMenu.Champ.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
+	MainMenu.Champ.ROptions:Boolean("RU", "Use R on urself", true)
 
-	self.Menu:Menu("QOptions", "Q Options")
-	self.Menu.QOptions:Boolean("QC", "AA reset Combo", true)
-	self.Menu.QOptions:Boolean("QL", "AA reset LaneClear", true)
-	self.Menu.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
-	self.Menu.QOptions:Boolean("C", "Cancel animation?", false)
+	MainMenu.Champ:Menu("QOptions", "Q Options")
+	MainMenu.Champ.QOptions:Boolean("QC", "AA reset Combo", true)
+	MainMenu.Champ.QOptions:Boolean("QL", "AA reset LaneClear", true)
+	MainMenu.Champ.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
+	MainMenu.Champ.QOptions:Boolean("C", "Cancel animation?", false)
 
-	self.Menu:Menu("D", "Draw")
-	--[[self.Menu.D:SubMenu("DD", "Draw Damage")
-	self.Menu.D.DD:Boolean("D", "Draw?", true)
-	self.Menu.D.DD:Boolean("DQ", "Draw Q dmg", true)
-	self.Menu.D.DD:Boolean("DE", "Draw E dmg", true)
-	self.Menu.D.DD:Boolean("DR", "Draw R dmg", true)]]
-	self.Menu.D:SubMenu("DR", "Draw Range")
-	self.Menu.D.DR:Boolean("D", "Draw?", true)
-	self.Menu.D.DR:Boolean("DQ", "Draw Q range", true)
-	self.Menu.D.DR:Boolean("DW", "Draw W range", true)
-	self.Menu.D.DR:Boolean("DE", "Draw E range", true)
-	self.Menu.D.DR:Boolean("DR", "Draw R range", true)
-	self.Menu.D.DR:Slider("DH", "Quality", 155, 1, 475)
+	MainMenu.Champ:Menu("D", "Draw")
+	MainMenu.Champ.D:SubMenu("DR", "Draw Range")
+	MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
+	MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
+	MainMenu.Champ.D.DR:Boolean("DW", "Draw W range", true)
+	MainMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
+	MainMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
+	MainMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
 	DelayAction(function()
 		for i, allies in pairs(GetAllyHeroes()) do
-			self.Menu.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
+			MainMenu.Champ.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
 		end
 	end, 0.001)
 end
@@ -543,28 +523,29 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		self.target = GetCurrentTarget()
+		self.target = CustomTarget
 
-		if self.Menu.Orb.C:Value() then
+		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
-		elseif self.Menu.Orb.LC:Value() then
+			PrintChat(GetObjectName(self.target))
+		elseif MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 
 		self:AutoR()
-		if self.Menu.Misc.FQ:Value() then
-			if Ready(0) and Ready(Flash) and self.Menu.Combo.Q:Value() then  
+		if MainMenu.Champ.Misc.FQ:Value() then
+			if Ready(0) and Ready(Flash) and MainMenu.Champ.Combo.Q:Value() then  
 				CastSkillShot(Flash, GetMousePos()) 
 					DelayAction(function() CastSkillShot(0, GetMousePos()) end, 1)					  
 			end
 		end
-		if self.Menu.Misc.WP:Value() then
+		if MainMenu.Champ.Misc.WP:Value() then
 			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and Ready(0) then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
 		self.Passive = GetBuffData(myHero,"kindredmarkofthekindredstackcounter").Stacks
-		if self.Menu.Misc.B:Value() then
+		if MainMenu.Champ.Misc.B:Value() then
 			if not self.Farsight and GetLevel(myHero) >= 9 and GetDistance(myHero,basePos) < 550 then
 				BuyItem(3363)
 				self.Farsight = true
@@ -575,20 +556,20 @@ function Kindred:Tick()
 end
 
 function Kindred:Draw()
-	if self.Menu.D.DR.D:Value() then
-		if self.Menu.D.DR.DQ:Value() and Ready(0) then
-			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, self.Menu.D.DR.DH:Value(), GoS.Red)
+	if MainMenu.Champ.D.DR.D:Value() then
+		if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
+			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
 		end
 
-		if self.Menu.D.DR.DW:Value() and Ready(1) then
-			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, self.Menu.D.DR.DH:Value(), GoS.Blue)
+		if MainMenu.Champ.D.DR.DW:Value() and Ready(1) then
+			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
 		end
 
-		if self.Menu.D.DR.DE:Value() and Ready(2) then
-			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, self.Menu.D.DR.DH:Value(), GoS.Pink)
+		if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
+			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
 		end
-			if self.Menu.D.DR.DR:Value() and Ready(3) then
-			DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, self.Menu.D.DR.DH:Value(), GoS.White)
+			if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
+			DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.White)
 		end
 	end
 	self:SkinChanger()
@@ -597,17 +578,17 @@ end
 function Kindred:Combo(Unit)
 local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*self.Spells[0].dash
 
-	if Ready(2) and Ready(0) and self.Menu.Combo.QE:Value() and GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
+	if Ready(2) and Ready(0) and MainMenu.Champ.Combo.QE:Value() and GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
 		CastSkillShot(0, GetMousePos())
 			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
 	end
-	if Ready(0) and self.Menu.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and self.Menu.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
+	if Ready(0) and MainMenu.Champ.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and MainMenu.Champ.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
     	CastSkillShot(0, GetMousePos()) 
 	end
-	if Ready(1) and self.Menu.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
+	if Ready(1) and MainMenu.Champ.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
 		CastSpell(1)
 	end
-	if Ready(2) and self.Menu.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
+	if Ready(2) and MainMenu.Champ.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
 		CastTargetSpell(Unit, 2)
 	end
 end
@@ -618,24 +599,24 @@ function Kindred:LaneClear()
 	local EMana = (self.Spells[2].mana*100)/GetMaxMana(myHero)
 	for _, mob in pairs(minionManager.objects) do	
 		if GetTeam(mob) == MINION_JUNGLE then
-			if self.Menu.QOptions.QJ:Value() == false and Ready(0) and self.Menu.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) and (GetPercentMP(myHero)- QMana) >= self.Menu.JunglerClear.MM:Value() then 
+			if MainMenu.Champ.QOptions.QJ:Value() == false and Ready(0) and MainMenu.Champ.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JunglerClear.MM:Value() then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and self.Menu.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= self.Menu.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
+			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and MainMenu.Champ.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= MainMenu.Champ.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
    				CastSpell(1)
     		end
-    		if Ready(2) and ValidTarget(mob, self.Spells[2].range) and self.Menu.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= self.Menu.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+    		if Ready(2) and ValidTarget(mob, self.Spells[2].range) and MainMenu.Champ.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
    				CastTargetSpell(mob, 2)
    			end
   	 	end
 		if GetTeam(mob) == MINION_ENEMY then
-			if self.Menu.QOptions.QL:Value() == false and Ready(0) and self.Menu.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
+			if MainMenu.Champ.QOptions.QL:Value() == false and Ready(0) and MainMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and self.Menu.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= self.Menu.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
+			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and MainMenu.Champ.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= MainMenu.Champ.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
 				CastSpell(1)
 			end
-			if Ready(2) and ValidTarget(mob, self.Spells[2].range) and self.Menu.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= self.Menu.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+			if Ready(2) and ValidTarget(mob, self.Spells[2].range) and MainMenu.Champ.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
 				CastTargetSpell(mob, 2)
 			end
 		end
@@ -643,25 +624,25 @@ function Kindred:LaneClear()
 end
 
 function Kindred:AutoR()
-	if self.Menu.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and Ready(1) then
+	if MainMenu.Champ.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and Ready(1) then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 20 and self.Menu.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= self.Menu.ROptions.EA:Value() then
+			if GetPercentHP(allies) <= 20 and MainMenu.Champ.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= MainMenu.Champ.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
-		if GetPercentHP(myHero) <= 20 and self.Menu.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= self.Menu.ROptions.EA:Value() then
+		if GetPercentHP(myHero) <= 20 and MainMenu.Champ.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= MainMenu.Champ.ROptions.EA:Value() then
 			CastTargetSpell(myHero, 3)
 		end
 	end
 end
 
 function Kindred:Autolvl()
-	if self.Menu.Misc.AL:Value() ~= 5 then 
+	if MainMenu.Champ.Misc.AL:Value() ~= 5 then 
   		if GetLevelPoints(myHero) >= 1 then
- 			if self.Menu.Misc.AL:Value() == 1 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
- 			elseif self.Menu.Misc.AL:Value() == 3 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
- 			elseif self.Menu.Misc.AL:Value() == 2 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
- 			elseif self.Menu.Misc.AL:Value() == 4 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+ 			if MainMenu.Champ.Misc.AL:Value() == 1 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+ 			elseif MainMenu.Champ.Misc.AL:Value() == 3 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
+ 			elseif MainMenu.Champ.Misc.AL:Value() == 2 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
+ 			elseif MainMenu.Champ.Misc.AL:Value() == 4 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
     		end 
   			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(500, 2000))
   		end 
@@ -669,9 +650,9 @@ function Kindred:Autolvl()
 end
 
 function Kindred:SkinChanger()
-	if self.Menu.Misc.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, self.Menu.Misc.S:Value() - 1)
-	elseif self.Menu.Misc.S:Value() == 5 then
+	if MainMenu.Champ.Misc.S:Value() ~= 5 then 
+		HeroSkinChanger(myHero, MainMenu.Champ.Misc.S:Value() - 1)
+	elseif MainMenu.Champ.Misc.S:Value() == 5 then
 		HeroSkinChanger(myHero, 0)
 	end
 end
@@ -680,17 +661,17 @@ function Kindred:OnProcComplete(unit, spell)
 	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
-			if self.Menu.Orb.LC:Value() then 
+			if MainMenu.Champ.Orb.LC:Value() then 
 				for _, mob in pairs(minionManager.objects) do	
-					if self.Menu.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and self.Menu.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.LaneClear.MM:Value() and Ready(0) then
+					if MainMenu.Champ.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and MainMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.LaneClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos())
 					end
-					if self.Menu.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and self.Menu.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.JunglerClear.MM:Value() and Ready(0) then
+					if MainMenu.Champ.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and MainMenu.Champ.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JunglerClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
-			elseif self.Menu.Orb.C:Value() then
-				if self.Menu.QOptions.QC:Value() and Ready(0) and self.Menu.Combo.Q:Value() and ValidTarget(self.target, 500) then
+			elseif MainMenu.Champ.Orb.C:Value() then
+				if MainMenu.Champ.QOptions.QC:Value() and Ready(0) and MainMenu.Champ.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
 			end
@@ -699,7 +680,7 @@ function Kindred:OnProcComplete(unit, spell)
 end
 
 function Kindred:OnProc(unit, spell)
-	if unit == myHero and spell.name == "KindredQ" and self.Menu.QOptions.C:Value() then
+	if unit == myHero and spell.name == "KindredQ" and MainMenu.Champ.QOptions.C:Value() then
 		DelayAction(function() CastEmote(EMOTE_DANCE) end, .001)
 	end
 end
@@ -854,58 +835,56 @@ function Poppy:__init()
 		self.Flash = nil
 	end
 
-	self.Menu = Menu("Poppy", "Poppy")
+	MainMenu.Champ:Menu("C", "Combo")
+	MainMenu.Champ.C:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.C:Boolean("E", "Use E", true)
+	MainMenu.Champ.C:Boolean("R", "Use R", true)
+	MainMenu.Champ.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
+	MainMenu.Champ.C.ASC:Boolean("AS", "Auto Stun enable?", true)
+	MainMenu.Champ.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
 
-	self.Menu:Menu("C", "Combo")
-	self.Menu.C:Boolean("Q", "Use Q", true)
-	self.Menu.C:Boolean("E", "Use E", true)
-	self.Menu.C:Boolean("R", "Use R", true)
-	self.Menu.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
-	self.Menu.C.ASC:Boolean("AS", "Auto Stun enable?", true)
-	self.Menu.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
+	MainMenu.Champ:Menu("H", "Harass")
+	MainMenu.Champ.H:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.H:Boolean("E", "Use E", true)
 
-	self.Menu:Menu("H", "Harass")
-	self.Menu.H:Boolean("Q", "Use Q", true)
-	self.Menu.H:Boolean("E", "Use E", true)
+	MainMenu.Champ:Menu("LC", "LaneClear")
+	MainMenu.Champ.LC:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.LC:Slider("MM", "Mana manager", 50, 1, 100)
 
-	self.Menu:Menu("LC", "LaneClear")
-	self.Menu.LC:Boolean("Q", "Use Q", true)
-	self.Menu.LC:Slider("MM", "Mana manager", 50, 1, 100)
-
-	self.Menu:Menu("JC", "JunglerClear")
-	self.Menu.JC:Boolean("Q", "Use Q", true)
-	self.Menu.JC:Boolean("E", "Use E", true)
-	self.Menu.JC:Slider("MM", "Mana manager", 50, 1, 100)
+	MainMenu.Champ:Menu("JC", "JunglerClear")
+	MainMenu.Champ.JC:Boolean("Q", "Use Q", true)
+	MainMenu.Champ.JC:Boolean("E", "Use E", true)
+	MainMenu.Champ.JC:Slider("MM", "Mana manager", 50, 1, 100)
 
 
-	self.Menu:Menu("M", "Misc")
-	self.Menu.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
-	self.Menu.M:DropDown("S", "Skin", 1, {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"})
+	MainMenu.Champ:Menu("M", "Misc")
+	MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	MainMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"})
 
-	self.Menu:Menu("Orb", "Hotkeys")
-	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	MainMenu.Champ:Menu("Orb", "Hotkeys")
+	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	self.Menu:Menu("F", "Fuck Dashes")
+	MainMenu.Champ:Menu("F", "Fuck Dashes")
 
-	self.Menu:Menu("ASA", "Auto Stun")
-	self.Menu.ASA:Boolean("AS", "Auto Stun enable?")
-	self.Menu.ASA:KeyBinding("T", "Flash-Stun", string.byte("T"), false)
+	MainMenu.Champ:Menu("ASA", "Auto Stun")
+	MainMenu.Champ.ASA:Boolean("AS", "Auto Stun enable?", true)
+	MainMenu.Champ.ASA:KeyBinding("T", "Flash-Stun", string.byte("T"), false)
 
-	self.Menu:Menu("IN", "Interrupt")
+	MainMenu.Champ:Menu("IN", "Interrupt")
 
 	DelayAction(function()
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if self.DashTable[GetObjectName(enemies)] then 
-				self.Menu.F:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." Dash "..self.DashTable[GetObjectName(enemies)].Name, true)
+				MainMenu.Champ.F:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." Dash "..self.DashTable[GetObjectName(enemies)].Name, true)
 			end
 			if self.ChannelTable[GetObjectName(enemies)] then
-				self.Menu.IN:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." _"..self.ChannelTable[GetObjectName(enemies)].Name, true)
+				MainMenu.Champ.IN:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." "..self.ChannelTable[GetObjectName(enemies)].Name, true)
 			end
 
-			self.Menu.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
-			self.Menu.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+			MainMenu.Champ.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+			MainMenu.Champ.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
 		end
 	end, 0.1)
 
@@ -918,22 +897,22 @@ function Poppy:Tick(myHero)
 	self:Insec()
 	self:SkinChanger()
 	self:Autolvl()
-	self.Target = GetCurrentTarget()
-	if self.Menu.Orb.C:Value() then
+	self.Target = CustomTarget
+	if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
-	if self.Menu.Orb.H:Value() then
+	if MainMenu.Champ.Orb.H:Value() then
 		self:Harass(self.Target)
 	end
-	if self.Menu.Orb.LC:Value() then
+	if MainMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
 	end
 end
 
 function Poppy:SkinChanger()
-	if self.Menu.Misc.S:Value() ~= 8 then 
-		HeroSkinChanger(myHero, self.Menu.Misc.S:Value() - 1)
-	elseif self.Menu.Misc.S:Value() == 8 then
+	if MainMenu.Champ.Misc.S:Value() ~= 8 then 
+		HeroSkinChanger(myHero, MainMenu.Champ.Misc.S:Value() - 1)
+	elseif MainMenu.Champ.Misc.S:Value() == 8 then
 		HeroSkinChanger(myHero, 0)
 	end
 end
@@ -966,15 +945,15 @@ function Poppy:LaneClear()
 	for _, mobs in pairs(minionManager.objects) do
 		if ValidTarget(mobs, 400) then
 			if GetTeam(mobs) == 200 then
-				if Ready(0) and self.Menu.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
+				if Ready(0) and MainMenu.Champ.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
 				end
 			elseif GetTeam(mobs) == 300 then
 				local MyPos = GetOrigin(myHero) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*GetDistance(mobs) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*325
-				if Ready(0) and self.Menu.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= self.Menu.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
+				if Ready(0) and MainMenu.Champ.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
 				end
-				if Ready(2) and self.Menu.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= self.Menu.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
+				if Ready(2) and MainMenu.Champ.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
 						CastTargetSpell(mobs, 2)
 				end
 			end
@@ -984,20 +963,20 @@ end
 
 function Poppy:UseQ(Unit)
 	local Q = GetPrediction(Unit, self.Spells[0])
-	if Ready(0) and ValidTarget(Unit, self.Spells[0].range) and self.Menu.C.Q:Value() and Q and Q.hitChance >= 0.20 then
+	if Ready(0) and ValidTarget(Unit, self.Spells[0].range) and MainMenu.Champ.C.Q:Value() and Q and Q.hitChance >= 0.20 then
 		CastSkillShot(0, Q.castPos)
 	end
 end
 
 function Poppy:UseE(Unit)
-	if Ready(2) and ValidTarget(Unit, self.Spells[2].range) and self.Menu.C.E:Value() then
+	if Ready(2) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.C.E:Value() then
 		CastTargetSpell(Unit, 2)
 	end
 end
 
 function Poppy:UseR(Unit)
 	local R = GetPrediction(Unit, self.Spells[3])
-	if Ready(3) and ValidTarget(Unit, 425) and self.Menu.C.R:Value() and R and R.hitChance >= 0.20 then
+	if Ready(3) and ValidTarget(Unit, 425) and MainMenu.Champ.C.R:Value() and R and R.hitChance >= 0.20 then
 		CastSkillShot(3, GetOrigin(myHero))
 		DelayAction(function()
 			CastSkillShot2(3, R.castPos)
@@ -1012,12 +991,12 @@ function Poppy:Stun()
 		local MyPos = GetOrigin(myHero) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*325
 		local MyMousePos = MousePos + Vector(E.castPos - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(E.castPos - Vector(MousePos)):normalized()*325
 		if ValidTarget(enemies, 400) and Ready(2) then
-			if not self.Menu.ASA.AS:Value() and self.Menu.C.ASC.AS:Value() and self.Menu.C.ASC["Pleb"..GetObjectName(enemies)] and self.Menu.Orb.C:Value() and MapPosition:inWall(MyPos) then
+			if not MainMenu.Champ.ASA.AS:Value() and MainMenu.Champ.C.ASC.AS:Value() and MainMenu.Champ.C.ASC["Pleb"..GetObjectName(enemies)] and MainMenu.Champ.Orb.C:Value() and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
-			elseif self.Menu.ASA.AS:Value() and not self.Menu.C.ASC.AS:Value() and self.Menu.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
+			elseif MainMenu.Champ.ASA.AS:Value() and not MainMenu.Champ.C.ASC.AS:Value() and MainMenu.Champ.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
 			end
-		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and self.Menu.ASA.T:Value() and Ready(2) then
+		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and MainMenu.Champ.ASA.T:Value() and Ready(2) then
 			CastSkillShot(self.Flash, MousePos)
 			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
 		end
@@ -1029,11 +1008,11 @@ function Poppy:OnProc(Object, spellProc)
 		DelayAction(function()
 			if self.DashTable[GetObjectName(enemies)] then
 				if self.DashTable[GetObjectName(enemies)].type == "Untarget" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and MainMenu.Champ.F["Pleb"..GetObjectName(enemies)] and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
 						CastSpell(1)
 					end
 				elseif self.DashTable[GetObjectName(enemies)].type == "Target" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and MainMenu.Champ.F["Pleb"..GetObjectName(enemies)] and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
 						CastSpell(1)
 					end
 				end
@@ -1043,13 +1022,13 @@ function Poppy:OnProc(Object, spellProc)
 					CastTargetSpell(enemies, 2)
 				end
 			end
-		end, 0.1)
+		end, 0.0001)
 	end
 end
 
 function Poppy:Insec()
 	for _, enemies in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemies, 400) and Ready(2) and self.Menu.C.I:Value() then
+		if ValidTarget(enemies, 400) and Ready(2) and MainMenu.Champ.C.I:Value() then
 			local FlashPos = GetOrigin(myHero) + Vector(GetOrigin(enemies)-Vector(GetOrigin(myHero))):normalized()*425
 			CastSkillShot(self.Flash, FlashPos)
 			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
@@ -1058,15 +1037,16 @@ function Poppy:Insec()
 end
 
 function Poppy:Autolvl()
-	if self.Menu.M.AL:Value() ~= 3 then
+	if MainMenu.Champ.M.AL:Value() ~= 3 then
 		if GetLevelPoints(myHero) >= 1 then
-			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
+			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
+			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
 			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
 		end
 	end
 end
+
 
 class "Elise"
 
@@ -1124,44 +1104,41 @@ function Elise:__init()
 	self.Spider = nil
 	self.WBuff = nil
 
-	self.Menu = Menu("Elise", "Elise")
+	MainMenu.Champ:Menu("C", "Combo")
+	MainMenu.Champ.C:Boolean("Q", "Use Human Q in Combo", true)
+	MainMenu.Champ.C:Boolean("W", "Use Human W in Combo", true)
+	MainMenu.Champ.C:Boolean("SQ", "Use Spider Q in Combo", true)
+	MainMenu.Champ.C:Boolean("SW", "Use Spider W in Combo", true)
+	MainMenu.Champ.C:Boolean("S", "Use Logic R Combo", true)
 
-	self.Menu:Menu("C", "Combo")
-	self.Menu.C:Boolean("Q", "Use Human Q in Combo", true)
-	self.Menu.C:Boolean("W", "Use Human W in Combo", true)
-	self.Menu.C:Boolean("SQ", "Use Spider Q in Combo", true)
-	self.Menu.C:Boolean("SW", "Use Spider W in Combo", true)
-	self.Menu.C:Boolean("S", "Use Logic R Combo", true)
+	MainMenu.Champ:Menu("JC", "JunglerClear")
+	MainMenu.Champ.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
+	MainMenu.Champ.JC:Boolean("W", "Use Human W in JunglerClear", true)
+	MainMenu.Champ.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
+	MainMenu.Champ.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
+	MainMenu.Champ.JC:Boolean("S", "Use Logic R JunglerClear", true)
 
-	self.Menu:Menu("JC", "JunglerClear")
-	self.Menu.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
-	self.Menu.JC:Boolean("W", "Use Human W in JunglerClear", true)
-	self.Menu.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
-	self.Menu.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
-	self.Menu.JC:Boolean("S", "Use Logic R JunglerClear", true)
+	MainMenu.Champ:Menu("KS", "KillSteal")
+	MainMenu.Champ.KS:Boolean("Q", "Use Human Q in KillSteal", true)
+	MainMenu.Champ.KS:Boolean("W", "Use Human W in KillSteal", true)
+	MainMenu.Champ.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
+	MainMenu.Champ.KS:Boolean("SW", "Use Spider W in KillSteal", true)
 
-	self.Menu:Menu("KS", "KillSteal")
-	self.Menu.KS:Boolean("Q", "Use Human Q in KillSteal", true)
-	self.Menu.KS:Boolean("W", "Use Human W in KillSteal", true)
-	self.Menu.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
-	self.Menu.KS:Boolean("SW", "Use Spider W in KillSteal", true)
+	MainMenu.Champ:Menu("M", "Misc")
+	MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
 
-	self.Menu:Menu("M", "Misc")
-	self.Menu.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	MainMenu.Champ:Menu("Orb", "Hotkeys")
+	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	self.Menu:Menu("Orb", "Hotkeys")
-	self.Menu.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	--self.Menu.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	self.Menu.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	MainMenu.Champ:Menu("E", "E Options")
 
-	self.Menu:Menu("E", "E Options")
-
-	self.Menu:Menu("HC", "HitChance")
-	self.Menu.HC:Slider("E", "E HitChance", 20, 1, 100)
+	MainMenu.Champ:Menu("HC", "HitChance")
+	MainMenu.Champ.HC:Slider("E", "E HitChance", 20, 1, 100)
 
 	DelayAction(function()
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			self.Menu.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
+			MainMenu.Champ.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
 		end
 	end, 0.1)
 
@@ -1173,10 +1150,10 @@ end
 
 function Elise:Tick(myHero)
 	if not IsDead(myHero) then
-		if self.Menu.Orb.C:Value() then
+		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(GetCurrentTarget())
 		end
-		if self.Menu.Orb.LC:Value() then
+		if MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 		self:KS()
@@ -1196,7 +1173,7 @@ function Elise:Combo(Unit)
 		local E = GetPrediction(Unit, self.HSpells[2])
 		self:CastQ(Unit)
 		self:CastW(Unit)
-		if self.HReady[2] and E and E.hitChance >= (self.Menu.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not self.Spider then
+		if self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not self.Spider then
 			CastSkillShot(2, E.castPos)
 		end
 	end
@@ -1288,7 +1265,7 @@ function Elise:CastE()
 		for k, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, self.HSpells[2].range) then
 				local E = GetPrediction(enemies, self.HSpells[2])
-				if self.Menu.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (self.Menu.HC.E:Value())/100 and not E:mCollision(1) then
+				if MainMenu.Champ.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and not E:mCollision(1) then
 					CastSkillShot(2, E.castPos)
 				end
 			end
@@ -1297,19 +1274,15 @@ function Elise:CastE()
 end
 
 function Elise:Autolvl()
-	if self.Menu.M.AL:Value() ~= 3 then
+	if MainMenu.Champ.M.AL:Value() ~= 3 then
 		if GetLevelPoints(myHero) >= 1 then
-			if self.Menu.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif self.Menu.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
+			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
+			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
 			end
 			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
 		end
 	end
 end
-
---[[function Elise:CastSE()
-
-end]]
 
 function Elise:OnProc(unit, spellProc)
 	if unit == myHero then
@@ -1321,7 +1294,7 @@ function Elise:OnProc(unit, spellProc)
 			DelayAction(function() self.HReady[1] = true end, (12*100-GetCDR(myHero))/100)
 		elseif spellProc.name == "EliseHumanE" then
 			self.HReady[2] = false
-			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))/100)
+			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
 		elseif spellProc.name == "EliseSpiderQCast" then
 			self.SReady[0] = false
 			DelayAction(function() self.SReady[0] = true end, (6*100-GetCDR(myHero))/100)
@@ -1330,7 +1303,7 @@ function Elise:OnProc(unit, spellProc)
 			DelayAction(function() self.SReady[1] = true end, (12*100-GetCDR(myHero))/100)
 		elseif spellProc.name == "EliseSpiderEInitial" then
 			self.SReady[2] = false
-			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))/100)
+			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
 		end
 	end
 end
@@ -1356,3 +1329,88 @@ function Elise:OnRemove(unit, buffproc)
 		end
 	end
 end
+
+class "TargetSelector"
+
+function TargetSelector:__init()
+	CustomTarget = nil
+	MainMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
+	OnTick(function(myHero) self:Tick(myHero) end)
+end
+
+function TargetSelector:Targets()
+	if MainMenu.T.ts:Value() == 1 then
+		local closest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not closest and enemies then
+				closest = enemies
+			end
+			if GetDistance(enemies) < GetDistance(closest) then
+				closest = enemies
+			end
+		end
+		return closest
+	elseif MainMenu.T.ts:Value() == 2 then
+		local closest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not closest and enemies then
+				closest = enemies
+			end
+			if GetDistance(enemies, GetMousePos()) <= GetDistance(closest, GetMousePos()) then
+				closest = enemies
+			end
+		end
+		return closest
+	elseif MainMenu.T.ts:Value() == 3 then
+		local MostAp = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not MostAp and enemies then
+			MostAp = enemies
+			end
+			if GetBonusAP(enemies) > GetBonusAP(MostAp) then
+				MostAp = enemies
+			end
+		end
+		return MostAp
+	elseif MainMenu.T.ts:Value() == 4 then
+		local MostAD = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not MostAD and enemies then
+				MostAD = enemies
+			end
+			if (GetBaseDamage(enemies) + GetBonusDmg(enemies)) > (GetBaseDamage(MostAD) + GetBonusDmg(MostAD)) then
+				MostAD = enemies
+			end
+		end
+		return MostAD
+	elseif MainMenu.T.ts:Value() == 5 then
+		local Lowest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not Lowest and enemies then
+				Lowest = enemies
+			end
+			if GetCurrentHP(enemies) > GetCurrentHP(Lowest) then
+				Lowest = enemies
+			end
+		end
+		return Lowest
+	elseif MainMenu.T.ts:Value() == 6 then
+		local LessCast = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			local Dmg = CalcDamage(myHero, enemies, 50, 50)
+			if not LessCast and enemies then
+				LessCast = enemies
+			end
+			if GetCurrentHP(enemies)/Dmg > GetCurrentHP(LessCast)/Dmg then
+				LessCast = enemies
+			end
+		end
+		return LessCast
+	end
+
+end
+
+function TargetSelector:Tick(myHero)
+	CustomTarget = self:Targets()
+end
+
