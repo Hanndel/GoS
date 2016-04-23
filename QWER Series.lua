@@ -18,7 +18,6 @@ Callback.Add("Load", function()
 	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" then
 		require('MapPositionGOS')
 	end
-	TargetSelector()
 end)
 
 local ver = "0.94"
@@ -523,7 +522,7 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		self.target = CustomTarget
+		self.target = GetCurrentTarget()
 
 		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
@@ -897,7 +896,7 @@ function Poppy:Tick(myHero)
 	self:Insec()
 	self:SkinChanger()
 	self:Autolvl()
-	self.Target = CustomTarget
+	self.Target = GetCurrentTarget()
 	if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
@@ -1329,88 +1328,3 @@ function Elise:OnRemove(unit, buffproc)
 		end
 	end
 end
-
-class "TargetSelector"
-
-function TargetSelector:__init()
-	CustomTarget = nil
-	MainMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
-	OnTick(function(myHero) self:Tick(myHero) end)
-end
-
-function TargetSelector:Targets()
-	if MainMenu.T.ts:Value() == 1 then
-		local closest = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not closest and enemies then
-				closest = enemies
-			end
-			if GetDistance(enemies) < GetDistance(closest) then
-				closest = enemies
-			end
-		end
-		return closest
-	elseif MainMenu.T.ts:Value() == 2 then
-		local closest = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not closest and enemies then
-				closest = enemies
-			end
-			if GetDistance(enemies, GetMousePos()) <= GetDistance(closest, GetMousePos()) then
-				closest = enemies
-			end
-		end
-		return closest
-	elseif MainMenu.T.ts:Value() == 3 then
-		local MostAp = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not MostAp and enemies then
-			MostAp = enemies
-			end
-			if GetBonusAP(enemies) > GetBonusAP(MostAp) then
-				MostAp = enemies
-			end
-		end
-		return MostAp
-	elseif MainMenu.T.ts:Value() == 4 then
-		local MostAD = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not MostAD and enemies then
-				MostAD = enemies
-			end
-			if (GetBaseDamage(enemies) + GetBonusDmg(enemies)) > (GetBaseDamage(MostAD) + GetBonusDmg(MostAD)) then
-				MostAD = enemies
-			end
-		end
-		return MostAD
-	elseif MainMenu.T.ts:Value() == 5 then
-		local Lowest = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not Lowest and enemies then
-				Lowest = enemies
-			end
-			if GetCurrentHP(enemies) > GetCurrentHP(Lowest) then
-				Lowest = enemies
-			end
-		end
-		return Lowest
-	elseif MainMenu.T.ts:Value() == 6 then
-		local LessCast = nil
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			local Dmg = CalcDamage(myHero, enemies, 50, 50)
-			if not LessCast and enemies then
-				LessCast = enemies
-			end
-			if GetCurrentHP(enemies)/Dmg > GetCurrentHP(LessCast)/Dmg then
-				LessCast = enemies
-			end
-		end
-		return LessCast
-	end
-
-end
-
-function TargetSelector:Tick(myHero)
-	CustomTarget = self:Targets()
-end
-
