@@ -20,37 +20,14 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.94"
-
-class "Start"
-
-function Start:__init()
-	PrintChat("Welcome "..GetUser().." to QWER Series!")
-	PrintChat(GetObjectName(myHero).." Loaded!")
-	function AutoUpdate(data)
-    	if tonumber(data) > tonumber(ver) then
-        	PrintChat("New version found! " .. data)
-        	PrintChat("Downloading update, please wait...")
-        	DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
-   		else
-        	PrintChat("No updates found!")
-   		end
-	end
-	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
-	local myName = myHero.charName
-	MainMenu = MenuConfig("QWER Series", "QWER Series")
-		MainMenu:Menu("T", "TargetSelector")
-		MainMenu:Menu("Champ", "QWER "..myName)
-end
-
+local ver = "0.95"
 
 class "Zyra"
 
 function Zyra:__init()
 	self.Spells = 
 	{
-		[-3] = { delay = 0.5, speed = 1900, width = 70, range = 1500 },
-		[0] = { delay = 0.7, speed = math.huge, width = 70, range = 800, radius = 220, mana = function() return 70+5*GetCastLevel(myHero, 0) end},
+		[0] = { delay = 0.7, speed = math.huge, width = 200, range = 800, radius = 420, mana = function() return 70+5*GetCastLevel(myHero, 0) end},
 		[2] = { delay = 0.25, speed = 1150, width = 70, range = 1100, mana = function() return 65+5*GetCastLevel(myHero, 2) end},
 		[3] = { delay = 1, speed = math.huge, width = 500, range = 700, radius = 500, mana = function() return 80+20*GetCastLevel(myHero, 3) end}
 	}
@@ -74,6 +51,7 @@ function Zyra:__init()
 	self.Target = nil
 	self.DebuffTable = {5, 8, 11, 21, 22, 24, 28, 29, 30}
 	self.IsTargetFucked = false
+	self.Seeds = {}
 
 
 MainMenu.Champ:Menu("C", "Combo")
@@ -81,7 +59,7 @@ MainMenu.Champ.C:Boolean("Q", "Use Q", true)
 MainMenu.Champ.C:Boolean("W", "Use W", true)
 MainMenu.Champ.C:Boolean("E", "Use E", true)
 MainMenu.Champ.C:Boolean("R", "Use R", true)
-MainMenu.Champ.C:Slider("ER", "Enemies to R", 3, 0, 5)
+MainMenu.Champ.C:Slider("ER", "Enemies to R", 3, 1, 5)
 MainMenu.Champ.C:Boolean("P", "Use Passive", true)
 
 MainMenu.Champ:Menu("H", "Harass")
@@ -91,6 +69,7 @@ MainMenu.Champ.H:Boolean("E", "Use E", true)
 MainMenu.Champ:Menu("LC", "LaneClear")
 MainMenu.Champ.LC:Boolean("Q", "Use Q", true)
 MainMenu.Champ.LC:Boolean("E", "Use E", true)
+MainMenu.Champ.LC:Slider("SLC", "Seeds for LaneClear", 2, 1, 8)
 
 MainMenu.Champ:Menu("KS", "KillSteal")
 MainMenu.Champ.KS:Boolean("Q", "Use Q", true)
@@ -120,9 +99,13 @@ MainMenu.Champ:Menu("HC", "Hit chance")
 MainMenu.Champ.HC:Slider("Q", "Q Predict", 20, 1, 100)
 MainMenu.Champ.HC:Slider("E", "E Predict", 20, 1, 100)
 MainMenu.Champ.HC:Slider("R", "R Predict", 20, 1, 100)
-MainMenu.Champ.HC:Slider("P", "P Predict", 20, 1, 100)
 
 MainMenu.Champ:Menu("D", "Draw")
+--[[MainMenu.Champ.D:SubMenu("DD", "Draw Damage")
+MainMenu.Champ.D.DD:Boolean("D", "Draw?", true)
+MainMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
+MainMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
+MainMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
 MainMenu.Champ.D:SubMenu("DR", "Draw Range")
 MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
 MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
@@ -137,24 +120,22 @@ MainMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Wildire", "Haunted", "Skt
 
 OnTick(function(myHero) self:Tick() end)
 OnDraw(function(myHero) self:Draw() end)
-OnProcessSpellComplete(function(Object, spellProc) self:OnProcComplete(Object, spellProc) end)
+OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
 OnUpdateBuff(function(Object, buff) self:Onupdate(Object, buff) end)
 OnRemoveBuff(function(Object, buff) self:Onremove(Object, buff) end)
-
+OnCreateObj(function(Object) self:OnCreate(Object) end)
+OnDeleteObj(function(Object) self:OnDelete(Object) end)
 end
 
 function Zyra:Tick()
 	self.Target = GetCurrentTarget()
 	if not IsDead(myHero) then
 		if MainMenu.Champ.Orb.C:Value() then
-			self:Combo(self.Target)
+		self:Combo(self.Target)
 		elseif MainMenu.Champ.Orb.H:Value() then
 			self:Harass(self.Target)
 		elseif MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
-		end
-		if self:Passiveup() then
-			self:CastP(self.Target)
 		end
 		self:Ks()
 		self:Autolvl()
@@ -162,6 +143,26 @@ function Zyra:Tick()
 end
 
 function Zyra:Draw()
+	--[[if MainMenu.Champ.D.DR.D:Value() then
+		for _, enemy in pairs(GetEnemyHeroes()) do
+		local Qdmg = self.Dmg[0](enemy)
+		local Edmg = self.Dmg[2](enemy)
+		local Rdmg = self.Dmg[3](enemy)
+		local Tdmg = Qdmg + Edmg + Rdmg
+		if Tdmg < GetCurrentHP(enemy) then
+			if MainMenu.Champ.D.DD.DQ:Value() and ValidTarget(enemy, 800) and Ready(0) then
+				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Qdmg,GoS.Red)
+			end
+			if MainMenu.Champ.D.DD.DE:Value() and ValidTarget(enemy, 1100) and Ready(2) then
+				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Edmg,GoS.Blue)
+			end
+			if MainMenu.Champ.D.DD.DR:Value() and ValidTarget(enemy, 700) and Ready(3) then
+				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Rdmg,GoS.Pink)
+			end
+		else 
+			DrawText("Killiable!",12,enemy.x,enemy.y,GoS.White)
+		end
+	end]]
 	if MainMenu.Champ.D.DR.D:Value() then
 		if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
 			DrawCircle(GetOrigin(myHero), 800, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
@@ -200,13 +201,15 @@ function Zyra:Harass(Target)
 end
 
 function Zyra:LaneClear()
+	local BestPos, BestHit = self:BestFarmPos(self.Spells[0].range, self.Spells[0].width, self.Seeds)
 	for _, mob in pairs(minionManager.objects) do
 		if ValidTarget(mob, 850) then
 			if MainMenu.Champ.LC.Q:Value() and Ready(0) then
-				CastSkillShot(0, GetOrigin(mob))
-			end
-			if MainMenu.Champ.LC.E:Value() and Ready(2)  then
-				CastSkillShot(2, GetOrigin(mob))
+				if BestHit >= MainMenu.Champ.LC.SLC:Value() and BestPos then
+					CastSkillShot(0, BestPos)
+				elseif BestHit <= MainMenu.Champ.LC.SLC:Value() and BestPos then
+					CastSkillShot(0, GetOrigin(mob))
+				end
 			end
 		end
 	end
@@ -214,7 +217,6 @@ end
 
 function Zyra:Ks()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local P = GetPrediction(enemy, self.Spells[-3])
 		local Q = GetCircularAOEPrediction(enemy, self.Spells[0])
 		local E = GetPrediction(enemy, self.Spells[2])
 		local R = GetCircularAOEPrediction(enemy, self.Spells[3])
@@ -235,19 +237,6 @@ function Zyra:Ks()
 			if Ready(self.Ignite) and ValidTarget(enemy, 500) and GetCurrentHP(enemy)+GetHPRegen(enemy)*3 <= 50+GetLevel(myHero)*20 then
 				CastTargetSpell(enemy, self.Ignite)
 			end
-		end
-
-		if self:Passiveup() and Ready(0) and ValidTarget(enemy, 1400) and GetCurrentHP(enemy) <= self.Dmg[-3](enemy) and MainMenu.Champ.C.P:Value() and P.hitChance >= (MainMenu.Champ.HC.P:Value())/100 then
-			CastSkillShot(0, P.castPos)
-		end
-	end
-end
-
-function Zyra:CastP(Unit)
-	local P = GetCircularAOEPrediction(Unit, self.Spells[-3])
-	if self:Passiveup() then
-		if Ready(0) and P.hitChance >= (MainMenu.Champ.HC.P:Value())/100 and P then
-			CastSkillShot(0, P.castPos)
 		end
 	end
 end
@@ -290,14 +279,19 @@ function Zyra:CastW(Point, Spell)
 			end
 		end, 0.5)
 	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() == false then
-		while q <= MainMenu.Champ.SO.QSM:Value() do
-			CastSkillShot(1, Point)
-			q = q+1
-			if q == MainMenu.Champ.SO.QSM:Value() then 
-				break
+		CastSkillShot(1, Point)
+		q = q+1
+		DelayAction(function()	
+			if q < MainMenu.Champ.SO.QSM.QSM:Value() then
+				CastSkillShot(1, Point)
+				q = q+1
+				if q == MainMenu.Champ.SO.QSM.QSM:Value() then
+					q = 0
+				end
+			else
+				q = 0
 			end
-		end
-		if q == MainMenu.Champ.SO.QSM:Value() then q = 0 end
+		end, 0.5)
 	end
 	if Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and MainMenu.Champ.SO.ES:Value() then
 		CastSkillShot(1, Point)
@@ -359,23 +353,20 @@ function Zyra:SkinChanger()
 	end
 end
 
-function Zyra:OnProcComplete(Object, spellProc)
+function Zyra:OnProc(Object, spellProc)
 	local EPos = nil
 	if Object == myHero then
 		if MainMenu.Champ.Orb.C:Value() then
-			if spellProc.name == GetCastName(myHero, 0) then
-				self:CastW(spellProc.endPos, GetCastName(myHero, 0))
-			elseif spellProc.name == GetCastName(myHero, 2) then
-				if MainMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
-					EPos = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(self.Target)
-					self:CastW(EPos, GetCastName(myHero, 2))
+			DelayAction(function()
+				if spellProc.name == GetCastName(myHero, 0) then
+					self:CastW(spellProc.endPos, GetCastName(myHero, 0))
+				elseif spellProc.name == GetCastName(myHero, 2) then
+					if MainMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
+						EPos = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(self.Target)
+						self:CastW(EPos, GetCastName(myHero, 2))
+					end
 				end
-			end
-		elseif MainMenu.Champ.Orb.LC:Value() then
-			if spellProc.name == GetCastName(myHero, 0) then
-				CastSkillShot(1, spellProc.endPos)
-				DelayAction(function() CastSkillShot(1, spellProc.endPos) end, 0.5)
-			end
+			end, 0.1)
 		end
 	end
 end
@@ -400,9 +391,15 @@ function Zyra:Onremove(Object, buffProc)
 	end
 end
 
-function Zyra:Passiveup()
-	if GetCastName(myHero, 0) == GetCastName(myHero, 1) then
-		return true
+function Zyra:OnCreate(Object)
+	if Object and GetObjectBaseName(Object) == "Zyra_Base_W_Seed_Indicator.troy" then
+		table.insert(self.Seeds, #self.Seeds+1, Object)
+	end
+end
+
+function Zyra:OnDelete(Object)
+	if Object and GetObjectBaseName(Object) == "Zyra_Base_W_Seed_Indicator.troy" then
+		table.remove(self.Seeds, 1)
 	end
 end
 
@@ -422,6 +419,24 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 		end
 	end
 	return BestRPos, BestRHit
+end
+
+function Zyra:BestFarmPos(range, width, Objects) -- Modded from Inspired lib
+	local BestPos 
+	local BestHit = 0
+	for i, object in pairs(Objects) do
+		if GetOrigin(object) ~= nil and IsObjectAlive(object) then
+			local hit = CountObjectsNearPos(Vector(object), range, width, Objects)
+				if hit > BestHit and GetDistanceSqr(Vector(object)) < range * range then
+				BestHit = hit
+				BestPos = Vector(object)
+				if BestHit == #Objects then
+					break
+				end
+			end
+		end
+	end
+	return BestPos, BestHit
 end
 
 class "Kindred"
