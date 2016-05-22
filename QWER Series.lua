@@ -8,10 +8,19 @@ local ChampTable =
 	["Elise"]	 	= true,
 	}
 
+
+
 Callback.Add("Load", function()
-	Start()
 	if ChampTable[GetObjectName(myHero)] then
+		Start()
 		_G[GetObjectName(myHero)]()
+		SkinChanger()
+		Autolvl()
+		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
+			AutoSmite()
+		end
+		PrintChat("Welcome "..GetUser().." to QWER Series!")
+		PrintChat(GetObjectName(myHero).." Loaded!")
 	else
 		PrintChat(GetObjectName(myHero).." Is not supported!")
 	end
@@ -20,7 +29,238 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.95"
+local ver = "0.96"
+
+class "Start"
+
+function Start:__init()
+	function AutoUpdate(data)
+    	if tonumber(data) > tonumber(ver) then
+        	PrintChat("New version found! " .. data)
+        	PrintChat("Downloading update, please wait...")
+        	DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
+   		else
+        	PrintChat("No updates found!")
+   		end
+	end
+	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
+	local myName = myHero.charName
+	MainMenu = MenuConfig("QWER Series", "QWER Series")
+		MainMenu:Menu("Champ", "QWER "..myName)
+end
+
+class "SkinChanger"
+
+function SkinChanger:__init()
+	local Table = 
+		{
+		["Kindred"] 	= {"Classic", "ShadowFire"},
+		["Zyra"] 		= {"Classic", "Wildire", "Haunted", "Skt"},
+		["Poppy"] 		= {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"},
+		["Elise"]	 	= {"Classic", "Death Blossom", "Victorious", "Blood Moon"},
+		}
+
+
+	MainMenu:Menu("SK", "Skinchanger")--
+		MainMenu.SK:DropDown("S", "SkinChanger", 1, Table[GetObjectName(myHero)], function() HeroSkinChanger(myHero, MainMenu.SK.S:Value() - 1) end)
+end
+
+class "Autolvl"
+
+function Autolvl:__init()
+	MainMenu:Menu("AL", "Auto Lvl")
+		MainMenu.AL:DropDown("ALT", "Auto lvl table", 7, {"QWE", "QEW", "WQE", "WEQ", "EWQ", "EQW", "Off"})
+
+	self.Table = 
+				{
+				[1] = {_Q,_W,_E,_Q,_Q,_R,_Q,_W,_Q,_W,_R,_W,_W,_E,_E,_R,_E,_E},
+				[2] = {_Q,_E,_W,_Q,_Q,_R,_Q,_E,_Q,_E,_R,_E,_E,_W,_W,_R,_W,_W},
+				[3] = {_W,_Q,_E,_W,_W,_R,_W,_Q,_W,_Q,_R,_Q,_Q,_E,_E,_R,_E,_E},
+				[4] = {_W,_E,_Q,_W,_W,_R,_W,_E,_W,_E,_R,_E,_E,_Q,_Q,_R,_Q,_Q},
+				[5] = {_E,_W,_Q,_E,_E,_R,_E,_W,_E,_W,_R,_W,_W,_Q,_Q,_R,_Q,_Q},
+				[6] = {_E,_Q,_W,_E,_E,_R,_E,_Q,_E,_Q,_R,_Q,_Q,_W,_W,_R,_W,_W},
+				}
+
+	OnTick(function(myHero) self:Autolvl(myHero) end)
+end
+
+function Autolvl:Autolvl(myHero)
+	if MainMenu.AL.ALT:Value() ~= 7 then
+		if GetLevelPoints(myHero) >= 1 then
+			DelayAction(function() LevelSpell(self.Table[MainMenu.AL.ALT:Value()][GetLevel(myHero) - GetLevelPoints(myHero) + 1]) end, math.random(1, 2))
+		end
+	end
+end
+
+class "AutoSmite"
+
+function AutoSmite:__init()
+
+	self.Mobs = 
+	{
+		[1] = {BaseName = "SRU_Baron", Name = "Baron"},
+		[2] = {BaseName = "SRU_Dragon_Water", Name = "Water Drake"},
+		[3] = {BaseName = "SRU_Dragon_Fire", Name = "Fire Drake"},
+		[4] = {BaseName = "SRU_Dragon_Earth", Name = "Earth Drake"},
+		[5] = {BaseName = "SRU_Dragon_Air", Name = "Air Drake"},
+		[6] = {BaseName = "SRU_Dragon_Elder", Name = "Elder Drake"},
+		[7] = {BaseName = "SRU_RiftHerald", Name = "Herald"},
+		[8] = {BaseName = "Sru_Crab", Name = "Crab"},
+		[9] = {BaseName = "SRU_Blue", Name = "Blue"},
+		[10] = {BaseName = "SRU_Red", Name = "Red"}
+	}
+
+	self.Smite = nil
+	self.SmiteDmg = {[1] = 390, [2] = 410, [3] = 430, [4] = 450 ,[5] = 480, [6] = 510, [7] = 540, [8] = 570, [9] = 600, [10] = 640, [11] = 680, [12] = 720, [13] = 760, [14] = 800, [15] = 850, [16] = 900, [17] = 950, [18] = 1000}
+	self.SmiteHDmg = 20+8*GetLevel(myHero) 
+	self.PacketTable = {[110] = true, [99] = true, [257] = true}
+	self.SmiteDMG = false
+	self.Table = 
+	{
+		["Poppy"] = 
+		{	
+			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADelay = function(Unit) return 0 end,
+			[0] =
+			{
+				Range = 430,
+				Dmg = function(Unit) return CalcDamage(myHero, Unit, 15 + 20*GetCastLevel(myHero, 0) + GetBonusDmg(myHero)*0.8 + GetMaxHP(Unit)*0.007) end,
+				Delay = function(Unit) return 332 + GetLatency() end,
+				Cast = function(Unit) CastSkillShot(0, GetOrigin(Unit)) end,
+			},
+		},
+		["Elise"] =
+		{
+			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
+			[0] =
+			{
+				Dmg = function(Unit) 		if Spider then 
+												return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) 
+											else 
+												return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero))) 
+											end 
+										end,
+
+				Delay = function(Unit) 		if Spider then
+												return GetDistance(Unit)/1200 + 250 + GetLatency()
+											else
+												return GetDistance(Unit)/3000 + 250 + GetLatency()
+											end
+										end,
+
+				Cast = function(Unit) CastTargetSpell(Unit, 0) end,
+			},
+		},
+		["Kindred"] =
+		{
+			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
+		},
+	}
+
+
+	if GetCastName(myHero,4):lower():find("summonersmite") then
+		self.Smite = 4
+	elseif GetCastName(myHero,5):lower():find("summonersmite") then
+		self.Smite = 5
+	else
+		self.Smite = nil
+	end
+
+	if GetCastName(myHero,4) == "S5_SummonerSmitePlayerGanker" then
+		self.SmiteDMG = true
+	elseif GetCastName(myHero,5) == "S5_SummonerSmitePlayerGanker" then
+		self.SmiteDMG = true
+	end
+
+	MainMenu:Menu("AS", "Auto Smite")
+		MainMenu.AS:Boolean("ASE", "Auto Smite enable", true)
+		MainMenu.AS:SubMenu("ASM", "Mobs options")
+			for i = 1, #self.Mobs do
+				MainMenu.AS.ASM:Boolean("Pleb"..self.Mobs[i].BaseName, "AutoSmite "..self.Mobs[i].Name, true)
+			end
+		MainMenu.AS:Boolean("ASK", "AutoSmite ks", true)
+		MainMenu.AS:Boolean("ASQ", "Use Q", true)
+		MainMenu.AS:Boolean("ASW", "Use W", true)
+		MainMenu.AS:Boolean("ASE", "Use E", true)
+		MainMenu.AS:Boolean("ASA", "AA Smite", true)
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnProcessPacket(function(Packet) self:Packets(Packet) end)
+	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
+end
+
+function AutoSmite:Tick(myHero) 
+	for k, v in ipairs(GetEnemyHeroes()) do
+		if GetCurrentHP(v) <= self.SmiteHDmg and ValidTarget(v, 500) and self.SmiteDMG and MainMenu.AS.ASK:Value() then
+			CastTargetSpell(self.Smite, v)
+		end
+	end
+
+	if MainMenu.AS.ASE:Value() and self.Table[GetObjectName(myHero)] ~= nil then
+		for k, i in ipairs(minionManager.objects) do
+			for v = 1, #self.Mobs do
+				if self.Table[GetObjectName(myHero)][0] ~= nil and MainMenu.AS.ASQ:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(0) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+							self.Table[GetObjectName(myHero)][0].Cast(i)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+						end
+					end
+				end
+
+				if self.Table[GetObjectName(myHero)][1] ~= nil and MainMenu.AS.ASW:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(1) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+							self.Table[GetObjectName(myHero)][0].Cast(i)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+						end
+					end
+				end
+
+				if self.Table[GetObjectName(myHero)][2] ~= nil and MainMenu.AS.ASE:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(2) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+							self.Table[GetObjectName(myHero)][0].Cast(i)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function AutoSmite:OnProc(Object, spellProc)
+	if self.Table[GetObjectName(myHero)] ~= nil then
+		if Object == myHero and spellProc.name:lower():find("attack") then
+			if Ready(self.Smite) then
+				for k, i in ipairs(minionManager.objects) do
+					for v = 1, #self.Mobs do
+						if spellProc.target == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
+							if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)].AADmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+								DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(Unit))
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function AutoSmite:Packets(Packet)
+	if self.PacketTable[Packet.header] then
+		if Packet:Decode4() == GetNetworkID(myHero) then
+			if GetCastName(myHero,4) == "S5_SummonerSmitePlayerGanker" then
+				self.SmiteDMG = true
+			elseif GetCastName(myHero,5) == "S5_SummonerSmitePlayerGanker" then
+				self.SmiteDMG = true
+			end
+		end
+	end
+end
 
 class "Zyra"
 
@@ -31,9 +271,8 @@ function Zyra:__init()
 		[2] = { delay = 0.25, speed = 1150, width = 70, range = 1100, mana = function() return 65+5*GetCastLevel(myHero, 2) end},
 		[3] = { delay = 1, speed = math.huge, width = 500, range = 700, radius = 500, mana = function() return 80+20*GetCastLevel(myHero, 3) end}
 	}
-	self.Dmg = 
+		Dmg = 
 	{
-		[-3] = function() return 80+20*GetLevel(myHero) end,
 		[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 35+GetCastLevel(myHero, 0)*35+GetBonusAP(myHero)*0.65) end,
 		[2] = function(Unit) return CalcDamage(myHero, Unit, 0, 25+GetCastLevel(myHero, 2)*35+GetBonusAP(myHero)*0.50) end,
 		[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 95*GetCastLevel(myHero, 3)*85+GetBonusAP(myHero)*0.70) end,
@@ -115,7 +354,6 @@ MainMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
 MainMenu.Champ:Menu("M", "Misc")
 MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
-MainMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Wildire", "Haunted", "Skt", "Off"})
 
 
 OnTick(function(myHero) self:Tick() end)
@@ -138,7 +376,6 @@ function Zyra:Tick()
 			self:LaneClear()
 		end
 		self:Ks()
-		self:Autolvl()
 	end
 end
 
@@ -176,7 +413,6 @@ function Zyra:Draw()
 			DrawCircle(GetOrigin(myHero), 700, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
 		end
 	end
-	self:SkinChanger()
 end
 
 function Zyra:Combo(Target)
@@ -334,25 +570,6 @@ function Zyra:CastR(Unit)
 	end
 end
 
-function Zyra:Autolvl()
-	if MainMenu.Champ.M.AL:Value() ~= 3 then
-		if GetLevelPoints(myHero) >= 1 then
-			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
-			end
-			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
-		end
-	end
-end
-
-function Zyra:SkinChanger()
-	if MainMenu.Champ.M.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, MainMenu.Champ.M.S:Value() - 1)
-	elseif MainMenu.Champ.M.S:Value() == 5 then
-		HeroSkinChanger(myHero, 0)
-	end
-end
-
 function Zyra:OnProc(Object, spellProc)
 	local EPos = nil
 	if Object == myHero then
@@ -439,6 +656,7 @@ function Zyra:BestFarmPos(range, width, Objects) -- Modded from Inspired lib
 	return BestPos, BestHit
 end
 
+
 class "Kindred"
 
 function Kindred:__init()
@@ -448,7 +666,7 @@ function Kindred:__init()
 	[2] = {range = 500, mana = 70, mana = 70},
 	[3] = {range = 500, mana = 100},
 	}
-	Dmg = 
+	self.Dmg = 
 	{
 	[0] = function(Unit) return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20) end,
 	[1] = function(Unit) return CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+0.40*(GetBaseDamage(myHero) + GetBonusDmg(myHero))+0.40*self:PassiveDmg(Unit)) end,
@@ -498,6 +716,7 @@ function Kindred:__init()
 
 	MainMenu.Champ:Menu("Orb", "Hotkeys")
 	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+--	MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
 	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
 	MainMenu.Champ:Menu("Misc", "Misc")
@@ -519,6 +738,11 @@ function Kindred:__init()
 	MainMenu.Champ.QOptions:Boolean("C", "Cancel animation?", false)
 
 	MainMenu.Champ:Menu("D", "Draw")
+	--[[MainMenu.Champ.D:SubMenu("DD", "Draw Damage")
+	MainMenu.Champ.D.DD:Boolean("D", "Draw?", true)
+	MainMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
+	MainMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
+	MainMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
 	MainMenu.Champ.D:SubMenu("DR", "Draw Range")
 	MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
 	MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
@@ -537,7 +761,7 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		self.target = GetCurrentTarget()
+		self.target = CustomTarget
 
 		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
@@ -565,28 +789,28 @@ function Kindred:Tick()
 				self.Farsight = true
 			end
 		end
-		self:Autolvl()
 	end
 end
 
 function Kindred:Draw()
-	if MainMenu.Champ.D.DR.D:Value() then
-		if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
-			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
-		end
+	if not IsDead(myHero) then
+		if MainMenu.Champ.D.DR.D:Value() then
+			if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
+				DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
+			end
 
-		if MainMenu.Champ.D.DR.DW:Value() and Ready(1) then
-			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
-		end
+			if MainMenu.Champ.D.DR.DW:Value() and Ready(1) then
+				DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
+			end
 
-		if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
-			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
-		end
-			if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
-			DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.White)
+			if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
+				DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
+			end
+				if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
+				DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.White)
+			end
 		end
 	end
-	self:SkinChanger()
 end
 
 function Kindred:Combo(Unit)
@@ -647,27 +871,6 @@ function Kindred:AutoR()
 		if GetPercentHP(myHero) <= 20 and MainMenu.Champ.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= MainMenu.Champ.ROptions.EA:Value() then
 			CastTargetSpell(myHero, 3)
 		end
-	end
-end
-
-function Kindred:Autolvl()
-	if MainMenu.Champ.Misc.AL:Value() ~= 5 then 
-  		if GetLevelPoints(myHero) >= 1 then
- 			if MainMenu.Champ.Misc.AL:Value() == 1 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
- 			elseif MainMenu.Champ.Misc.AL:Value() == 3 then Deftlevel = {_W, _Q, _Q, _E, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
- 			elseif MainMenu.Champ.Misc.AL:Value() == 2 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W}
- 			elseif MainMenu.Champ.Misc.AL:Value() == 4 then Deftlevel = {_W, _Q, _E, _Q, _Q, _R, _Q, _W, _Q, _W, _R, _W, _W, _E, _E, _R, _E, _E}
-    		end 
-  			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(500, 2000))
-  		end 
-  	end
-end
-
-function Kindred:SkinChanger()
-	if MainMenu.Champ.Misc.S:Value() ~= 5 then 
-		HeroSkinChanger(myHero, MainMenu.Champ.Misc.S:Value() - 1)
-	elseif MainMenu.Champ.Misc.S:Value() == 5 then
-		HeroSkinChanger(myHero, 0)
 	end
 end
 
@@ -904,14 +1107,19 @@ function Poppy:__init()
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
+	OnProcessPacket(function(Packet) self:Packets(Packet) end)
+	self.PacketTable = {[153] = true,[99] = true,[247] = true,[153] = true,[301] = true,[137] = true,[217] = true,[153] = true,[170] = true,[348] = true,[117] = true,[22] = true,[102] = true,[59] = true,[333] = true,[230] = true,[192] = true,[323] = true,[156] = true,[150] = true,[58] = true,[48] = true,[208] = true,[211] = true,[246] = true,[239] = true,[111] = true,[219] = true,[324] = true,[98] = true,[233] = true,[234] = true,[153] = true,[89] = true,[316] = true,[277] = true,[157] = true,[144] = true,[324] = true,[121] = true,[191] = true,[281] = true,[311] = true,[164] = true,[124] = true,[350] = true,[221] = true,[198] = true,[42] = true,[296] = true,[71] = true,[54] = true,[237] = true,[21] = true,[305] = true,}
+	self.PacketTable2 = {} 
+	--[[
+	274 = dmg to/from heroes
+	158 = flash
+	]]
 end
 
 function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
-	self:SkinChanger()
-	self:Autolvl()
-	self.Target = GetCurrentTarget()
+	self.Target = CustomTarget
 	if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
@@ -923,13 +1131,24 @@ function Poppy:Tick(myHero)
 	end
 end
 
-function Poppy:SkinChanger()
-	if MainMenu.Champ.Misc.S:Value() ~= 8 then 
-		HeroSkinChanger(myHero, MainMenu.Champ.Misc.S:Value() - 1)
-	elseif MainMenu.Champ.Misc.S:Value() == 8 then
-		HeroSkinChanger(myHero, 0)
-	end
+function Poppy:Packets(Packet)
+	--[[		Packet.pos = 2
+	if not self.PacketTable[Packet.header] then
+		--0x006F buy
+		--0x126 sell
+		--0x010A undo
+		--0x0079 caster minion die
+
+		print"news!"
+		PrintChat("Packet header: "..Packet.header)
+		PrintChat("Decoded1 "..Packet:Decode1())
+		PrintChat("Decoded2 "..Packet:Decode2())
+		PrintChat("Decoded4 "..Packet:Decode4())
+		PrintChat("DecodedF "..Packet:DecodeF())
+		PrintChat("ID: "..GetNetworkID(myHero))
+	end]]
 end
+
 
 function Poppy:Combo(Unit)
 	if ValidTarget(Unit, 200) then
@@ -1038,6 +1257,9 @@ function Poppy:OnProc(Object, spellProc)
 			end
 		end, 0.0001)
 	end
+	if Object == myHero then
+		PrintChat(string.format("'%s' casts '%s'; Windup: %.3f Animation: %.3f", GetObjectName(Object), spellProc.name, spellProc.windUpTime, spellProc.animationTime))
+	end
 end
 
 function Poppy:Insec()
@@ -1049,18 +1271,6 @@ function Poppy:Insec()
 		end
 	end
 end
-
-function Poppy:Autolvl()
-	if MainMenu.Champ.M.AL:Value() ~= 3 then
-		if GetLevelPoints(myHero) >= 1 then
-			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
-			end
-			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
-		end
-	end
-end
-
 
 class "Elise"
 
@@ -1115,7 +1325,7 @@ function Elise:__init()
 			{x = 10869, y = 51, z = 7034},
 			{x = 12654, y = 51, z = 6407},	
 			}
-	self.Spider = nil
+	Spider = nil
 	self.WBuff = nil
 
 	MainMenu.Champ:Menu("C", "Combo")
@@ -1143,6 +1353,7 @@ function Elise:__init()
 
 	MainMenu.Champ:Menu("Orb", "Hotkeys")
 	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	--MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
 	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
 	MainMenu.Champ:Menu("E", "E Options")
@@ -1175,23 +1386,23 @@ function Elise:Tick(myHero)
 end
 
 function Elise:Combo(Unit)
-	if not self.Spider then
+	if not Spider then
 		self:CastQ(Unit)
 		self:CastW(Unit)
 		self:CastE()
-		if not self.Spider and not self.HReady[0] and not self.HReady[1] and (self.HReady[2] or not self.HReady[2]) and self.SReady[0] and self.SReady[1] and Ready(3) then
+		if not Spider and not self.HReady[0] and not self.HReady[1] and (self.HReady[2] or not self.HReady[2]) and self.SReady[0] and self.SReady[1] and Ready(3) then
 			CastSpell(3)
 		end
 	end
-	if not self.Spider and not Ready(3) then
+	if not Spider and not Ready(3) then
 		local E = GetPrediction(Unit, self.HSpells[2])
 		self:CastQ(Unit)
 		self:CastW(Unit)
-		if self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not self.Spider then
+		if self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not Spider then
 			CastSkillShot(2, E.castPos)
 		end
 	end
-	if self.Spider and ValidTarget(Unit, self.SSpells[0].range) then
+	if Spider and ValidTarget(Unit, self.SSpells[0].range) then
 		if self.SReady[0] then
 			CastTargetSpell(Unit, 0)
 		end
@@ -1207,7 +1418,7 @@ end
 function Elise:LaneClear()
 	for k, mobs in pairs(minionManager.objects) do
 		if GetTeam(mobs) == 300 and ValidTarget(mobs, self.HSpells[2].range) then
-			if self.Spider then
+			if Spider then
 				if self.SReady[1] then
 					CastSpell(1)
 				end
@@ -1215,25 +1426,25 @@ function Elise:LaneClear()
 					CastTargetSpell(mobs, 0)
 				end
 			end
-			if not self.Spider then
+			if not Spider then
 				self:CastQ(mobs)
 				self:CastW(mobs)
-				if not self.Spider and not self.HReady[0] and not self.HReady[1] then
+				if not Spider and not self.HReady[0] and not self.HReady[1] then
 					CastSpell(3)
 				end
 			end
 		elseif GetTeam(mobs) == 200 and ValidTarget(mobs, self.HSpells[2].range) then
-			if self.Spider then
+			if Spider then
 				if self.SReady[1] then
 					CastSpell(1)
 				end
 				if self.SReady[0] then
 					CastTargetSpell(mobs, 0)
 				end
-			elseif not self.Spider then
+			elseif not Spider then
 				self:CastQ(mobs)
 				self:CastW(mobs)
-				if not self.Spider and not self.HReady[0] and not self.HReady[1] then
+				if not Spider and not self.HReady[0] and not self.HReady[1] then
 					CastSpell(3)
 				end
 			end
@@ -1250,12 +1461,12 @@ function Elise:KS()
 		elseif ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and self.HReady[1] and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) then
 			self:CastW(enemies)
 			DelayAction(function() self:CastW(enemies) end, GetDistance(enemies)/1200)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and not self.Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) + self.SDmg[0](enemies) then
+		elseif ValidTarget(enemies, self.SSpells[0].range) and not Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) + self.SDmg[0](enemies) then
 			self:CastW(enemies)
 			self:CastQ(enemies)
 			DelayAction(function() CastSpell(3) end, 0.1)
 			DelayAction(function() self:CastSQ(enemies) end, 0.3)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and self.Spider and self.SReady[0] and GetCurrentHP(enemies) <= self.SDmg[0](enemies) then
+		elseif ValidTarget(enemies, self.SSpells[0].range) and Spider and self.SReady[0] and GetCurrentHP(enemies) <= self.SDmg[0](enemies) then
 			self:CastSQ(enemies)
 		end
 	end
@@ -1275,7 +1486,7 @@ function Elise:CastW(Unit)
 end
 
 function Elise:CastE()
-	if not self.Spider then
+	if not Spider then
 		for k, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, self.HSpells[2].range) then
 				local E = GetPrediction(enemies, self.HSpells[2])
@@ -1287,16 +1498,9 @@ function Elise:CastE()
 	end
 end
 
-function Elise:Autolvl()
-	if MainMenu.Champ.M.AL:Value() ~= 3 then
-		if GetLevelPoints(myHero) >= 1 then
-			if MainMenu.Champ.M.AL:Value() == 1 then Deftlevel = { _Q, _E, _W, _Q, _Q, _R, _Q, _E, _Q, _E, _R, _E, _E, _W, _W, _R, _W, _W }
-			elseif MainMenu.Champ.M.AL:Value() == 2 then Deftlevel = { _E, _Q, _W, _E, _E, _R, _E, _Q, _E, _Q, _R, _Q, _Q, _W, _W, _R, _W, _W }
-			end
-			DelayAction(function() LevelSpell(Deftlevel[GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1, 2)) --kappa
-		end
-	end
-end
+--[[function Elise:CastSE()
+
+end]]
 
 function Elise:OnProc(unit, spellProc)
 	if unit == myHero then
@@ -1325,7 +1529,7 @@ end
 function Elise:OnUpdate(unit, buffproc)
 	if unit == myHero then
 		if buffproc.Name == "EliseR" then
-			self.Spider = true
+			Spider = true
 		end
 		if buffproc.Name == "EliseSpiderW" then
 			self.WBuff = true
@@ -1336,7 +1540,7 @@ end
 function Elise:OnRemove(unit, buffproc)
 	if unit == myHero then
 		if buffproc.Name == "EliseR" then
-			self.Spider = false
+			Spider = false
 		end
 		if buffproc.Name == "EliseSpiderW" then
 			self.WBuff = false
