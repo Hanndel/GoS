@@ -29,7 +29,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.96"
+local ver = "0.97"
 
 class "Start"
 
@@ -666,7 +666,7 @@ function Kindred:__init()
 	[2] = {range = 500, mana = 70, mana = 70},
 	[3] = {range = 500, mana = 100},
 	}
-	self.Dmg = 
+	Dmg = 
 	{
 	[0] = function(Unit) return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20) end,
 	[1] = function(Unit) return CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+0.40*(GetBaseDamage(myHero) + GetBonusDmg(myHero))+0.40*self:PassiveDmg(Unit)) end,
