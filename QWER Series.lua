@@ -761,7 +761,7 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		self.target = CustomTarget
+		self.target = GetCurrentTarget()
 
 		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
