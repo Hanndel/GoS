@@ -34,7 +34,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.99"
+local ver = "0.991"
 
 class "Start"
 
@@ -492,7 +492,7 @@ OnDeleteObj(function(Object) self:OnDelete(Object) end)
 end
 
 function Zyra:Tick()
-	self.Target = GetCurrentTarget()
+	self.Target = CustomTarget
 	if not IsDead(myHero) then
 		if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
@@ -887,11 +887,10 @@ end
 function Kindred:Tick()
 	if not IsDead(myHero) then
 	
-		self.target = GetCurrentTarget()
+		self.target = CustomTarget
 
 		if MainMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
-			PrintChat(GetObjectName(self.target))
 		elseif MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
@@ -1238,7 +1237,7 @@ end
 function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
-	self.Target = GetCurrentTarget()
+	self.Target = CustomTarget
 	if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
@@ -1476,7 +1475,7 @@ end
 function Elise:Tick(myHero)
 	if not IsDead(myHero) then
 		if MainMenu.Champ.Orb.C:Value() then
-			self:Combo(GetCurrentTarget())
+			self:Combo(CustomTarget)
 		end
 		if MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
