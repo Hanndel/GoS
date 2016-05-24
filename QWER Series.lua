@@ -1112,7 +1112,7 @@ end
 function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
-	self.Target = CustomTarget
+	self.Target = GetCurrentTarget()
 	if MainMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
