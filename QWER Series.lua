@@ -6,7 +6,10 @@ local ChampTable =
 	["Zyra"] 		= true,
 	["Poppy"] 		= true,
 	["Elise"]	 	= true,
+	["Irelia"]		= true,
 	}
+
+local CustomTarget = nil
 
 
 
@@ -16,6 +19,8 @@ Callback.Add("Load", function()
 		_G[GetObjectName(myHero)]()
 		SkinChanger()
 		Autolvl()
+		DmgDraw()
+		TargetSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
 		end
@@ -29,7 +34,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.98"
+local ver = "0.99"
 
 class "Start"
 
@@ -58,6 +63,7 @@ function SkinChanger:__init()
 		["Zyra"] 		= {"Classic", "Wildire", "Haunted", "Skt"},
 		["Poppy"] 		= {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"},
 		["Elise"]	 	= {"Classic", "Death Blossom", "Victorious", "Blood Moon"},
+		["Irelia"]		= {"Classic", "Nightblade", "Aviator", "Infiltrator", "Frostbutt", "Lotus"},
 		}
 
 
@@ -156,6 +162,25 @@ function AutoSmite:__init()
 		{
 			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
+		},
+		["Irelia"] =
+		{
+			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADelay = function(Unit) return 0 end,
+			[0] =
+			{
+				Range = 650,
+				Dmg = function(Unit) return CalcDamage(myHero, Unit, -10+30*GetCastLevel(myHero, 0) + (GetBaseDamage(myHero) + GetBonusDmg(myHero))) end,
+				Delay = function(Unit) return GetDistance(Unit)/2000 end,
+				Cast = function(Unit) CastTargetSpell(Unit, 0) end,
+			},
+			[2] =
+			{
+				Range = 425,
+				Dmg = function(Unit) return CalcDamage(myHero, Unit, 0, 40+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*0.5) end,
+				Delay = function(Unit) return 500 + GetLatency() end,
+				Cast = function(Unit) CastTargetSpell(Unit, 2) end,
+			},
 		},
 	}
 
@@ -260,6 +285,107 @@ function AutoSmite:Packets(Packet)
 			end
 		end
 	end
+end
+
+class "TargetSelector"
+
+function TargetSelector:__init()
+	MainMenu:Menu("T", "TargetSelector")
+		MainMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+end
+
+function TargetSelector:Targets()
+	if MainMenu.T.ts:Value() == 1 then
+		local closest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not closest and enemies then
+				closest = enemies
+			end
+
+			if GetDistance(enemies) < GetDistance(closest) then
+				closest = enemies
+			end
+		end
+		return closest
+
+	elseif MainMenu.T.ts:Value() == 2 then
+		local closest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not closest and enemies then
+				closest = enemies
+			end
+
+			if GetDistance(enemies, GetMousePos()) <= GetDistance(closest, GetMousePos()) then
+				closest = enemies
+			end
+		end
+		return closest
+
+	elseif MainMenu.T.ts:Value() == 3 then
+		local MostAp = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not MostAp and enemies then
+			MostAp = enemies
+			end
+
+			if GetBonusAP(enemies) > GetBonusAP(MostAp) then
+				MostAp = enemies
+			end
+		end
+		return MostAp
+
+	elseif MainMenu.T.ts:Value() == 4 then
+		local MostAD = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if not MostAD and enemies then
+				MostAD = enemies
+			end
+
+			if (GetBaseDamage(enemies) + GetBonusDmg(enemies)) > (GetBaseDamage(MostAD) + GetBonusDmg(MostAD)) then
+				MostAD = enemies
+			end
+		end
+		return MostAD
+
+	elseif MainMenu.T.ts:Value() == 5 then
+		local Lowest = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemies, 1000) then
+				if not Lowest and enemies then
+					Lowest = enemies
+				end
+
+				if GetCurrentHP(enemies) > GetCurrentHP(Lowest) then
+					Lowest = enemies
+				end
+			end
+		end
+		return Lowest
+
+	elseif MainMenu.T.ts:Value() == 6 then
+		local LessCast = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if ValidTarget(enemies, 1000) then
+				for i = 0, 3, 1 do
+					local What = Dmg[i](enemies)
+					if LessCast == nil and enemies then
+						LessCast = enemies
+					end
+
+					if GetCurrentHP(enemies)/What < GetCurrentHP(LessCast)/What then
+						LessCast = enemies
+					end
+				end
+			end
+		end
+		return LessCast
+	end
+end
+
+function TargetSelector:Tick(myHero)
+	CustomTarget = self:Targets()
 end
 
 class "Zyra"
@@ -1518,6 +1644,452 @@ function Elise:OnRemove(unit, buffproc)
 		end
 		if buffproc.Name == "EliseSpiderW" then
 			self.WBuff = false
+		end
+	end
+end
+
+class "Irelia"
+
+function Irelia:__init()
+	Dmg =
+	{
+		[0] = function(Unit) return CalcDamage(Unit, myHero, -10+30*GetCastLevel(myHero, 0) + (GetBaseDamage(myHero) + GetBonusDmg(myHero))) end,
+		[1] = function(Unit) return 15*GetCastLevel(myHero, 1) end,
+		[2] = function(Unit) return CalcDamage(Unit, myHero, 0, 40+40*GetCastLevel(myHero, 2)*GetBonusAP(myHero)/2) end,
+		[3] = function(Unit) return CalcDamage(Unit, myHero, 40+40*GetCastLevel(myHero, 3) + GetBonusDmg(myHero)*0.6 + GetBonusAP(myHero)/2) end,
+	}
+
+	self.Spells =
+	{
+		[0] = {range = 650},
+		[1] = {duration = 6},
+		[2] = {range = 425},
+		[3] = {range = 1000, speed = 1700, delay = 0.250, width = 25},
+	}
+
+	self.WBuff = false
+	self.WEndBuff = 0
+	self.WTimer = nil
+	self.Trinity = false
+	self.aaTimer = 0
+	self.aaTimeReady = 0
+	self.windUP = 0
+	self.baseAS = GetBaseAttackSpeed(myHero)
+
+	MainMenu.Champ:Menu("C", "Combo")
+		MainMenu.Champ.C:Boolean("Q", "Use Q", true)
+		MainMenu.Champ.C:Boolean("QG", "Gapcloser?", true)
+		MainMenu.Champ.C:Slider("DG", "Distance after GP", 200, 300, 650)
+		MainMenu.Champ.C:Boolean("W", "Use W", true)
+		MainMenu.Champ.C:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
+		MainMenu.Champ.C:Boolean("R", "Use R", true)
+		MainMenu.Champ.C:Slider("HPR", "Hp to spam R", 30, 1, 100)
+
+	MainMenu.Champ:Menu("H", "Harass")
+		MainMenu.Champ.H:Boolean("Q", "Use Q", true)
+		MainMenu.Champ.H:Boolean("QG", "Gapcloser?", true)
+		MainMenu.Champ.H:Boolean("W", "Use W", true)
+		MainMenu.Champ.H:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
+	--	MainMenu.Champ.H:Slider("M", "Mana for Harass", 50, 1, 100)
+
+	MainMenu.Champ:Menu("HC", "Hitchance")
+		MainMenu.Champ.HC:Slider("R", "R HitChance", 20, 1, 100)
+
+	MainMenu.Champ:Menu("F", "Farm")
+		MainMenu.Champ.F:SubMenu("LH", "LastHit")
+			MainMenu.Champ.F.LH:Boolean("Q", "Use Q", true)
+		--	MainMenu.Champ.F.LH:Slider("M", "Mana for LH", 50, 1, 100)
+		MainMenu.Champ.F:SubMenu("LC", "LaneClear")
+			MainMenu.Champ.F.LC:Boolean("Q", "Use Q", true)
+			MainMenu.Champ.F.LC:Boolean("W", "Use W", true)
+			MainMenu.Champ.F.LC:Boolean("E", "Use E", true)
+			MainMenu.Champ.F.LC:Boolean("R", "Use R", true)
+		--	MainMenu.Champ.F.LC:Slider("M", "Mana for LC", 50, 1, 100)
+		MainMenu.Champ.F:SubMenu("JC", "JunglerClear")
+			MainMenu.Champ.F.JC:Boolean("Q", "Use Q", true)
+			MainMenu.Champ.F.JC:Boolean("W", "Use W", true)
+			MainMenu.Champ.F.JC:Boolean("E", "Use E", true)
+		--	MainMenu.Champ.F.JC:Slider("M", "Mana for JC", 50, 1, 100)
+
+	MainMenu.Champ:Menu("KS", "KillSteal")
+		MainMenu.Champ.KS:Boolean("Q", "Use Q", true)
+		MainMenu.Champ.KS:Boolean("W", "Use W", true)
+		MainMenu.Champ.KS:Boolean("R", "Use R", true)
+
+	MainMenu.Champ:Menu("I", "Items")
+		MainMenu.Champ.I:Boolean("TH", "Use Tiamat/Hydra", true)
+		MainMenu.Champ.I:Boolean("TI", "Use Titanic Hydra", true)
+		MainMenu.Champ.I:Boolean("BG", "Use Bilgewhater", true)
+		MainMenu.Champ.I:Boolean("BO", "Use Botkr", true)
+		MainMenu.Champ.I:Boolean("YO", "Use Youmu", true)
+		MainMenu.Champ.I:Boolean("HG", "Use Hextech Gunblade", true)
+
+	MainMenu.Champ:Menu("D", "Draws")
+		MainMenu.Champ.D:Boolean("Q", "Draw Q Range", true)
+		MainMenu.Champ.D:Boolean("E", "Draw E Range", true)
+		MainMenu.Champ.D:Boolean("R", "Draw R Range", true)
+		MainMenu.Champ.D:Slider("DH", "Quality", 155, 1, 475)
+
+
+	MainMenu.Champ:Menu("Orb", "Hotkeys")
+		MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+		MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		MainMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+		--MainMenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnDraw(function(myHero) self:Draw(myHero) end)
+	OnProcessSpellComplete(function(Object, spellProc) self:OnProcComplete(Object, spellProc) end)
+	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
+	OnUpdateBuff(function(Object, buff) self:OnUpdate(Object, buff) end)
+	OnRemoveBuff(function(Object, buff) self:OnRemove(Object, buff) end)
+
+end
+
+function Irelia:Tick(myHero)
+	self.WTimer = self.WEndBuff - GetGameTimer()
+
+	if self.aaTimeReady ~= nil then
+		self.aaTimer = self.aaTimeReady - GetGameTimer()
+		if self.aaTimer <= 0 then
+			self.aaTimer = 0
+		end
+	end
+
+	if MainMenu.Champ.Orb.C:Value() then
+		self:Combo(CustomTarget)
+	end
+
+	if MainMenu.Champ.Orb.H:Value() then
+		self:Harass(CustomTarget)
+	end
+
+	if MainMenu.Champ.Orb.LC:Value() then
+		self:LaneClear()
+	end
+end
+
+function Irelia:Draw(myHero)
+	if Ready(0) and MainMenu.Champ.D.Q:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Red)
+	end
+
+	if Ready(2) and MainMenu.Champ.D.E:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Blue)
+	end
+
+	if Ready(3) and MainMenu.Champ.D.R:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Green)
+	end
+end
+
+function Irelia:Gapcloser(Unit)
+	if ValidTarget(Unit, 1000) then
+		for k, v in ipairs(minionManager.objects) do
+			if ValidTarget(v, self.Spells[0].range) and GetDistance(v, Unit) <= MainMenu.Champ.C.DG:Value() then
+				if MainMenu.Champ.Orb.C:Value() and MainMenu.Champ.C.QG:Value() then
+					if GetCurrentHP(v) < Dmg[0](v) and Ready(0) then
+						CastTargetSpell(v, 0)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and Ready(0) and Ready(1) then
+						CastSpell(1)
+						DelayAction(function() CastTargetSpell(v, 0) end, 0.1)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and Ready(0) and self.WBuff then
+						CastTargetSpell(v, 0)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) and Ready(0) and Ready(3) then
+						CastSkillShot(3, GetOrigin(v))
+						DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) + Dmg[1] and Ready(0) and Ready(3) and Ready(1) then
+						CastSpell(1)
+						CastSkillShot(3, GetOrigin(v))
+						DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) + Dmg[1] and Ready(0) and Ready(3) and self.Wbuff then
+						CastSkillShot(3, GetOrigin(v))
+						DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+					end
+				end
+
+				if MainMenu.Champ.Orb.H:Value() and MainMenu.Champ.H.QG:Value() then
+					if GetCurrentHP(v) < Dmg[0](v) and Ready(0) then
+						CastTargetSpell(v, 0)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and Ready(0) and Ready(1) then
+						CastSpell(1)
+						DelayAction(function() CastTargetSpell(v, 0) end, 0.1)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and Ready(0) and self.WBuff then
+						CastTargetSpell(v, 0)
+					end
+
+					if GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) and Ready(0) and Ready(3) then
+						CastSkillShot(3, GetOrigin(v))
+						DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+					end
+				end
+			else 
+				return false
+			end
+		end
+	end
+end
+
+function Irelia:Combo(Unit)
+	--print"lel"
+	self:Gapcloser(Unit)
+	if not self:Gapcloser(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and MainMenu.Champ.C.Q:Value() then
+		CastTargetSpell(Unit, 0)
+	end
+
+	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.C.W:Value() then
+		CastSpell(1)
+	end
+
+	if Ready(3) and ValidTarget(Unit, self.Spells[3].range) and (GetPercentHP(myHero) > MainMenu.Champ.C.HPR:Value() and not self.Trinity or GetPercentHP(myHero) < MainMenu.Champ.C.HPR:Value()) and MainMenu.Champ.C.R:Value() then
+		local RPred = GetPrediction(Unit, self.Spells[3])
+		if RPred and RPred.hitChance >= MainMenu.Champ.HC.R:Value()/100 then
+			CastSkillShot(3, RPred.castPos)
+		end
+	end
+end
+
+function Irelia:Harass(Unit)
+	self:Gapcloser(Unit)
+	if not self:Gapclose(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and MainMenu.Champ.H.Q:Value() then
+		CastTargetSpell(Unit, 0)
+	end
+
+	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.H.W:Value()then
+		CastSpell(1)
+	end
+end
+
+function Irelia:Items(Unit)
+	if ValidTarget(Unit, 500) and GetItemSlot(myHero, 3146) > 0 and Ready(GetItemSlot(myHero, 3146)) then
+		CastTargetSpell(GetItemSlot(myHero, 3146), Unit)
+	end
+
+	if ValidTarget(Unit, 500) and GetItemSlot(myHero, 3153) > 0 and Ready(GetItemSlot(myHero, 3153)) and GetPercentHP(myHero) < 20 then
+		CastTargetSpell(GetItemSlot(myHero, 3153), Unit)
+	end
+
+	if ValidTarget(Unit, 500) and GetItemSlot(myHero, 3144) > 0 and Ready(GetItemSlot(myHero, 3144)) then
+		CastTargetSpell(GetItemSlot(myHero, 3144), Unit)
+	end
+
+	if GetItemSlot(myHero, 3142) > 0 and Ready(GetItemSlot(myHero, 3142)) and GetDistance(Unit)/GetMoveSpeed(myHero)+GetMoveSpeed(myHero)*0.2 < 6 then
+		CastSpell(GetItemSlot(myHero, 3142))
+	end
+end
+
+function Irelia:LastHit()
+	for k, v in ipairs(minionManager.objects) do
+		if ValidTarget(v, 650) and self.aaTimer ~= 0 then
+			if GetCurrentHP(v) - GetDamagePrediction(v, self.aaTimer*1000) == 0 then
+				CastTargetSpell(v, 0)
+			end
+		end
+	end
+end
+
+function Irelia:LaneClear()
+	for k, v in ipairs(minionManager.objects) do
+		if GetTeam(v) == 200 then
+			if ValidTarget(v, 425) and Ready(1) and MainMenu.Champ.F.LC.W:Value() then
+				CastSpell(1)
+			end
+
+			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.F.LC.Q:Value() then
+				CastTargetSpell(v, 0)
+			end
+
+			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.F.LC.Q:Value() then
+				CastTargetSpell(v, 0)
+			end
+
+			if ValidTarget(v, 1000) and Ready(3) and MainMenu.Champ.F.LC.R:Value() then
+				CastSkillShot(3, GetOrigin(v))
+			end
+
+		elseif GetTeam(v) == 300 then
+			if ValidTarget(v, 425) and Ready(1) and MainMenu.Champ.F.JC.W:Value() then
+				CastSpell(1)
+			end
+
+			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.F.JC.Q:Value() then
+				CastTargetSpell(v, 0)
+			end
+
+			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.F.JC.Q:Value() then
+				CastTargetSpell(v, 0)
+			end		
+		end
+	end
+end
+
+function Irelia:Ks()
+	for k, v in ipairs(GetEnemyHeroes()) do
+		if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.KS.Q:Value() then
+			CastTargetSpell(v, 0)
+		end
+
+		if ValidTarget(v, 650) and Ready(0) and Ready(1) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.W:Value() then
+			CastSpell(1)
+			DelayAction(function() CastTargetSpell(v, 0) end, 0.1)
+		end
+
+		if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.KS.Q:Value() then
+			CastTargetSpell(v, 0)
+		end
+
+		if ValidTarget(v, 650) and Ready(0) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.R:Value() then
+			CastSkillShot(3, GetOrigin(v))
+			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+		end
+
+		if ValidTarget(v, 650) and Ready(0) and Ready(1) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.W:Value() and MainMenu.Champ.KS.R:Value() then
+			CastSpell(1)
+			CastSkillShot(3, GetOrigin(v))
+			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+		end
+
+		if ValidTarget(v, 650) and Ready(0) and self.WBuff and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.R:Value() then
+			CastSkillShot(3, GetOrigin(v))
+			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
+		end
+	end
+end
+
+function Irelia:OnProcComplete(Object, spellProc)
+	if Object == myHero then
+		if spellProc.name:lower():find("attack") then
+			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
+			self.windUP = spellProc.windUpTime
+			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
+			if MainMenu.Champ.Orb.C:Value() then
+				if Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.C.E:Value() == 1 then
+					CastTargetSpell(CustomTarget, 2)
+				elseif Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.C.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
+					CastTargetSpell(CustomTarget, 2)
+				end
+			end
+		
+			if MainMenu.Champ.Orb.H:Value() then
+				if Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.H.E:Value() == 1 then
+					CastTargetSpell(CustomTarget, 2)
+				elseif Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.H.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
+					CastTargetSpell(CustomTarget, 2)
+				end
+			end
+
+			if MainMenu.Champ.Orb.LC:Value() then
+				for k, v in ipairs(minionManager.objects) do
+					if GetTeam(v) == 200 then
+						if Ready(2) and ValidTarget(v, 425) and MainMenu.Champ.F.LC.E:Value() then
+							CastTargetSpell(v, 2)
+						end
+					end
+
+					if GetTeam(v) == 300 then
+						if Ready(2) and ValidTarget(v, 425) and MainMenu.Champ.F.JC.E:Value() then
+							CastTargetSpell(v, 2)
+						end
+					end
+				end					
+			end
+
+			if not Ready(2) and GetItemSlot(myHero, 3748) > 0 and Ready(GetItemSlot(myHero, 3748)) and MainMenu.Champ.I.TI:Value() then
+				CastSpell(GetItemSlot(myHero, 3748))
+			end
+		end
+	end
+end
+
+function Irelia:OnProc(Object, spellProc)
+	if Object == myHero then
+		if spellProc.name:lower():find("attack") then
+			if MainMenu.Champ.Orb.C:Value() then
+				if spellProc.name == "IreliaEquilibriumStrike" and Tiamat > 0 and Ready(Tiamat) and MainMenu.Champ.I.TH:Value() then
+					DelayAction(function() CastSpell(Tiamat) end, 0.1)
+				elseif spellProc.name == "IreliaEquilibriumStrike" and Hydra > 0 and Ready(Hydra) and MainMenu.Champ.I.TH:Value() then
+					DelayAction(function() CastSpell(Hydra) end, 0.1)
+				end
+			end
+
+			if MainMenu.Champ.Orb.LC:Value() then
+				if spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3077) > 0 and Ready(GetItemSlot(myHero, 3077)) and MainMenu.Champ.I.TH:Value() then
+					DelayAction(function() CastSpell(GetItemSlot(myHero, 3077)) end, 0.1)
+				elseif spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3074) > 0 and Ready(GetItemSlot(myHero, 3074)) and MainMenu.Champ.I.TH:Value() then
+					DelayAction(function() CastSpell(GetItemSlot(myHero, 3074)) end, 0.1)
+				end
+			end
+		end
+	end
+end
+
+function Irelia:OnUpdate(Object, buff)
+	if Object == myHero then
+		if buff.Name == "ireliahitenstylecharged" then
+			WEndBuff = buff.ExpireTime
+			WBuff = true
+		end
+
+		if buff.Name == "sheen" then
+			Trinity = true
+		end
+	end
+end
+
+function Irelia:OnRemove(Object, buff)
+	if Object == myHero then
+		if buff.Name == "ireliahitenstylecharged" then
+			WBuff = false
+		end
+
+		if buff.Name == "sheen" then
+			Trinity = false
+		end
+	end
+end
+
+class "DmgDraw"
+
+function DmgDraw:__init()
+
+	MainMenu:Menu("DD", "Draw Dmg")
+		MainMenu.DD:Boolean("DTD", "Draw Total Damage", true)
+		MainMenu.DD:ColorPick("DColor", "Damage Color", {255,255,0,255})	
+
+	OnDraw(function(myHero) self:Draw(myHero) end)
+end
+
+function DmgDraw:Draw(myHero)
+	local Keepo = {0, 0, 0, 0}
+	for k, v in pairs(GetEnemyHeroes()) do
+		for i = 0, 3, 1 do
+			Keepo[i] = Dmg[i](v)
+			local asd = Keepo[0] + Keepo[1] + Keepo[2] + Keepo[3]
+			local HpBar = GetHPBarPos(v)
+			local What = (asd*100)/GetMaxHP(v)
+			local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
+			if IsVisible(v) and ValidTarget(v, 2000) then
+				if GetCurrentHP(v) > asd then
+					FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5,MainMenu.DD.DColor:Value())
+				else
+					FillRect(HpBar.x+1,HpBar.y,hp*1.03,5,MainMenu.DD.DColor:Value())
+				end
+			end
 		end
 	end
 end
