@@ -1107,13 +1107,6 @@ function Poppy:__init()
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
-	OnProcessPacket(function(Packet) self:Packets(Packet) end)
-	self.PacketTable = {[153] = true,[99] = true,[247] = true,[153] = true,[301] = true,[137] = true,[217] = true,[153] = true,[170] = true,[348] = true,[117] = true,[22] = true,[102] = true,[59] = true,[333] = true,[230] = true,[192] = true,[323] = true,[156] = true,[150] = true,[58] = true,[48] = true,[208] = true,[211] = true,[246] = true,[239] = true,[111] = true,[219] = true,[324] = true,[98] = true,[233] = true,[234] = true,[153] = true,[89] = true,[316] = true,[277] = true,[157] = true,[144] = true,[324] = true,[121] = true,[191] = true,[281] = true,[311] = true,[164] = true,[124] = true,[350] = true,[221] = true,[198] = true,[42] = true,[296] = true,[71] = true,[54] = true,[237] = true,[21] = true,[305] = true,}
-	self.PacketTable2 = {} 
-	--[[
-	274 = dmg to/from heroes
-	158 = flash
-	]]
 end
 
 function Poppy:Tick(myHero)
@@ -1130,25 +1123,6 @@ function Poppy:Tick(myHero)
 		self:LaneClear()
 	end
 end
-
-function Poppy:Packets(Packet)
-	--[[		Packet.pos = 2
-	if not self.PacketTable[Packet.header] then
-		--0x006F buy
-		--0x126 sell
-		--0x010A undo
-		--0x0079 caster minion die
-
-		print"news!"
-		PrintChat("Packet header: "..Packet.header)
-		PrintChat("Decoded1 "..Packet:Decode1())
-		PrintChat("Decoded2 "..Packet:Decode2())
-		PrintChat("Decoded4 "..Packet:Decode4())
-		PrintChat("DecodedF "..Packet:DecodeF())
-		PrintChat("ID: "..GetNetworkID(myHero))
-	end]]
-end
-
 
 function Poppy:Combo(Unit)
 	if ValidTarget(Unit, 200) then
