@@ -34,7 +34,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.991"
+local ver = "0.992"
 
 class "Start"
 
@@ -1356,9 +1356,6 @@ function Poppy:OnProc(Object, spellProc)
 			end
 		end, 0.0001)
 	end
-	if Object == myHero then
-		PrintChat(string.format("'%s' casts '%s'; Windup: %.3f Animation: %.3f", GetObjectName(Object), spellProc.name, spellProc.windUpTime, spellProc.animationTime))
-	end
 end
 
 function Poppy:Insec()
@@ -1387,15 +1384,6 @@ function Elise:__init()
 				[0] = {range = 475},
 				[2] = {range = 750},
 				}
-	self.HDmg =
-				{
-				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
-				[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
-				}
-	self.SDmg = 
-				{
-				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
-				}
 
 	self.HReady =
 			{
@@ -1403,12 +1391,21 @@ function Elise:__init()
 			[1] = true,
 			[2] = true,
 			}
+
 	self.SReady =
 			{
 			[0] = true,
 			[1] = true,
 			[2] = true,
 			}
+
+	Dmg =
+				{
+				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
+				[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
+				[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
+				}
+
 	self.Spots = 
 			{
 			{x = 8414, y = 51, z = 2711},
@@ -1424,6 +1421,7 @@ function Elise:__init()
 			{x = 10869, y = 51, z = 7034},
 			{x = 12654, y = 51, z = 6407},	
 			}
+
 	Spider = nil
 	self.WBuff = nil
 
@@ -1475,7 +1473,7 @@ end
 function Elise:Tick(myHero)
 	if not IsDead(myHero) then
 		if MainMenu.Champ.Orb.C:Value() then
-			self:Combo(CustomTarget)
+			self:Combo(GetCurrentTarget())
 		end
 		if MainMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
@@ -1553,19 +1551,19 @@ end
 
 function Elise:KS()
 	for k, enemies in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and GetCurrentHP(enemies) <= self.HDmg[0](enemies) then
+		if ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and GetCurrentHP(enemies) <= Dmg[0](enemies) then
 			self:CastQ(enemies)
-		elseif ValidTarget(enemies, self.HSpells[1].range) and self.HReady[1] and GetCurrentHP(enemies) <= self.HDmg[1](enemies) then
+		elseif ValidTarget(enemies, self.HSpells[1].range) and self.HReady[1] and GetCurrentHP(enemies) <= Dmg[1](enemies) then
 			self:CastW(enemies)
-		elseif ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and self.HReady[1] and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) then
+		elseif ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and self.HReady[1] and GetCurrentHP(enemies) <= Dmg[0](enemies) + Dmg[1](enemies) then
 			self:CastW(enemies)
 			DelayAction(function() self:CastW(enemies) end, GetDistance(enemies)/1200)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and not Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= self.HDmg[0](enemies) + self.HDmg[1](enemies) + self.SDmg[0](enemies) then
+		elseif ValidTarget(enemies, self.SSpells[0].range) and not Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= Dmg[0](enemies) + Dmg[1](enemies) + Dmg[3](enemies) then
 			self:CastW(enemies)
 			self:CastQ(enemies)
 			DelayAction(function() CastSpell(3) end, 0.1)
 			DelayAction(function() self:CastSQ(enemies) end, 0.3)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and Spider and self.SReady[0] and GetCurrentHP(enemies) <= self.SDmg[0](enemies) then
+		elseif ValidTarget(enemies, self.SSpells[0].range) and Spider and self.SReady[0] and GetCurrentHP(enemies) <= Dmg[3](enemies) then
 			self:CastSQ(enemies)
 		end
 	end
