@@ -300,12 +300,14 @@ function TargetSelector:Targets()
 	if MainMenu.T.ts:Value() == 1 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not closest and enemies then
-				closest = enemies
-			end
+			if ValidTarget(enemies, 1000) then
+				if not closest and enemies then
+					closest = enemies
+				end
 
-			if GetDistance(enemies) < GetDistance(closest) then
-				closest = enemies
+				if GetDistance(enemies) < GetDistance(closest) then
+					closest = enemies
+				end
 			end
 		end
 		return closest
@@ -313,12 +315,14 @@ function TargetSelector:Targets()
 	elseif MainMenu.T.ts:Value() == 2 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not closest and enemies then
-				closest = enemies
-			end
+			if ValidTarget(enemies, 1000) then
+				if not closest and enemies then
+					closest = enemies
+				end
 
-			if GetDistance(enemies, GetMousePos()) <= GetDistance(closest, GetMousePos()) then
-				closest = enemies
+				if GetDistance(enemies, GetMousePos()) <= GetDistance(closest, GetMousePos()) then
+					closest = enemies
+				end
 			end
 		end
 		return closest
@@ -326,12 +330,14 @@ function TargetSelector:Targets()
 	elseif MainMenu.T.ts:Value() == 3 then
 		local MostAp = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not MostAp and enemies then
-			MostAp = enemies
-			end
-
-			if GetBonusAP(enemies) > GetBonusAP(MostAp) then
+			if ValidTarget(enemies, 1000) then
+				if not MostAp and enemies then
 				MostAp = enemies
+				end
+
+				if GetBonusAP(enemies) > GetBonusAP(MostAp) then
+					MostAp = enemies
+				end
 			end
 		end
 		return MostAp
@@ -339,12 +345,14 @@ function TargetSelector:Targets()
 	elseif MainMenu.T.ts:Value() == 4 then
 		local MostAD = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if not MostAD and enemies then
-				MostAD = enemies
-			end
+			if ValidTarget(enemies, 1000) then
+				if not MostAD and enemies then
+					MostAD = enemies
+				end
 
-			if (GetBaseDamage(enemies) + GetBonusDmg(enemies)) > (GetBaseDamage(MostAD) + GetBonusDmg(MostAD)) then
-				MostAD = enemies
+				if (GetBaseDamage(enemies) + GetBonusDmg(enemies)) > (GetBaseDamage(MostAD) + GetBonusDmg(MostAD)) then
+					MostAD = enemies
+				end
 			end
 		end
 		return MostAD
@@ -368,15 +376,12 @@ function TargetSelector:Targets()
 		local LessCast = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
-				for i = 0, 3, 1 do
-					local What = Dmg[i](enemies)
-					if LessCast == nil and enemies then
-						LessCast = enemies
-					end
+				if LessCast == nil and enemies then
+					LessCast = enemies
+				end
 
-					if GetCurrentHP(enemies)/What < GetCurrentHP(LessCast)/What then
-						LessCast = enemies
-					end
+				if GetCurrentHP(enemies)/CalcDamage(myHero, enemies, 50, 50) < GetCurrentHP(LessCast)/CalcDamage(myHero, enemies, 50, 50) then
+					LessCast = enemies
 				end
 			end
 		end
@@ -1650,10 +1655,10 @@ class "Irelia"
 function Irelia:__init()
 	Dmg =
 	{
-		[0] = function(Unit) return CalcDamage(Unit, myHero, -10+30*GetCastLevel(myHero, 0) + (GetBaseDamage(myHero) + GetBonusDmg(myHero))) end,
+		[0] = function(Unit) return CalcDamage(myHero, Unit, -10+30*GetCastLevel(myHero, 0) + (GetBaseDamage(myHero) + GetBonusDmg(myHero))) end,
 		[1] = function(Unit) return 15*GetCastLevel(myHero, 1) end,
-		[2] = function(Unit) return CalcDamage(Unit, myHero, 0, 40+40*GetCastLevel(myHero, 2)*GetBonusAP(myHero)/2) end,
-		[3] = function(Unit) return CalcDamage(Unit, myHero, 40+40*GetCastLevel(myHero, 3) + GetBonusDmg(myHero)*0.6 + GetBonusAP(myHero)/2) end,
+		[2] = function(Unit) return CalcDamage(myHero, Unit, 0, 40+40*GetCastLevel(myHero, 2)*GetBonusAP(myHero)/2) end,
+		[3] = function(Unit) return CalcDamage(myHero, Unit, 40+40*GetCastLevel(myHero, 3) + GetBonusDmg(myHero)*0.6 + GetBonusAP(myHero)/2) end,
 	}
 
 	self.Spells =
