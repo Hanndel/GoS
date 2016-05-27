@@ -62,8 +62,8 @@ function Start:__init()
 	end
 	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 	local myName = myHero.charName
-	MainMenu = MenuConfig("QWER Series", "QWER Series")
-		MainMenu:Menu("Champ", "QWER "..myName)
+	ConfigMenu = MenuConfig("QWER Series", "QWER Series")
+		ConfigMenu:Menu("Champ", "QWER "..myName)
 end
 
 class "SkinChanger"
@@ -80,15 +80,15 @@ function SkinChanger:__init()
 		}
 
 
-	MainMenu:Menu("SK", "Skinchanger")--
-		MainMenu.SK:DropDown("S", "SkinChanger", 1, Table[GetObjectName(myHero)], function() HeroSkinChanger(myHero, MainMenu.SK.S:Value() - 1) end)
+	ConfigMenu:Menu("SK", "Skinchanger")--
+		ConfigMenu.SK:DropDown("S", "SkinChanger", 1, Table[GetObjectName(myHero)], function() HeroSkinChanger(myHero, ConfigMenu.SK.S:Value() - 1) end)
 end
 
 class "Autolvl"
 
 function Autolvl:__init()
-	MainMenu:Menu("AL", "Auto Lvl")
-		MainMenu.AL:DropDown("ALT", "Auto lvl table", 7, {"QWE", "QEW", "WQE", "WEQ", "EWQ", "EQW", "Off"})
+	ConfigMenu:Menu("AL", "Auto Lvl")
+		ConfigMenu.AL:DropDown("ALT", "Auto lvl table", 7, {"QWE", "QEW", "WQE", "WEQ", "EWQ", "EQW", "Off"})
 
 	self.Table = 
 				{
@@ -104,9 +104,9 @@ function Autolvl:__init()
 end
 
 function Autolvl:Autolvl(myHero)
-	if MainMenu.AL.ALT:Value() ~= 7 then
+	if ConfigMenu.AL.ALT:Value() ~= 7 then
 		if GetLevelPoints(myHero) >= 1 then
-			DelayAction(function() LevelSpell(self.Table[MainMenu.AL.ALT:Value()][GetLevel(myHero) - GetLevelPoints(myHero) + 1]) end, math.random(1, 2))
+			DelayAction(function() LevelSpell(self.Table[ConfigMenu.AL.ALT:Value()][GetLevel(myHero) - GetLevelPoints(myHero) + 1]) end, math.random(1, 2))
 		end
 	end
 end
@@ -212,17 +212,17 @@ function AutoSmite:__init()
 		self.SmiteDMG = true
 	end
 
-	MainMenu:Menu("AS", "Auto Smite")
-		MainMenu.AS:Boolean("ASE", "Auto Smite enable", true)
-		MainMenu.AS:SubMenu("ASM", "Mobs options")
+	ConfigMenu:Menu("AS", "Auto Smite")
+		ConfigMenu.AS:Boolean("ASE", "Auto Smite enable", true)
+		ConfigMenu.AS:SubMenu("ASM", "Mobs options")
 			for i = 1, #self.Mobs do
-				MainMenu.AS.ASM:Boolean("Pleb"..self.Mobs[i].BaseName, "AutoSmite "..self.Mobs[i].Name, true)
+				ConfigMenu.AS.ASM:Boolean("Pleb"..self.Mobs[i].BaseName, "AutoSmite "..self.Mobs[i].Name, true)
 			end
-		MainMenu.AS:Boolean("ASK", "AutoSmite ks", true)
-		MainMenu.AS:Boolean("ASQ", "Use Q", true)
-		MainMenu.AS:Boolean("ASW", "Use W", true)
-		MainMenu.AS:Boolean("ASE", "Use E", true)
-		MainMenu.AS:Boolean("ASA", "AA Smite", true)
+		ConfigMenu.AS:Boolean("ASK", "AutoSmite ks", true)
+		ConfigMenu.AS:Boolean("ASQ", "Use Q", true)
+		ConfigMenu.AS:Boolean("ASW", "Use W", true)
+		ConfigMenu.AS:Boolean("ASE", "Use E", true)
+		ConfigMenu.AS:Boolean("ASA", "AA Smite", true)
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 	OnProcessPacket(function(Packet) self:Packets(Packet) end)
@@ -231,16 +231,16 @@ end
 
 function AutoSmite:Tick(myHero) 
 	for k, v in ipairs(GetEnemyHeroes()) do
-		if GetCurrentHP(v) <= self.SmiteHDmg and ValidTarget(v, 500) and self.SmiteDMG and MainMenu.AS.ASK:Value() then
+		if GetCurrentHP(v) <= self.SmiteHDmg and ValidTarget(v, 500) and self.SmiteDMG and ConfigMenu.AS.ASK:Value() then
 			CastTargetSpell(self.Smite, v)
 		end
 	end
 
-	if MainMenu.AS.ASE:Value() and self.Table[GetObjectName(myHero)] ~= nil then
+	if ConfigMenu.AS.ASE:Value() and self.Table[GetObjectName(myHero)] ~= nil then
 		for k, i in ipairs(minionManager.objects) do
 			for v = 1, #self.Mobs do
-				if self.Table[GetObjectName(myHero)][0] ~= nil and MainMenu.AS.ASQ:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(0) and Ready(self.Smite) then
+				if self.Table[GetObjectName(myHero)][0] ~= nil and ConfigMenu.AS.ASQ:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(0) and Ready(self.Smite) then
 						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
 							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
@@ -248,8 +248,8 @@ function AutoSmite:Tick(myHero)
 					end
 				end
 
-				if self.Table[GetObjectName(myHero)][1] ~= nil and MainMenu.AS.ASW:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(1) and Ready(self.Smite) then
+				if self.Table[GetObjectName(myHero)][1] ~= nil and ConfigMenu.AS.ASW:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(1) and Ready(self.Smite) then
 						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
 							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
@@ -257,8 +257,8 @@ function AutoSmite:Tick(myHero)
 					end
 				end
 
-				if self.Table[GetObjectName(myHero)][2] ~= nil and MainMenu.AS.ASE:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(2) and Ready(self.Smite) then
+				if self.Table[GetObjectName(myHero)][2] ~= nil and ConfigMenu.AS.ASE:Value() then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(2) and Ready(self.Smite) then
 						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
 							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
@@ -276,7 +276,7 @@ function AutoSmite:OnProc(Object, spellProc)
 			if Ready(self.Smite) then
 				for k, i in ipairs(minionManager.objects) do
 					for v = 1, #self.Mobs do
-						if spellProc.target == self.Mobs[v].BaseName and MainMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
+						if spellProc.target == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
 							if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)].AADmg(i) + self.SmiteDmg[GetLevel(myHero)] then
 								DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(Unit))
 							end
@@ -303,14 +303,14 @@ end
 class "TargetSelector"
 
 function TargetSelector:__init()
-	MainMenu:Menu("T", "TargetSelector")
-		MainMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
+	ConfigMenu:Menu("T", "TargetSelector")
+		ConfigMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 end
 
 function TargetSelector:Targets()
-	if MainMenu.T.ts:Value() == 1 then
+	if ConfigMenu.T.ts:Value() == 1 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -325,7 +325,7 @@ function TargetSelector:Targets()
 		end
 		return closest
 
-	elseif MainMenu.T.ts:Value() == 2 then
+	elseif ConfigMenu.T.ts:Value() == 2 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -340,7 +340,7 @@ function TargetSelector:Targets()
 		end
 		return closest
 
-	elseif MainMenu.T.ts:Value() == 3 then
+	elseif ConfigMenu.T.ts:Value() == 3 then
 		local MostAp = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -355,7 +355,7 @@ function TargetSelector:Targets()
 		end
 		return MostAp
 
-	elseif MainMenu.T.ts:Value() == 4 then
+	elseif ConfigMenu.T.ts:Value() == 4 then
 		local MostAD = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -370,7 +370,7 @@ function TargetSelector:Targets()
 		end
 		return MostAD
 
-	elseif MainMenu.T.ts:Value() == 5 then
+	elseif ConfigMenu.T.ts:Value() == 5 then
 		local Lowest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -385,7 +385,7 @@ function TargetSelector:Targets()
 		end
 		return Lowest
 
-	elseif MainMenu.T.ts:Value() == 6 then
+	elseif ConfigMenu.T.ts:Value() == 6 then
 		local LessCast = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, 1000) then
@@ -437,67 +437,67 @@ function Zyra:__init()
 	self.Seeds = {}
 
 
-MainMenu.Champ:Menu("C", "Combo")
-MainMenu.Champ.C:Boolean("Q", "Use Q", true)
-MainMenu.Champ.C:Boolean("W", "Use W", true)
-MainMenu.Champ.C:Boolean("E", "Use E", true)
-MainMenu.Champ.C:Boolean("R", "Use R", true)
-MainMenu.Champ.C:Slider("ER", "Enemies to R", 3, 1, 5)
-MainMenu.Champ.C:Boolean("P", "Use Passive", true)
+ConfigMenu.Champ:Menu("C", "Combo")
+ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
+ConfigMenu.Champ.C:Boolean("W", "Use W", true)
+ConfigMenu.Champ.C:Boolean("E", "Use E", true)
+ConfigMenu.Champ.C:Boolean("R", "Use R", true)
+ConfigMenu.Champ.C:Slider("ER", "Enemies to R", 3, 1, 5)
+ConfigMenu.Champ.C:Boolean("P", "Use Passive", true)
 
-MainMenu.Champ:Menu("H", "Harass")
-MainMenu.Champ.H:Boolean("Q", "Use Q", true)
-MainMenu.Champ.H:Boolean("E", "Use E", true)
+ConfigMenu.Champ:Menu("H", "Harass")
+ConfigMenu.Champ.H:Boolean("Q", "Use Q", true)
+ConfigMenu.Champ.H:Boolean("E", "Use E", true)
 
-MainMenu.Champ:Menu("LC", "LaneClear")
-MainMenu.Champ.LC:Boolean("Q", "Use Q", true)
-MainMenu.Champ.LC:Boolean("E", "Use E", true)
-MainMenu.Champ.LC:Slider("SLC", "Seeds for LaneClear", 2, 1, 8)
+ConfigMenu.Champ:Menu("LC", "LaneClear")
+ConfigMenu.Champ.LC:Boolean("Q", "Use Q", true)
+ConfigMenu.Champ.LC:Boolean("E", "Use E", true)
+ConfigMenu.Champ.LC:Slider("SLC", "Seeds for LaneClear", 2, 1, 8)
 
-MainMenu.Champ:Menu("KS", "KillSteal")
-MainMenu.Champ.KS:Boolean("Q", "Use Q", true)
-MainMenu.Champ.KS:Boolean("E", "Use E", true)
-MainMenu.Champ.KS:Boolean("R", "Use R", true)
+ConfigMenu.Champ:Menu("KS", "KillSteal")
+ConfigMenu.Champ.KS:Boolean("Q", "Use Q", true)
+ConfigMenu.Champ.KS:Boolean("E", "Use E", true)
+ConfigMenu.Champ.KS:Boolean("R", "Use R", true)
 if self.Ignite ~= nil then
-MainMenu.Champ.KS:Boolean("IG", "Use Ignite", true)
+ConfigMenu.Champ.KS:Boolean("IG", "Use Ignite", true)
 end
 
-MainMenu.Champ:Menu("SO", "Seed Options")
-MainMenu.Champ.SO:Boolean("QS", "Logic Q Seeds?", true)
-MainMenu.Champ.SO:SubMenu("QSM", "No logic seeds Q")
-MainMenu.Champ.SO.QSM:Slider("QSM", "Seeds to use in Q?", 1, 1, 2)
-MainMenu.Champ.SO.QSM:Slider("DTS", "Distance to 2 seeds", 1, 500, 850)
-MainMenu.Champ.SO.QSM:Info("a", "Desactivate Logic Q Seeds")
-MainMenu.Champ.SO:Boolean("ES", "Logic E Seeds?", true)
-MainMenu.Champ.SO:SubMenu("ESM", "No logic seeds E")
-MainMenu.Champ.SO.ESM:Slider("ESM", "Seeds to use in E?", 1, 1, 2)
-MainMenu.Champ.SO.ESM:Info("a", "Desactivate Logic E Seeds")
+ConfigMenu.Champ:Menu("SO", "Seed Options")
+ConfigMenu.Champ.SO:Boolean("QS", "Logic Q Seeds?", true)
+ConfigMenu.Champ.SO:SubMenu("QSM", "No logic seeds Q")
+ConfigMenu.Champ.SO.QSM:Slider("QSM", "Seeds to use in Q?", 1, 1, 2)
+ConfigMenu.Champ.SO.QSM:Slider("DTS", "Distance to 2 seeds", 1, 500, 850)
+ConfigMenu.Champ.SO.QSM:Info("a", "Desactivate Logic Q Seeds")
+ConfigMenu.Champ.SO:Boolean("ES", "Logic E Seeds?", true)
+ConfigMenu.Champ.SO:SubMenu("ESM", "No logic seeds E")
+ConfigMenu.Champ.SO.ESM:Slider("ESM", "Seeds to use in E?", 1, 1, 2)
+ConfigMenu.Champ.SO.ESM:Info("a", "Desactivate Logic E Seeds")
 
-MainMenu.Champ:Menu("Orb", "Hotkeys")
-MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-MainMenu.Champ:Menu("HC", "Hit chance")
-MainMenu.Champ.HC:Slider("Q", "Q Predict", 20, 1, 100)
-MainMenu.Champ.HC:Slider("E", "E Predict", 20, 1, 100)
-MainMenu.Champ.HC:Slider("R", "R Predict", 20, 1, 100)
+ConfigMenu.Champ:Menu("HC", "Hit chance")
+ConfigMenu.Champ.HC:Slider("Q", "Q Predict", 20, 1, 100)
+ConfigMenu.Champ.HC:Slider("E", "E Predict", 20, 1, 100)
+ConfigMenu.Champ.HC:Slider("R", "R Predict", 20, 1, 100)
 
-MainMenu.Champ:Menu("D", "Draw")
---[[MainMenu.Champ.D:SubMenu("DD", "Draw Damage")
-MainMenu.Champ.D.DD:Boolean("D", "Draw?", true)
-MainMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
-MainMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
-MainMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
-MainMenu.Champ.D:SubMenu("DR", "Draw Range")
-MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
-MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
-MainMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
-MainMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
-MainMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
+ConfigMenu.Champ:Menu("D", "Draw")
+--[[ConfigMenu.Champ.D:SubMenu("DD", "Draw Damage")
+ConfigMenu.Champ.D.DD:Boolean("D", "Draw?", true)
+ConfigMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
+ConfigMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
+ConfigMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
+ConfigMenu.Champ.D:SubMenu("DR", "Draw Range")
+ConfigMenu.Champ.D.DR:Boolean("D", "Draw?", true)
+ConfigMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
+ConfigMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
+ConfigMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
+ConfigMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
-MainMenu.Champ:Menu("M", "Misc")
-MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+ConfigMenu.Champ:Menu("M", "Misc")
+ConfigMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
 
 
 OnTick(function(myHero) self:Tick() end)
@@ -512,11 +512,11 @@ end
 function Zyra:Tick()
 	self.Target = CustomTarget
 	if not IsDead(myHero) then
-		if MainMenu.Champ.Orb.C:Value() then
+		if ConfigMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
-		elseif MainMenu.Champ.Orb.H:Value() then
+		elseif ConfigMenu.Champ.Orb.H:Value() then
 			self:Harass(self.Target)
-		elseif MainMenu.Champ.Orb.LC:Value() then
+		elseif ConfigMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 		self:Ks()
@@ -524,58 +524,58 @@ function Zyra:Tick()
 end
 
 function Zyra:Draw()
-	--[[if MainMenu.Champ.D.DR.D:Value() then
+	--[[if ConfigMenu.Champ.D.DR.D:Value() then
 		for _, enemy in pairs(GetEnemyHeroes()) do
 		local Qdmg = self.Dmg[0](enemy)
 		local Edmg = self.Dmg[2](enemy)
 		local Rdmg = self.Dmg[3](enemy)
 		local Tdmg = Qdmg + Edmg + Rdmg
 		if Tdmg < GetCurrentHP(enemy) then
-			if MainMenu.Champ.D.DD.DQ:Value() and ValidTarget(enemy, 800) and Ready(0) then
+			if ConfigMenu.Champ.D.DD.DQ:Value() and ValidTarget(enemy, 800) and Ready(0) then
 				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Qdmg,GoS.Red)
 			end
-			if MainMenu.Champ.D.DD.DE:Value() and ValidTarget(enemy, 1100) and Ready(2) then
+			if ConfigMenu.Champ.D.DD.DE:Value() and ValidTarget(enemy, 1100) and Ready(2) then
 				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Edmg,GoS.Blue)
 			end
-			if MainMenu.Champ.D.DD.DR:Value() and ValidTarget(enemy, 700) and Ready(3) then
+			if ConfigMenu.Champ.D.DD.DR:Value() and ValidTarget(enemy, 700) and Ready(3) then
 				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Rdmg,GoS.Pink)
 			end
 		else 
 			DrawText("Killiable!",12,enemy.x,enemy.y,GoS.White)
 		end
 	end]]
-	if MainMenu.Champ.D.DR.D:Value() then
-		if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
-			DrawCircle(GetOrigin(myHero), 800, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
+	if ConfigMenu.Champ.D.DR.D:Value() then
+		if ConfigMenu.Champ.D.DR.DQ:Value() and Ready(0) then
+			DrawCircle(GetOrigin(myHero), 800, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Red)
 		end
 
-		if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
-			DrawCircle(GetOrigin(myHero), 1100, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
+		if ConfigMenu.Champ.D.DR.DE:Value() and Ready(2) then
+			DrawCircle(GetOrigin(myHero), 1100, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Blue)
 		end
 
-		if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
-			DrawCircle(GetOrigin(myHero), 700, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
+		if ConfigMenu.Champ.D.DR.DR:Value() and Ready(3) then
+			DrawCircle(GetOrigin(myHero), 700, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Pink)
 		end
 	end
 end
 
 function Zyra:Combo(Target)
-	if MainMenu.Champ.C.Q:Value() then
+	if ConfigMenu.Champ.C.Q:Value() then
 		self:CastQ(Target)
 	end
-	if MainMenu.Champ.C.E:Value() then
+	if ConfigMenu.Champ.C.E:Value() then
 		self:CastE(Target)
 	end
-	if MainMenu.Champ.C.R:Value() then
+	if ConfigMenu.Champ.C.R:Value() then
 		self:CastR(Target)
 	end
 end
 
 function Zyra:Harass(Target)
-	if MainMenu.Champ.C.Q:Value() then
+	if ConfigMenu.Champ.C.Q:Value() then
 		self:CastQ(Target)
 	end
-	if MainMenu.Champ.C.E:Value() then
+	if ConfigMenu.Champ.C.E:Value() then
 		self:CastE(Target)
 	end
 end
@@ -584,10 +584,10 @@ function Zyra:LaneClear()
 	local BestPos, BestHit = self:BestFarmPos(self.Spells[0].range, self.Spells[0].width, self.Seeds)
 	for _, mob in pairs(minionManager.objects) do
 		if ValidTarget(mob, 850) then
-			if MainMenu.Champ.LC.Q:Value() and Ready(0) then
-				if BestHit >= MainMenu.Champ.LC.SLC:Value() and BestPos then
+			if ConfigMenu.Champ.LC.Q:Value() and Ready(0) then
+				if BestHit >= ConfigMenu.Champ.LC.SLC:Value() and BestPos then
 					CastSkillShot(0, BestPos)
-				elseif BestHit <= MainMenu.Champ.LC.SLC:Value() and BestPos then
+				elseif BestHit <= ConfigMenu.Champ.LC.SLC:Value() and BestPos then
 					CastSkillShot(0, GetOrigin(mob))
 				end
 			end
@@ -600,15 +600,15 @@ function Zyra:Ks()
 		local Q = GetCircularAOEPrediction(enemy, self.Spells[0])
 		local E = GetPrediction(enemy, self.Spells[2])
 		local R = GetCircularAOEPrediction(enemy, self.Spells[3])
-		if MainMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy) then
+		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy) then
 			CastSkillShot(0, Q.castPos)
 		end
 
-		if MainMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[2](enemy) then
+		if ConfigMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 		end
 
-		if MainMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and MainMenu.Champ.KS.E:Value() and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy)+self.Dmg[2](enemy) then
+		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and ConfigMenu.Champ.KS.E:Value() and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy)+self.Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 			DelayAction(function() CastSkillShot(_Q, Q.castPos) end, GetDistance(enemy)/1500)
 		end
@@ -623,7 +623,7 @@ end
 
 function Zyra:CastQ(Unit)
 	local Q = GetCircularAOEPrediction(Unit, self.Spells[0])
-	if Ready(0) and ValidTarget(Unit, 800) and not ECast and Q.hitChance >= (MainMenu.Champ.HC.Q:Value())/100 and Q then
+	if Ready(0) and ValidTarget(Unit, 800) and not ECast and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and Q then
 		CastSkillShot(0, Q.castPos)
 		QCast = true
 		DelayAction(function() QCast = false end, 0.5)
@@ -633,39 +633,39 @@ end
 function Zyra:CastW(Point, Spell)
 	local q = 0
 	local e = 0
-	if self.IsTargetFucked and Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
+	if self.IsTargetFucked and Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and ConfigMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 		DelayAction(function() CastSkillShot(1, Point) end, 0.5)
 		
-	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) >= MainMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
+	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) >= ConfigMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and ConfigMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 
-	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) <= MainMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() then
+	elseif not self.IsTargetFucked and Ready(0) and ValidTarget(self.Target, 800) and GetDistance(self.Target) <= ConfigMenu.Champ.SO.QSM.DTS:Value() and Spell == GetCastName(myHero, 0) and ConfigMenu.Champ.SO.QS:Value() then
 		CastSkillShot(1, Point)
 		DelayAction(function() CastSkillShot(1, Point) end, 0.5)
 
-	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() == false then
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and ConfigMenu.Champ.SO.QS:Value() == false then
 		CastSkillShot(1, Point)
 		q = q+1
 		DelayAction(function()	
-			if q < MainMenu.Champ.SO.QSM.QSM:Value() then
+			if q < ConfigMenu.Champ.SO.QSM.QSM:Value() then
 				CastSkillShot(1, Point)
 				q = q+1
-				if q == MainMenu.Champ.SO.QSM.QSM:Value() then
+				if q == ConfigMenu.Champ.SO.QSM.QSM:Value() then
 					q = 0
 				end
 			else
 				q = 0
 			end
 		end, 0.5)
-	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and MainMenu.Champ.SO.QS:Value() == false then
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 0) and ConfigMenu.Champ.SO.QS:Value() == false then
 		CastSkillShot(1, Point)
 		q = q+1
 		DelayAction(function()	
-			if q < MainMenu.Champ.SO.QSM.QSM:Value() then
+			if q < ConfigMenu.Champ.SO.QSM.QSM:Value() then
 				CastSkillShot(1, Point)
 				q = q+1
-				if q == MainMenu.Champ.SO.QSM.QSM:Value() then
+				if q == ConfigMenu.Champ.SO.QSM.QSM:Value() then
 					q = 0
 				end
 			else
@@ -673,17 +673,17 @@ function Zyra:CastW(Point, Spell)
 			end
 		end, 0.5)
 	end
-	if Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and MainMenu.Champ.SO.ES:Value() then
+	if Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and ConfigMenu.Champ.SO.ES:Value() then
 		CastSkillShot(1, Point)
 
-	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and MainMenu.Champ.SO.ES:Value() == false then
+	elseif Ready(1) and ValidTarget(self.Target, 800) and Spell == GetCastName(myHero, 2) and ConfigMenu.Champ.SO.ES:Value() == false then
 		CastSkillShot(1, Point)
 		e = e+1
 		DelayAction(function()	
-			if e < MainMenu.Champ.SO.ESM.ESM:Value() then
+			if e < ConfigMenu.Champ.SO.ESM.ESM:Value() then
 				CastSkillShot(1, Point)
 				e = e+1
-				if e == MainMenu.Champ.SO.ESM.ESM:Value() then
+				if e == ConfigMenu.Champ.SO.ESM.ESM:Value() then
 					e = 0
 				end
 			else
@@ -695,7 +695,7 @@ end
 
 function Zyra:CastE(Unit)
 	local E = GetPrediction(Unit, self.Spells[2])
-	if Ready(2) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and E then
+	if Ready(2) and ValidTarget(Unit, 1100) and not QCast and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and E then
 		CastSkillShot(2, E.castPos)
 		ECast = true
 		DelayAction(function() ECast = false end, GetDistance(self.Target)/self.Spells[3].speed)
@@ -704,11 +704,11 @@ end
 
 function Zyra:CastR(Unit)
 	local R = GetCircularAOEPrediction(Unit, self.Spells[3])
-	if Ready(3) and ValidTarget(Unit, 700) and R.hitChance >= (MainMenu.Champ.HC.R:Value())/100 and EnemiesAround(myHero, 1000) <= 2 and R then
+	if Ready(3) and ValidTarget(Unit, 700) and R.hitChance >= (ConfigMenu.Champ.HC.R:Value())/100 and EnemiesAround(myHero, 1000) <= 2 and R then
 		CastSkillShot(3, R.castPos)
 	elseif Ready(3) and ValidTarget(Unit, 700) and EnemiesAround(myHero, 1000) >= 2 then
 		local BestRPos, BestRHit = self:BestRPos()
-		if BestRPos and BestRHit >= MainMenu.Champ.C.ER:Value() then
+		if BestRPos and BestRHit >= ConfigMenu.Champ.C.ER:Value() then
 			CastSkillShot(3, BestRPos)
 		end
 	end
@@ -717,12 +717,12 @@ end
 function Zyra:OnProc(Object, spellProc)
 	local EPos = nil
 	if Object == myHero then
-		if MainMenu.Champ.Orb.C:Value() then
+		if ConfigMenu.Champ.Orb.C:Value() then
 			DelayAction(function()
 				if spellProc.name == GetCastName(myHero, 0) then
 					self:CastW(spellProc.endPos, GetCastName(myHero, 0))
 				elseif spellProc.name == GetCastName(myHero, 2) then
-					if MainMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
+					if ConfigMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
 						EPos = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(self.Target)
 						self:CastW(EPos, GetCastName(myHero, 2))
 					end
@@ -840,64 +840,64 @@ function Kindred:__init()
 	self.Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
 	self.target = nil
 	
-	MainMenu.Champ:Menu("Combo", "Combo")
-	MainMenu.Champ.Combo:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.Combo:Boolean("W", "Use W", true)
-	MainMenu.Champ.Combo:Boolean("E", "Use E", true)
-	MainMenu.Champ.Combo:Boolean("QE", "Gapcloser", true)
+	ConfigMenu.Champ:Menu("Combo", "Combo")
+	ConfigMenu.Champ.Combo:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.Combo:Boolean("W", "Use W", true)
+	ConfigMenu.Champ.Combo:Boolean("E", "Use E", true)
+	ConfigMenu.Champ.Combo:Boolean("QE", "Gapcloser", true)
 
-	MainMenu.Champ:Menu("JunglerClear", "JunglerClear")
-	MainMenu.Champ.JunglerClear:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.JunglerClear:Boolean("W", "Use W", true)
-	MainMenu.Champ.JunglerClear:Boolean("E", "Use E", true)
-	MainMenu.Champ.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
+	ConfigMenu.Champ:Menu("JunglerClear", "JunglerClear")
+	ConfigMenu.Champ.JunglerClear:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.JunglerClear:Boolean("W", "Use W", true)
+	ConfigMenu.Champ.JunglerClear:Boolean("E", "Use E", true)
+	ConfigMenu.Champ.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-	MainMenu.Champ:Menu("LaneClear", "LaneClear")
-	MainMenu.Champ.LaneClear:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.LaneClear:Boolean("W", "Use W", true)
-	MainMenu.Champ.LaneClear:Boolean("E", "Use E", true)
-	MainMenu.Champ.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
+	ConfigMenu.Champ:Menu("LaneClear", "LaneClear")
+	ConfigMenu.Champ.LaneClear:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.LaneClear:Boolean("W", "Use W", true)
+	ConfigMenu.Champ.LaneClear:Boolean("E", "Use E", true)
+	ConfigMenu.Champ.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-	MainMenu.Champ:Menu("Orb", "Hotkeys")
-	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
---	MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+	ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+--	ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	MainMenu.Champ:Menu("Misc", "Misc")
-	MainMenu.Champ.Misc:DropDown("AL", "Priority", 1, {"Q-E-W","Q-E-W lv3 E","Q-W-E","Q-W-E lv3 E", "Off"})
-	MainMenu.Champ.Misc:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
-	MainMenu.Champ.Misc:Boolean("B", "Buy Farsight", true)
-	MainMenu.Champ.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
-	MainMenu.Champ.Misc:Key("WP", "Jumps", string.byte("G"))
+	ConfigMenu.Champ:Menu("Misc", "Misc")
+	ConfigMenu.Champ.Misc:DropDown("AL", "Priority", 1, {"Q-E-W","Q-E-W lv3 E","Q-W-E","Q-W-E lv3 E", "Off"})
+	ConfigMenu.Champ.Misc:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
+	ConfigMenu.Champ.Misc:Boolean("B", "Buy Farsight", true)
+	ConfigMenu.Champ.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
+	ConfigMenu.Champ.Misc:Key("WP", "Jumps", string.byte("G"))
 
-	MainMenu.Champ:Menu("ROptions", "R Options")
-	MainMenu.Champ.ROptions:Boolean("R", "Use R?", true)
-	MainMenu.Champ.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
-	MainMenu.Champ.ROptions:Boolean("RU", "Use R on urself", true)
+	ConfigMenu.Champ:Menu("ROptions", "R Options")
+	ConfigMenu.Champ.ROptions:Boolean("R", "Use R?", true)
+	ConfigMenu.Champ.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
+	ConfigMenu.Champ.ROptions:Boolean("RU", "Use R on urself", true)
 
-	MainMenu.Champ:Menu("QOptions", "Q Options")
-	MainMenu.Champ.QOptions:Boolean("QC", "AA reset Combo", true)
-	MainMenu.Champ.QOptions:Boolean("QL", "AA reset LaneClear", true)
-	MainMenu.Champ.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
-	MainMenu.Champ.QOptions:Boolean("C", "Cancel animation?", false)
+	ConfigMenu.Champ:Menu("QOptions", "Q Options")
+	ConfigMenu.Champ.QOptions:Boolean("QC", "AA reset Combo", true)
+	ConfigMenu.Champ.QOptions:Boolean("QL", "AA reset LaneClear", true)
+	ConfigMenu.Champ.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
+	ConfigMenu.Champ.QOptions:Boolean("C", "Cancel animation?", false)
 
-	MainMenu.Champ:Menu("D", "Draw")
-	--[[MainMenu.Champ.D:SubMenu("DD", "Draw Damage")
-	MainMenu.Champ.D.DD:Boolean("D", "Draw?", true)
-	MainMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
-	MainMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
-	MainMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
-	MainMenu.Champ.D:SubMenu("DR", "Draw Range")
-	MainMenu.Champ.D.DR:Boolean("D", "Draw?", true)
-	MainMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
-	MainMenu.Champ.D.DR:Boolean("DW", "Draw W range", true)
-	MainMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
-	MainMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
-	MainMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
+	ConfigMenu.Champ:Menu("D", "Draw")
+	--[[ConfigMenu.Champ.D:SubMenu("DD", "Draw Damage")
+	ConfigMenu.Champ.D.DD:Boolean("D", "Draw?", true)
+	ConfigMenu.Champ.D.DD:Boolean("DQ", "Draw Q dmg", true)
+	ConfigMenu.Champ.D.DD:Boolean("DE", "Draw E dmg", true)
+	ConfigMenu.Champ.D.DD:Boolean("DR", "Draw R dmg", true)]]
+	ConfigMenu.Champ.D:SubMenu("DR", "Draw Range")
+	ConfigMenu.Champ.D.DR:Boolean("D", "Draw?", true)
+	ConfigMenu.Champ.D.DR:Boolean("DQ", "Draw Q range", true)
+	ConfigMenu.Champ.D.DR:Boolean("DW", "Draw W range", true)
+	ConfigMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
+	ConfigMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
+	ConfigMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
 	DelayAction(function()
 		for i, allies in pairs(GetAllyHeroes()) do
-			MainMenu.Champ.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
+			ConfigMenu.Champ.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
 		end
 	end, 0.001)
 end
@@ -907,26 +907,26 @@ function Kindred:Tick()
 	
 		self.target = CustomTarget
 
-		if MainMenu.Champ.Orb.C:Value() then
+		if ConfigMenu.Champ.Orb.C:Value() then
 			self:Combo(self.target)
-		elseif MainMenu.Champ.Orb.LC:Value() then
+		elseif ConfigMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 
 		self:AutoR()
-		if MainMenu.Champ.Misc.FQ:Value() then
-			if Ready(0) and Ready(Flash) and MainMenu.Champ.Combo.Q:Value() then  
+		if ConfigMenu.Champ.Misc.FQ:Value() then
+			if Ready(0) and Ready(Flash) and ConfigMenu.Champ.Combo.Q:Value() then  
 				CastSkillShot(Flash, GetMousePos()) 
 					DelayAction(function() CastSkillShot(0, GetMousePos()) end, 1)					  
 			end
 		end
-		if MainMenu.Champ.Misc.WP:Value() then
+		if ConfigMenu.Champ.Misc.WP:Value() then
 			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and Ready(0) then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
 		self.Passive = GetBuffData(myHero,"kindredmarkofthekindredstackcounter").Stacks
-		if MainMenu.Champ.Misc.B:Value() then
+		if ConfigMenu.Champ.Misc.B:Value() then
 			if not self.Farsight and GetLevel(myHero) >= 9 and GetDistance(myHero,basePos) < 550 then
 				BuyItem(3363)
 				self.Farsight = true
@@ -937,20 +937,20 @@ end
 
 function Kindred:Draw()
 	if not IsDead(myHero) then
-		if MainMenu.Champ.D.DR.D:Value() then
-			if MainMenu.Champ.D.DR.DQ:Value() and Ready(0) then
-				DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Red)
+		if ConfigMenu.Champ.D.DR.D:Value() then
+			if ConfigMenu.Champ.D.DR.DQ:Value() and Ready(0) then
+				DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Red)
 			end
 
-			if MainMenu.Champ.D.DR.DW:Value() and Ready(1) then
-				DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Blue)
+			if ConfigMenu.Champ.D.DR.DW:Value() and Ready(1) then
+				DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Blue)
 			end
 
-			if MainMenu.Champ.D.DR.DE:Value() and Ready(2) then
-				DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.Pink)
+			if ConfigMenu.Champ.D.DR.DE:Value() and Ready(2) then
+				DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Pink)
 			end
-				if MainMenu.Champ.D.DR.DR:Value() and Ready(3) then
-				DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DR.DH:Value(), GoS.White)
+				if ConfigMenu.Champ.D.DR.DR:Value() and Ready(3) then
+				DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.White)
 			end
 		end
 	end
@@ -959,17 +959,17 @@ end
 function Kindred:Combo(Unit)
 local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*self.Spells[0].dash
 
-	if Ready(2) and Ready(0) and MainMenu.Champ.Combo.QE:Value() and GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
+	if Ready(2) and Ready(0) and ConfigMenu.Champ.Combo.QE:Value() and GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
 		CastSkillShot(0, GetMousePos())
 			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
 	end
-	if Ready(0) and MainMenu.Champ.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and MainMenu.Champ.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
+	if Ready(0) and ConfigMenu.Champ.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and ConfigMenu.Champ.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
     	CastSkillShot(0, GetMousePos()) 
 	end
-	if Ready(1) and MainMenu.Champ.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
+	if Ready(1) and ConfigMenu.Champ.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
 		CastSpell(1)
 	end
-	if Ready(2) and MainMenu.Champ.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
+	if Ready(2) and ConfigMenu.Champ.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
 		CastTargetSpell(Unit, 2)
 	end
 end
@@ -980,24 +980,24 @@ function Kindred:LaneClear()
 	local EMana = (self.Spells[2].mana*100)/GetMaxMana(myHero)
 	for _, mob in pairs(minionManager.objects) do	
 		if GetTeam(mob) == MINION_JUNGLE then
-			if MainMenu.Champ.QOptions.QJ:Value() == false and Ready(0) and MainMenu.Champ.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JunglerClear.MM:Value() then 
+			if ConfigMenu.Champ.QOptions.QJ:Value() == false and Ready(0) and ConfigMenu.Champ.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and MainMenu.Champ.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= MainMenu.Champ.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
+			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and ConfigMenu.Champ.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
    				CastSpell(1)
     		end
-    		if Ready(2) and ValidTarget(mob, self.Spells[2].range) and MainMenu.Champ.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+    		if Ready(2) and ValidTarget(mob, self.Spells[2].range) and ConfigMenu.Champ.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
    				CastTargetSpell(mob, 2)
    			end
   	 	end
 		if GetTeam(mob) == MINION_ENEMY then
-			if MainMenu.Champ.QOptions.QL:Value() == false and Ready(0) and MainMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
+			if ConfigMenu.Champ.QOptions.QL:Value() == false and Ready(0) and ConfigMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and MainMenu.Champ.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= MainMenu.Champ.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
+			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and ConfigMenu.Champ.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
 				CastSpell(1)
 			end
-			if Ready(2) and ValidTarget(mob, self.Spells[2].range) and MainMenu.Champ.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+			if Ready(2) and ValidTarget(mob, self.Spells[2].range) and ConfigMenu.Champ.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
 				CastTargetSpell(mob, 2)
 			end
 		end
@@ -1005,13 +1005,13 @@ function Kindred:LaneClear()
 end
 
 function Kindred:AutoR()
-	if MainMenu.Champ.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and Ready(1) then
+	if ConfigMenu.Champ.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and Ready(1) then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 20 and MainMenu.Champ.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= MainMenu.Champ.ROptions.EA:Value() then
+			if GetPercentHP(allies) <= 20 and ConfigMenu.Champ.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= ConfigMenu.Champ.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
-		if GetPercentHP(myHero) <= 20 and MainMenu.Champ.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= MainMenu.Champ.ROptions.EA:Value() then
+		if GetPercentHP(myHero) <= 20 and ConfigMenu.Champ.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= ConfigMenu.Champ.ROptions.EA:Value() then
 			CastTargetSpell(myHero, 3)
 		end
 	end
@@ -1021,17 +1021,17 @@ function Kindred:OnProcComplete(unit, spell)
 	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
-			if MainMenu.Champ.Orb.LC:Value() then 
+			if ConfigMenu.Champ.Orb.LC:Value() then 
 				for _, mob in pairs(minionManager.objects) do	
-					if MainMenu.Champ.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and MainMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.LaneClear.MM:Value() and Ready(0) then
+					if ConfigMenu.Champ.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and ConfigMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos())
 					end
-					if MainMenu.Champ.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and MainMenu.Champ.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JunglerClear.MM:Value() and Ready(0) then
+					if ConfigMenu.Champ.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and ConfigMenu.Champ.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
-			elseif MainMenu.Champ.Orb.C:Value() then
-				if MainMenu.Champ.QOptions.QC:Value() and Ready(0) and MainMenu.Champ.Combo.Q:Value() and ValidTarget(self.target, 500) then
+			elseif ConfigMenu.Champ.Orb.C:Value() then
+				if ConfigMenu.Champ.QOptions.QC:Value() and Ready(0) and ConfigMenu.Champ.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
 			end
@@ -1040,7 +1040,7 @@ function Kindred:OnProcComplete(unit, spell)
 end
 
 function Kindred:OnProc(unit, spell)
-	if unit == myHero and spell.name == "KindredQ" and MainMenu.Champ.QOptions.C:Value() then
+	if unit == myHero and spell.name == "KindredQ" and ConfigMenu.Champ.QOptions.C:Value() then
 		DelayAction(function() CastEmote(EMOTE_DANCE) end, .001)
 	end
 end
@@ -1195,56 +1195,56 @@ function Poppy:__init()
 		self.Flash = nil
 	end
 
-	MainMenu.Champ:Menu("C", "Combo")
-	MainMenu.Champ.C:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.C:Boolean("E", "Use E", true)
-	MainMenu.Champ.C:Boolean("R", "Use R", true)
-	MainMenu.Champ.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
-	MainMenu.Champ.C.ASC:Boolean("AS", "Auto Stun enable?", true)
-	MainMenu.Champ.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
+	ConfigMenu.Champ:Menu("C", "Combo")
+	ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.C:Boolean("E", "Use E", true)
+	ConfigMenu.Champ.C:Boolean("R", "Use R", true)
+	ConfigMenu.Champ.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
+	ConfigMenu.Champ.C.ASC:Boolean("AS", "Auto Stun enable?", true)
+	ConfigMenu.Champ.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
 
-	MainMenu.Champ:Menu("H", "Harass")
-	MainMenu.Champ.H:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.H:Boolean("E", "Use E", true)
+	ConfigMenu.Champ:Menu("H", "Harass")
+	ConfigMenu.Champ.H:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.H:Boolean("E", "Use E", true)
 
-	MainMenu.Champ:Menu("LC", "LaneClear")
-	MainMenu.Champ.LC:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.LC:Slider("MM", "Mana manager", 50, 1, 100)
+	ConfigMenu.Champ:Menu("LC", "LaneClear")
+	ConfigMenu.Champ.LC:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.LC:Slider("MM", "Mana manager", 50, 1, 100)
 
-	MainMenu.Champ:Menu("JC", "JunglerClear")
-	MainMenu.Champ.JC:Boolean("Q", "Use Q", true)
-	MainMenu.Champ.JC:Boolean("E", "Use E", true)
-	MainMenu.Champ.JC:Slider("MM", "Mana manager", 50, 1, 100)
+	ConfigMenu.Champ:Menu("JC", "JunglerClear")
+	ConfigMenu.Champ.JC:Boolean("Q", "Use Q", true)
+	ConfigMenu.Champ.JC:Boolean("E", "Use E", true)
+	ConfigMenu.Champ.JC:Slider("MM", "Mana manager", 50, 1, 100)
 
 
-	MainMenu.Champ:Menu("M", "Misc")
-	MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
-	MainMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"})
+	ConfigMenu.Champ:Menu("M", "Misc")
+	ConfigMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	ConfigMenu.Champ.M:DropDown("S", "Skin", 1, {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"})
 
-	MainMenu.Champ:Menu("Orb", "Hotkeys")
-	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+	ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	MainMenu.Champ:Menu("F", "Fuck Dashes")
+	ConfigMenu.Champ:Menu("F", "Fuck Dashes")
 
-	MainMenu.Champ:Menu("ASA", "Auto Stun")
-	MainMenu.Champ.ASA:Boolean("AS", "Auto Stun enable?", true)
-	MainMenu.Champ.ASA:KeyBinding("T", "Flash-Stun", string.byte("T"), false)
+	ConfigMenu.Champ:Menu("ASA", "Auto Stun")
+	ConfigMenu.Champ.ASA:Boolean("AS", "Auto Stun enable?", true)
+	ConfigMenu.Champ.ASA:KeyBinding("T", "Flash-Stun", string.byte("T"), false)
 
-	MainMenu.Champ:Menu("IN", "Interrupt")
+	ConfigMenu.Champ:Menu("IN", "Interrupt")
 
 	DelayAction(function()
 		for _, enemies in pairs(GetEnemyHeroes()) do
 			if self.DashTable[GetObjectName(enemies)] then 
-				MainMenu.Champ.F:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." Dash "..self.DashTable[GetObjectName(enemies)].Name, true)
+				ConfigMenu.Champ.F:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." Dash "..self.DashTable[GetObjectName(enemies)].Name, true)
 			end
 			if self.ChannelTable[GetObjectName(enemies)] then
-				MainMenu.Champ.IN:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." "..self.ChannelTable[GetObjectName(enemies)].Name, true)
+				ConfigMenu.Champ.IN:Boolean("Pleb"..GetObjectName(enemies), "Interrupt "..GetObjectName(enemies).." "..self.ChannelTable[GetObjectName(enemies)].Name, true)
 			end
 
-			MainMenu.Champ.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
-			MainMenu.Champ.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+			ConfigMenu.Champ.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
+			ConfigMenu.Champ.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
 		end
 	end, 0.1)
 
@@ -1256,13 +1256,13 @@ function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
 	self.Target = CustomTarget
-	if MainMenu.Champ.Orb.C:Value() then
+	if ConfigMenu.Champ.Orb.C:Value() then
 		self:Combo(self.Target)
 	end
-	if MainMenu.Champ.Orb.H:Value() then
+	if ConfigMenu.Champ.Orb.H:Value() then
 		self:Harass(self.Target)
 	end
-	if MainMenu.Champ.Orb.LC:Value() then
+	if ConfigMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
 	end
 end
@@ -1295,15 +1295,15 @@ function Poppy:LaneClear()
 	for _, mobs in pairs(minionManager.objects) do
 		if ValidTarget(mobs, 400) then
 			if GetTeam(mobs) == 200 then
-				if Ready(0) and MainMenu.Champ.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
+				if Ready(0) and ConfigMenu.Champ.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
 				end
 			elseif GetTeam(mobs) == 300 then
 				local MyPos = GetOrigin(myHero) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*GetDistance(mobs) + Vector(GetOrigin(mobs) - Vector(GetOrigin(myHero))):normalized()*325
-				if Ready(0) and MainMenu.Champ.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= MainMenu.Champ.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
+				if Ready(0) and ConfigMenu.Champ.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
 				end
-				if Ready(2) and MainMenu.Champ.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= MainMenu.Champ.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
+				if Ready(2) and ConfigMenu.Champ.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
 						CastTargetSpell(mobs, 2)
 				end
 			end
@@ -1313,20 +1313,20 @@ end
 
 function Poppy:UseQ(Unit)
 	local Q = GetPrediction(Unit, self.Spells[0])
-	if Ready(0) and ValidTarget(Unit, self.Spells[0].range) and MainMenu.Champ.C.Q:Value() and Q and Q.hitChance >= 0.20 then
+	if Ready(0) and ValidTarget(Unit, self.Spells[0].range) and ConfigMenu.Champ.C.Q:Value() and Q and Q.hitChance >= 0.20 then
 		CastSkillShot(0, Q.castPos)
 	end
 end
 
 function Poppy:UseE(Unit)
-	if Ready(2) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.C.E:Value() then
+	if Ready(2) and ValidTarget(Unit, self.Spells[2].range) and ConfigMenu.Champ.C.E:Value() then
 		CastTargetSpell(Unit, 2)
 	end
 end
 
 function Poppy:UseR(Unit)
 	local R = GetPrediction(Unit, self.Spells[3])
-	if Ready(3) and ValidTarget(Unit, 425) and MainMenu.Champ.C.R:Value() and R and R.hitChance >= 0.20 then
+	if Ready(3) and ValidTarget(Unit, 425) and ConfigMenu.Champ.C.R:Value() and R and R.hitChance >= 0.20 then
 		CastSkillShot(3, GetOrigin(myHero))
 		DelayAction(function()
 			CastSkillShot2(3, R.castPos)
@@ -1341,12 +1341,12 @@ function Poppy:Stun()
 		local MyPos = GetOrigin(myHero) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*325
 		local MyMousePos = MousePos + Vector(E.castPos - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(E.castPos - Vector(MousePos)):normalized()*325
 		if ValidTarget(enemies, 400) and Ready(2) then
-			if not MainMenu.Champ.ASA.AS:Value() and MainMenu.Champ.C.ASC.AS:Value() and MainMenu.Champ.C.ASC["Pleb"..GetObjectName(enemies)] and MainMenu.Champ.Orb.C:Value() and MapPosition:inWall(MyPos) then
+			if not ConfigMenu.Champ.ASA.AS:Value() and ConfigMenu.Champ.C.ASC.AS:Value() and ConfigMenu.Champ.C.ASC["Pleb"..GetObjectName(enemies)] and ConfigMenu.Champ.Orb.C:Value() and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
-			elseif MainMenu.Champ.ASA.AS:Value() and not MainMenu.Champ.C.ASC.AS:Value() and MainMenu.Champ.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
+			elseif ConfigMenu.Champ.ASA.AS:Value() and not ConfigMenu.Champ.C.ASC.AS:Value() and ConfigMenu.Champ.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
 			end
-		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and MainMenu.Champ.ASA.T:Value() and Ready(2) then
+		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and ConfigMenu.Champ.ASA.T:Value() and Ready(2) then
 			CastSkillShot(self.Flash, MousePos)
 			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
 		end
@@ -1358,11 +1358,11 @@ function Poppy:OnProc(Object, spellProc)
 		DelayAction(function()
 			if self.DashTable[GetObjectName(enemies)] then
 				if self.DashTable[GetObjectName(enemies)].type == "Untarget" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and MainMenu.Champ.F["Pleb"..GetObjectName(enemies)] and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)] and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
 						CastSpell(1)
 					end
 				elseif self.DashTable[GetObjectName(enemies)].type == "Target" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and MainMenu.Champ.F["Pleb"..GetObjectName(enemies)] and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)] and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
 						CastSpell(1)
 					end
 				end
@@ -1378,7 +1378,7 @@ end
 
 function Poppy:Insec()
 	for _, enemies in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemies, 400) and Ready(2) and MainMenu.Champ.C.I:Value() then
+		if ValidTarget(enemies, 400) and Ready(2) and ConfigMenu.Champ.C.I:Value() then
 			local FlashPos = GetOrigin(myHero) + Vector(GetOrigin(enemies)-Vector(GetOrigin(myHero))):normalized()*425
 			CastSkillShot(self.Flash, FlashPos)
 			DelayAction(function() CastTargetSpell(enemies, 2) end, 0.1)
@@ -1443,42 +1443,42 @@ function Elise:__init()
 	Spider = nil
 	self.WBuff = nil
 
-	MainMenu.Champ:Menu("C", "Combo")
-	MainMenu.Champ.C:Boolean("Q", "Use Human Q in Combo", true)
-	MainMenu.Champ.C:Boolean("W", "Use Human W in Combo", true)
-	MainMenu.Champ.C:Boolean("SQ", "Use Spider Q in Combo", true)
-	MainMenu.Champ.C:Boolean("SW", "Use Spider W in Combo", true)
-	MainMenu.Champ.C:Boolean("S", "Use Logic R Combo", true)
+	ConfigMenu.Champ:Menu("C", "Combo")
+	ConfigMenu.Champ.C:Boolean("Q", "Use Human Q in Combo", true)
+	ConfigMenu.Champ.C:Boolean("W", "Use Human W in Combo", true)
+	ConfigMenu.Champ.C:Boolean("SQ", "Use Spider Q in Combo", true)
+	ConfigMenu.Champ.C:Boolean("SW", "Use Spider W in Combo", true)
+	ConfigMenu.Champ.C:Boolean("S", "Use Logic R Combo", true)
 
-	MainMenu.Champ:Menu("JC", "JunglerClear")
-	MainMenu.Champ.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
-	MainMenu.Champ.JC:Boolean("W", "Use Human W in JunglerClear", true)
-	MainMenu.Champ.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
-	MainMenu.Champ.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
-	MainMenu.Champ.JC:Boolean("S", "Use Logic R JunglerClear", true)
+	ConfigMenu.Champ:Menu("JC", "JunglerClear")
+	ConfigMenu.Champ.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
+	ConfigMenu.Champ.JC:Boolean("W", "Use Human W in JunglerClear", true)
+	ConfigMenu.Champ.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
+	ConfigMenu.Champ.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
+	ConfigMenu.Champ.JC:Boolean("S", "Use Logic R JunglerClear", true)
 
-	MainMenu.Champ:Menu("KS", "KillSteal")
-	MainMenu.Champ.KS:Boolean("Q", "Use Human Q in KillSteal", true)
-	MainMenu.Champ.KS:Boolean("W", "Use Human W in KillSteal", true)
-	MainMenu.Champ.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
-	MainMenu.Champ.KS:Boolean("SW", "Use Spider W in KillSteal", true)
+	ConfigMenu.Champ:Menu("KS", "KillSteal")
+	ConfigMenu.Champ.KS:Boolean("Q", "Use Human Q in KillSteal", true)
+	ConfigMenu.Champ.KS:Boolean("W", "Use Human W in KillSteal", true)
+	ConfigMenu.Champ.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
+	ConfigMenu.Champ.KS:Boolean("SW", "Use Spider W in KillSteal", true)
 
-	MainMenu.Champ:Menu("M", "Misc")
-	MainMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	ConfigMenu.Champ:Menu("M", "Misc")
+	ConfigMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
 
-	MainMenu.Champ:Menu("Orb", "Hotkeys")
-	MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	--MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+	ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+	--ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+	ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	MainMenu.Champ:Menu("E", "E Options")
+	ConfigMenu.Champ:Menu("E", "E Options")
 
-	MainMenu.Champ:Menu("HC", "HitChance")
-	MainMenu.Champ.HC:Slider("E", "E HitChance", 20, 1, 100)
+	ConfigMenu.Champ:Menu("HC", "HitChance")
+	ConfigMenu.Champ.HC:Slider("E", "E HitChance", 20, 1, 100)
 
 	DelayAction(function()
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			MainMenu.Champ.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
+			ConfigMenu.Champ.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
 		end
 	end, 0.1)
 
@@ -1490,10 +1490,10 @@ end
 
 function Elise:Tick(myHero)
 	if not IsDead(myHero) then
-		if MainMenu.Champ.Orb.C:Value() then
+		if ConfigMenu.Champ.Orb.C:Value() then
 			self:Combo(GetCurrentTarget())
 		end
-		if MainMenu.Champ.Orb.LC:Value() then
+		if ConfigMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 		self:KS()
@@ -1513,7 +1513,7 @@ function Elise:Combo(Unit)
 		local E = GetPrediction(Unit, self.HSpells[2])
 		self:CastQ(Unit)
 		self:CastW(Unit)
-		if self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not Spider then
+		if self.HReady[2] and E and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not Spider then
 			CastSkillShot(2, E.castPos)
 		end
 	end
@@ -1605,7 +1605,7 @@ function Elise:CastE()
 		for k, enemies in pairs(GetEnemyHeroes()) do
 			if ValidTarget(enemies, self.HSpells[2].range) then
 				local E = GetPrediction(enemies, self.HSpells[2])
-				if MainMenu.Champ.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (MainMenu.Champ.HC.E:Value())/100 and not E:mCollision(1) then
+				if ConfigMenu.Champ.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and not E:mCollision(1) then
 					CastSkillShot(2, E.castPos)
 				end
 			end
@@ -1691,67 +1691,67 @@ function Irelia:__init()
 	self.windUP = 0
 	self.baseAS = GetBaseAttackSpeed(myHero)
 
-	MainMenu.Champ:Menu("C", "Combo")
-		MainMenu.Champ.C:Boolean("Q", "Use Q", true)
-		MainMenu.Champ.C:Boolean("QG", "Gapcloser?", true)
-		MainMenu.Champ.C:Slider("DG", "Distance after GP", 200, 300, 650)
-		MainMenu.Champ.C:Boolean("W", "Use W", true)
-		MainMenu.Champ.C:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
-		MainMenu.Champ.C:Boolean("R", "Use R", true)
-		MainMenu.Champ.C:Slider("HPR", "Hp to spam R", 30, 1, 100)
+	ConfigMenu.Champ:Menu("C", "Combo")
+		ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.C:Boolean("QG", "Gapcloser?", true)
+		ConfigMenu.Champ.C:Slider("DG", "Distance after GP", 200, 300, 650)
+		ConfigMenu.Champ.C:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.C:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
+		ConfigMenu.Champ.C:Boolean("R", "Use R", true)
+		ConfigMenu.Champ.C:Slider("HPR", "Hp to spam R", 30, 1, 100)
 
-	MainMenu.Champ:Menu("H", "Harass")
-		MainMenu.Champ.H:Boolean("Q", "Use Q", true)
-		MainMenu.Champ.H:Boolean("QG", "Gapcloser?", true)
-		MainMenu.Champ.H:Boolean("W", "Use W", true)
-		MainMenu.Champ.H:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
-	--	MainMenu.Champ.H:Slider("M", "Mana for Harass", 50, 1, 100)
+	ConfigMenu.Champ:Menu("H", "Harass")
+		ConfigMenu.Champ.H:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.H:Boolean("QG", "Gapcloser?", true)
+		ConfigMenu.Champ.H:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.H:DropDown("E", "E Mode", 1, {"Always", "Only stun", "Off"})
+	--	ConfigMenu.Champ.H:Slider("M", "Mana for Harass", 50, 1, 100)
 
-	MainMenu.Champ:Menu("HC", "Hitchance")
-		MainMenu.Champ.HC:Slider("R", "R HitChance", 20, 1, 100)
+	ConfigMenu.Champ:Menu("HC", "Hitchance")
+		ConfigMenu.Champ.HC:Slider("R", "R HitChance", 20, 1, 100)
 
-	MainMenu.Champ:Menu("F", "Farm")
-		MainMenu.Champ.F:SubMenu("LH", "LastHit")
-			MainMenu.Champ.F.LH:Boolean("Q", "Use Q", true)
-		--	MainMenu.Champ.F.LH:Slider("M", "Mana for LH", 50, 1, 100)
-		MainMenu.Champ.F:SubMenu("LC", "LaneClear")
-			MainMenu.Champ.F.LC:Boolean("Q", "Use Q", true)
-			MainMenu.Champ.F.LC:Boolean("W", "Use W", true)
-			MainMenu.Champ.F.LC:Boolean("E", "Use E", true)
-			MainMenu.Champ.F.LC:Boolean("R", "Use R", true)
-		--	MainMenu.Champ.F.LC:Slider("M", "Mana for LC", 50, 1, 100)
-		MainMenu.Champ.F:SubMenu("JC", "JunglerClear")
-			MainMenu.Champ.F.JC:Boolean("Q", "Use Q", true)
-			MainMenu.Champ.F.JC:Boolean("W", "Use W", true)
-			MainMenu.Champ.F.JC:Boolean("E", "Use E", true)
-		--	MainMenu.Champ.F.JC:Slider("M", "Mana for JC", 50, 1, 100)
+	ConfigMenu.Champ:Menu("F", "Farm")
+		ConfigMenu.Champ.F:SubMenu("LH", "LastHit")
+			ConfigMenu.Champ.F.LH:Boolean("Q", "Use Q", true)
+		--	ConfigMenu.Champ.F.LH:Slider("M", "Mana for LH", 50, 1, 100)
+		ConfigMenu.Champ.F:SubMenu("LC", "LaneClear")
+			ConfigMenu.Champ.F.LC:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.F.LC:Boolean("W", "Use W", true)
+			ConfigMenu.Champ.F.LC:Boolean("E", "Use E", true)
+			ConfigMenu.Champ.F.LC:Boolean("R", "Use R", true)
+		--	ConfigMenu.Champ.F.LC:Slider("M", "Mana for LC", 50, 1, 100)
+		ConfigMenu.Champ.F:SubMenu("JC", "JunglerClear")
+			ConfigMenu.Champ.F.JC:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.F.JC:Boolean("W", "Use W", true)
+			ConfigMenu.Champ.F.JC:Boolean("E", "Use E", true)
+		--	ConfigMenu.Champ.F.JC:Slider("M", "Mana for JC", 50, 1, 100)
 
-	MainMenu.Champ:Menu("KS", "KillSteal")
-		MainMenu.Champ.KS:Boolean("Q", "Use Q", true)
-		MainMenu.Champ.KS:Boolean("W", "Use W", true)
-		MainMenu.Champ.KS:Boolean("R", "Use R", true)
+	ConfigMenu.Champ:Menu("KS", "KillSteal")
+		ConfigMenu.Champ.KS:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.KS:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.KS:Boolean("R", "Use R", true)
 
-	MainMenu.Champ:Menu("I", "Items")
-		MainMenu.Champ.I:Boolean("TH", "Use Tiamat/Hydra", true)
-		MainMenu.Champ.I:Boolean("TI", "Use Titanic Hydra", true)
-		MainMenu.Champ.I:Boolean("BG", "Use Bilgewhater", true)
-		MainMenu.Champ.I:Boolean("BO", "Use Botkr", true)
-		MainMenu.Champ.I:Boolean("YO", "Use Youmu", true)
-		MainMenu.Champ.I:Boolean("HG", "Use Hextech Gunblade", true)
+	ConfigMenu.Champ:Menu("I", "Items")
+		ConfigMenu.Champ.I:Boolean("TH", "Use Tiamat/Hydra", true)
+		ConfigMenu.Champ.I:Boolean("TI", "Use Titanic Hydra", true)
+		ConfigMenu.Champ.I:Boolean("BG", "Use Bilgewhater", true)
+		ConfigMenu.Champ.I:Boolean("BO", "Use Botkr", true)
+		ConfigMenu.Champ.I:Boolean("YO", "Use Youmu", true)
+		ConfigMenu.Champ.I:Boolean("HG", "Use Hextech Gunblade", true)
 
-	MainMenu.Champ:Menu("D", "Draws")
-		MainMenu.Champ.D:Boolean("Q", "Draw Q Range", true)
-		MainMenu.Champ.D:Boolean("E", "Draw E Range", true)
-		MainMenu.Champ.D:Boolean("R", "Draw R Range", true)
-		MainMenu.Champ.D:Slider("DH", "Quality", 155, 1, 475)
+	ConfigMenu.Champ:Menu("D", "Draws")
+		ConfigMenu.Champ.D:Boolean("Q", "Draw Q Range", true)
+		ConfigMenu.Champ.D:Boolean("E", "Draw E Range", true)
+		ConfigMenu.Champ.D:Boolean("R", "Draw R Range", true)
+		ConfigMenu.Champ.D:Slider("DH", "Quality", 155, 1, 475)
 
 
-	MainMenu.Champ:Menu("Orb", "Hotkeys")
-		MainMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-		MainMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-		MainMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
-		MainMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
-		--MainMenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+		ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+		--ConfigMenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 	OnDraw(function(myHero) self:Draw(myHero) end)
@@ -1772,38 +1772,38 @@ function Irelia:Tick(myHero)
 		end
 	end
 
-	if MainMenu.Champ.Orb.C:Value() then
+	if ConfigMenu.Champ.Orb.C:Value() then
 		self:Combo(CustomTarget)
 	end
 
-	if MainMenu.Champ.Orb.H:Value() then
+	if ConfigMenu.Champ.Orb.H:Value() then
 		self:Harass(CustomTarget)
 	end
 
-	if MainMenu.Champ.Orb.LC:Value() then
+	if ConfigMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
 	end
 end
 
 function Irelia:Draw(myHero)
-	if Ready(0) and MainMenu.Champ.D.Q:Value() then
-		DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Red)
+	if Ready(0) and ConfigMenu.Champ.D.Q:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, ConfigMenu.Champ.D.DH:Value(), GoS.Red)
 	end
 
-	if Ready(2) and MainMenu.Champ.D.E:Value() then
-		DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Blue)
+	if Ready(2) and ConfigMenu.Champ.D.E:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, ConfigMenu.Champ.D.DH:Value(), GoS.Blue)
 	end
 
-	if Ready(3) and MainMenu.Champ.D.R:Value() then
-		DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, MainMenu.Champ.D.DH:Value(), GoS.Green)
+	if Ready(3) and ConfigMenu.Champ.D.R:Value() then
+		DrawCircle(GetOrigin(myHero), self.Spells[3].range, 1, ConfigMenu.Champ.D.DH:Value(), GoS.Green)
 	end
 end
 
 function Irelia:Gapcloser(Unit)
 	if ValidTarget(Unit, 1000) then
 		for k, v in ipairs(minionManager.objects) do
-			if ValidTarget(v, self.Spells[0].range) and GetDistance(v, Unit) <= MainMenu.Champ.C.DG:Value() then
-				if MainMenu.Champ.Orb.C:Value() and MainMenu.Champ.C.QG:Value() then
+			if ValidTarget(v, self.Spells[0].range) and GetDistance(v, Unit) <= ConfigMenu.Champ.C.DG:Value() then
+				if ConfigMenu.Champ.Orb.C:Value() and ConfigMenu.Champ.C.QG:Value() then
 					if GetCurrentHP(v) < Dmg[0](v) and Ready(0) then
 						CastTargetSpell(v, 0)
 					end
@@ -1834,7 +1834,7 @@ function Irelia:Gapcloser(Unit)
 					end
 				end
 
-				if MainMenu.Champ.Orb.H:Value() and MainMenu.Champ.H.QG:Value() then
+				if ConfigMenu.Champ.Orb.H:Value() and ConfigMenu.Champ.H.QG:Value() then
 					if GetCurrentHP(v) < Dmg[0](v) and Ready(0) then
 						CastTargetSpell(v, 0)
 					end
@@ -1863,17 +1863,17 @@ end
 function Irelia:Combo(Unit)
 	--print"lel"
 	self:Gapcloser(Unit)
-	if not self:Gapcloser(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and MainMenu.Champ.C.Q:Value() then
+	if not self:Gapcloser(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and ConfigMenu.Champ.C.Q:Value() then
 		CastTargetSpell(Unit, 0)
 	end
 
-	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.C.W:Value() then
+	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and ConfigMenu.Champ.C.W:Value() then
 		CastSpell(1)
 	end
 
-	if Ready(3) and ValidTarget(Unit, self.Spells[3].range) and (GetPercentHP(myHero) > MainMenu.Champ.C.HPR:Value() and not self.Trinity or GetPercentHP(myHero) < MainMenu.Champ.C.HPR:Value()) and MainMenu.Champ.C.R:Value() then
+	if Ready(3) and ValidTarget(Unit, self.Spells[3].range) and (GetPercentHP(myHero) > ConfigMenu.Champ.C.HPR:Value() and not self.Trinity or GetPercentHP(myHero) < ConfigMenu.Champ.C.HPR:Value()) and ConfigMenu.Champ.C.R:Value() then
 		local RPred = GetPrediction(Unit, self.Spells[3])
-		if RPred and RPred.hitChance >= MainMenu.Champ.HC.R:Value()/100 then
+		if RPred and RPred.hitChance >= ConfigMenu.Champ.HC.R:Value()/100 then
 			CastSkillShot(3, RPred.castPos)
 		end
 	end
@@ -1881,11 +1881,11 @@ end
 
 function Irelia:Harass(Unit)
 	self:Gapcloser(Unit)
-	if not self:Gapclose(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and MainMenu.Champ.H.Q:Value() then
+	if not self:Gapclose(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and ConfigMenu.Champ.H.Q:Value() then
 		CastTargetSpell(Unit, 0)
 	end
 
-	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and MainMenu.Champ.H.W:Value()then
+	if Ready(1) and ValidTarget(Unit, self.Spells[2].range) and ConfigMenu.Champ.H.W:Value()then
 		CastSpell(1)
 	end
 end
@@ -1921,32 +1921,32 @@ end
 function Irelia:LaneClear()
 	for k, v in ipairs(minionManager.objects) do
 		if GetTeam(v) == 200 then
-			if ValidTarget(v, 425) and Ready(1) and MainMenu.Champ.F.LC.W:Value() then
+			if ValidTarget(v, 425) and Ready(1) and ConfigMenu.Champ.F.LC.W:Value() then
 				CastSpell(1)
 			end
 
-			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.F.LC.Q:Value() then
+			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and ConfigMenu.Champ.F.LC.Q:Value() then
 				CastTargetSpell(v, 0)
 			end
 
-			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.F.LC.Q:Value() then
+			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and ConfigMenu.Champ.F.LC.Q:Value() then
 				CastTargetSpell(v, 0)
 			end
 
-			if ValidTarget(v, 1000) and Ready(3) and MainMenu.Champ.F.LC.R:Value() then
+			if ValidTarget(v, 1000) and Ready(3) and ConfigMenu.Champ.F.LC.R:Value() then
 				CastSkillShot(3, GetOrigin(v))
 			end
 
 		elseif GetTeam(v) == 300 then
-			if ValidTarget(v, 425) and Ready(1) and MainMenu.Champ.F.JC.W:Value() then
+			if ValidTarget(v, 425) and Ready(1) and ConfigMenu.Champ.F.JC.W:Value() then
 				CastSpell(1)
 			end
 
-			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.F.JC.Q:Value() then
+			if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and ConfigMenu.Champ.F.JC.Q:Value() then
 				CastTargetSpell(v, 0)
 			end
 
-			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.F.JC.Q:Value() then
+			if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and ConfigMenu.Champ.F.JC.Q:Value() then
 				CastTargetSpell(v, 0)
 			end		
 		end
@@ -1955,31 +1955,31 @@ end
 
 function Irelia:Ks()
 	for k, v in ipairs(GetEnemyHeroes()) do
-		if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and MainMenu.Champ.KS.Q:Value() then
+		if ValidTarget(v, 650) and Ready(0) and GetCurrentHP(v) < Dmg[0](v) and ConfigMenu.Champ.KS.Q:Value() then
 			CastTargetSpell(v, 0)
 		end
 
-		if ValidTarget(v, 650) and Ready(0) and Ready(1) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.W:Value() then
+		if ValidTarget(v, 650) and Ready(0) and Ready(1) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and ConfigMenu.Champ.KS.Q:Value() and ConfigMenu.Champ.KS.W:Value() then
 			CastSpell(1)
 			DelayAction(function() CastTargetSpell(v, 0) end, 0.1)
 		end
 
-		if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and MainMenu.Champ.KS.Q:Value() then
+		if ValidTarget(v, 650) and Ready(0) and self.WBuff and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] and ConfigMenu.Champ.KS.Q:Value() then
 			CastTargetSpell(v, 0)
 		end
 
-		if ValidTarget(v, 650) and Ready(0) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.R:Value() then
+		if ValidTarget(v, 650) and Ready(0) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[3](v) and ConfigMenu.Champ.KS.Q:Value() and ConfigMenu.Champ.KS.R:Value() then
 			CastSkillShot(3, GetOrigin(v))
 			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
 		end
 
-		if ValidTarget(v, 650) and Ready(0) and Ready(1) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.W:Value() and MainMenu.Champ.KS.R:Value() then
+		if ValidTarget(v, 650) and Ready(0) and Ready(1) and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and ConfigMenu.Champ.KS.Q:Value() and ConfigMenu.Champ.KS.W:Value() and ConfigMenu.Champ.KS.R:Value() then
 			CastSpell(1)
 			CastSkillShot(3, GetOrigin(v))
 			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
 		end
 
-		if ValidTarget(v, 650) and Ready(0) and self.WBuff and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and MainMenu.Champ.KS.Q:Value() and MainMenu.Champ.KS.R:Value() then
+		if ValidTarget(v, 650) and Ready(0) and self.WBuff and Ready(3) and GetCurrentHP(v) < Dmg[0](v) + Dmg[1] + Dmg[3](v) and ConfigMenu.Champ.KS.Q:Value() and ConfigMenu.Champ.KS.R:Value() then
 			CastSkillShot(3, GetOrigin(v))
 			DelayAction(function() CastTargetSpell(v, 0) end, GetDistance(v)/self.Spells[3].speed)
 		end
@@ -1992,39 +1992,39 @@ function Irelia:OnProcComplete(Object, spellProc)
 			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
 			self.windUP = spellProc.windUpTime
 			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
-			if MainMenu.Champ.Orb.C:Value() then
-				if Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.C.E:Value() == 1 then
+			if ConfigMenu.Champ.Orb.C:Value() then
+				if Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.C.E:Value() == 1 then
 					CastTargetSpell(CustomTarget, 2)
-				elseif Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.C.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
+				elseif Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.C.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
 					CastTargetSpell(CustomTarget, 2)
 				end
 			end
 		
-			if MainMenu.Champ.Orb.H:Value() then
-				if Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.H.E:Value() == 1 then
+			if ConfigMenu.Champ.Orb.H:Value() then
+				if Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.H.E:Value() == 1 then
 					CastTargetSpell(CustomTarget, 2)
-				elseif Ready(2) and ValidTarget(CustomTarget, 425) and MainMenu.Champ.H.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
+				elseif Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.H.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
 					CastTargetSpell(CustomTarget, 2)
 				end
 			end
 
-			if MainMenu.Champ.Orb.LC:Value() then
+			if ConfigMenu.Champ.Orb.LC:Value() then
 				for k, v in ipairs(minionManager.objects) do
 					if GetTeam(v) == 200 then
-						if Ready(2) and ValidTarget(v, 425) and MainMenu.Champ.F.LC.E:Value() then
+						if Ready(2) and ValidTarget(v, 425) and ConfigMenu.Champ.F.LC.E:Value() then
 							CastTargetSpell(v, 2)
 						end
 					end
 
 					if GetTeam(v) == 300 then
-						if Ready(2) and ValidTarget(v, 425) and MainMenu.Champ.F.JC.E:Value() then
+						if Ready(2) and ValidTarget(v, 425) and ConfigMenu.Champ.F.JC.E:Value() then
 							CastTargetSpell(v, 2)
 						end
 					end
 				end					
 			end
 
-			if not Ready(2) and GetItemSlot(myHero, 3748) > 0 and Ready(GetItemSlot(myHero, 3748)) and MainMenu.Champ.I.TI:Value() then
+			if not Ready(2) and GetItemSlot(myHero, 3748) > 0 and Ready(GetItemSlot(myHero, 3748)) and ConfigMenu.Champ.I.TI:Value() then
 				CastSpell(GetItemSlot(myHero, 3748))
 			end
 		end
@@ -2034,18 +2034,18 @@ end
 function Irelia:OnProc(Object, spellProc)
 	if Object == myHero then
 		if spellProc.name:lower():find("attack") then
-			if MainMenu.Champ.Orb.C:Value() then
-				if spellProc.name == "IreliaEquilibriumStrike" and Tiamat > 0 and Ready(Tiamat) and MainMenu.Champ.I.TH:Value() then
+			if ConfigMenu.Champ.Orb.C:Value() then
+				if spellProc.name == "IreliaEquilibriumStrike" and Tiamat > 0 and Ready(Tiamat) and ConfigMenu.Champ.I.TH:Value() then
 					DelayAction(function() CastSpell(Tiamat) end, 0.1)
-				elseif spellProc.name == "IreliaEquilibriumStrike" and Hydra > 0 and Ready(Hydra) and MainMenu.Champ.I.TH:Value() then
+				elseif spellProc.name == "IreliaEquilibriumStrike" and Hydra > 0 and Ready(Hydra) and ConfigMenu.Champ.I.TH:Value() then
 					DelayAction(function() CastSpell(Hydra) end, 0.1)
 				end
 			end
 
-			if MainMenu.Champ.Orb.LC:Value() then
-				if spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3077) > 0 and Ready(GetItemSlot(myHero, 3077)) and MainMenu.Champ.I.TH:Value() then
+			if ConfigMenu.Champ.Orb.LC:Value() then
+				if spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3077) > 0 and Ready(GetItemSlot(myHero, 3077)) and ConfigMenu.Champ.I.TH:Value() then
 					DelayAction(function() CastSpell(GetItemSlot(myHero, 3077)) end, 0.1)
-				elseif spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3074) > 0 and Ready(GetItemSlot(myHero, 3074)) and MainMenu.Champ.I.TH:Value() then
+				elseif spellProc.name == "IreliaEquilibriumStrike" and GetItemSlot(myHero, 3074) > 0 and Ready(GetItemSlot(myHero, 3074)) and ConfigMenu.Champ.I.TH:Value() then
 					DelayAction(function() CastSpell(GetItemSlot(myHero, 3074)) end, 0.1)
 				end
 			end
@@ -2098,22 +2098,22 @@ function Nidalee:__init()
 
 	self.Sprite = 
 	{
-		[1] 	= 	{FName = "Nidalee\\Q_H.png", 		Sprite = nil,		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H.png"},
-		[2] 	= 	{FName = "Nidalee\\W_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H.png"},
-		[3] 	= 	{FName = "Nidalee\\E_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H.png"},
-		[4] 	= 	{FName = "Nidalee\\R_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H.png"},
-		[5] 	= 	{FName = "Nidalee\\Q_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H_CD.png"},
-		[6] 	= 	{FName = "Nidalee\\W_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H_CD.png"},
-		[7] 	= 	{FName = "Nidalee\\E_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H_CD.png"},
-		[8] 	= 	{FName = "Nidalee\\R_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H_CD.png"},
-		[9] 	= 	{FName = "Nidalee\\Q_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C.png"},
-		[10] 	= 	{FName = "Nidalee\\W_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end,		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C.png"},
-		[11] 	= 	{FName = "Nidalee\\E_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C.png"},
-		[12] 	= 	{FName = "Nidalee\\R_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C.png"},
-		[13] 	= 	{FName = "Nidalee\\Q_C_CD.png",		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C_CD.png"},
-		[14] 	= 	{FName = "Nidalee\\W_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C_CD.png"},
-		[15] 	= 	{FName = "Nidalee\\E_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C_CD.png"},
-		[16] 	= 	{FName = "Nidalee\\R_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C_CD.png"},
+		[1] 	= 	{FName = "Nidalee\\Q_H.png", 		Sprite = nil,		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H.png"},
+		[2] 	= 	{FName = "Nidalee\\W_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H.png"},
+		[3] 	= 	{FName = "Nidalee\\E_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H.png"},
+		[4] 	= 	{FName = "Nidalee\\R_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H.png"},
+		[5] 	= 	{FName = "Nidalee\\Q_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H_CD.png"},
+		[6] 	= 	{FName = "Nidalee\\W_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H_CD.png"},
+		[7] 	= 	{FName = "Nidalee\\E_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H_CD.png"},
+		[8] 	= 	{FName = "Nidalee\\R_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H_CD.png"},
+		[9] 	= 	{FName = "Nidalee\\Q_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C.png"},
+		[10] 	= 	{FName = "Nidalee\\W_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end,		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C.png"},
+		[11] 	= 	{FName = "Nidalee\\E_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C.png"},
+		[12] 	= 	{FName = "Nidalee\\R_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C.png"},
+		[13] 	= 	{FName = "Nidalee\\Q_C_CD.png",		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C_CD.png"},
+		[14] 	= 	{FName = "Nidalee\\W_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C_CD.png"},
+		[15] 	= 	{FName = "Nidalee\\E_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C_CD.png"},
+		[16] 	= 	{FName = "Nidalee\\R_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C_CD.png"},
 	}
 
 	self.Dick = 
@@ -2122,20 +2122,20 @@ function Nidalee:__init()
 		[0] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())	
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())	
 											end
 										end end,
 		},
@@ -2143,60 +2143,60 @@ function Nidalee:__init()
 		[1] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit)	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},
 		[2] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},
 		[3] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+ Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+ ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 
@@ -2209,80 +2209,80 @@ function Nidalee:__init()
 		[0] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},
 		[1] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},						
 		[2] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},
 		[3] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)		
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)		
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+40 + ConfigMenu.Champ.D.S.Y.QY:Value())
 											else
-												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value())
 											end
 										end end,
 		},
@@ -2346,92 +2346,92 @@ function Nidalee:__init()
 	self.Fucked = {}
 	self.Hunted = {}
 
-	Mainmenu.Champ:Menu("C", "Combo")
-		Mainmenu.Champ.C:SubMenu("H", "Human Combo")
-			Mainmenu.Champ.C.H:Boolean("Q", "Use Q", true)
-			Mainmenu.Champ.C.H:DropDown("W", "Use W (Human) when", 1, {"Enemy on cc", "Always"})
-		Mainmenu.Champ.C:SubMenu("C", "Cat Combo")
-			Mainmenu.Champ.C.C:Boolean("Q", "Use Q", true)
-			Mainmenu.Champ.C.C:Boolean("W", "Use W", true)
-			Mainmenu.Champ.C.C:Boolean("WT", "Go under tower?", false)
-			Mainmenu.Champ.C.C:Boolean("E", "Use E", true)
-		Mainmenu.Champ.C:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+	ConfigMenu.Champ:Menu("C", "Combo")
+		ConfigMenu.Champ.C:SubMenu("H", "Human Combo")
+			ConfigMenu.Champ.C.H:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.C.H:DropDown("W", "Use W (Human) when", 1, {"Enemy on cc", "Always"})
+		ConfigMenu.Champ.C:SubMenu("C", "Cat Combo")
+			ConfigMenu.Champ.C.C:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.C.C:Boolean("W", "Use W", true)
+			ConfigMenu.Champ.C.C:Boolean("WT", "Go under tower?", false)
+			ConfigMenu.Champ.C.C:Boolean("E", "Use E", true)
+		ConfigMenu.Champ.C:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
 
-	Mainmenu.Champ:Menu("H", "Harass")
-		Mainmenu.Champ.H:Boolean("Q", "Use Human Q", true)
-		Mainmenu.Champ.H:Boolean("R", "Switch to human?", true)
+	ConfigMenu.Champ:Menu("H", "Harass")
+		ConfigMenu.Champ.H:Boolean("Q", "Use Human Q", true)
+		ConfigMenu.Champ.H:Boolean("R", "Switch to human?", true)
 
-	Mainmenu.Champ:Menu("F", "Farm")
-		Mainmenu.Champ.F:SubMenu("LH", "LastHit")
-			Mainmenu.Champ.F.LH:SubMenu("H", "Human LT")
-				Mainmenu.Champ.F.LH.H:Boolean("Q", "Use Human Q", true)
-				Mainmenu.Champ.F.LH.H:Slider("Mn", "Mana for LastHit", 20, 1, 100)
-			Mainmenu.Champ.F.LH:SubMenu("C", "Cat LT")
-				Mainmenu.Champ.F.LH.C:Boolean("Q", "Use Cat Q", true)
-			Mainmenu.Champ.F.LH:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+	ConfigMenu.Champ:Menu("F", "Farm")
+		ConfigMenu.Champ.F:SubMenu("LH", "LastHit")
+			ConfigMenu.Champ.F.LH:SubMenu("H", "Human LT")
+				ConfigMenu.Champ.F.LH.H:Boolean("Q", "Use Human Q", true)
+				ConfigMenu.Champ.F.LH.H:Slider("Mn", "Mana for LastHit", 20, 1, 100)
+			ConfigMenu.Champ.F.LH:SubMenu("C", "Cat LT")
+				ConfigMenu.Champ.F.LH.C:Boolean("Q", "Use Cat Q", true)
+			ConfigMenu.Champ.F.LH:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
 
-		Mainmenu.Champ.F:SubMenu("LC", "LaneClear")
-			Mainmenu.Champ.F.LC:SubMenu("H", "Human Mode")
-				Mainmenu.Champ.F.LC.H:Boolean("Q", "Use Q", true)
-				Mainmenu.Champ.F.LC.H:Boolean("W", "Use W", true)
-			Mainmenu.Champ.F.LC:SubMenu("C", "Cat Mode")
-				Mainmenu.Champ.F.LC.C:Boolean("Q", "Use Q", true)
-				Mainmenu.Champ.F.LC.C:Boolean("W", "Use W", true)
-				Mainmenu.Champ.F.LC.C:Boolean("E", "Use E", true)
-			Mainmenu.Champ.F.LC:Slider("MLC", "Minimun mana to JunglerClear", 20, 1, 100)
-		Mainmenu.Champ.F.LC:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+		ConfigMenu.Champ.F:SubMenu("LC", "LaneClear")
+			ConfigMenu.Champ.F.LC:SubMenu("H", "Human Mode")
+				ConfigMenu.Champ.F.LC.H:Boolean("Q", "Use Q", true)
+				ConfigMenu.Champ.F.LC.H:Boolean("W", "Use W", true)
+			ConfigMenu.Champ.F.LC:SubMenu("C", "Cat Mode")
+				ConfigMenu.Champ.F.LC.C:Boolean("Q", "Use Q", true)
+				ConfigMenu.Champ.F.LC.C:Boolean("W", "Use W", true)
+				ConfigMenu.Champ.F.LC.C:Boolean("E", "Use E", true)
+			ConfigMenu.Champ.F.LC:Slider("MLC", "Minimun mana to JunglerClear", 20, 1, 100)
+		ConfigMenu.Champ.F.LC:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
 
-		Mainmenu.Champ.F:SubMenu("JC", "JunglerClear")
-			Mainmenu.Champ.F.JC:SubMenu("H", "Human Mode")
-				Mainmenu.Champ.F.JC.H:Boolean("Q", "Use Q", true)
-				Mainmenu.Champ.F.JC.H:Boolean("W", "Use W", true)						
-			Mainmenu.Champ.F.JC:SubMenu("C", "Cat Mode")
-				Mainmenu.Champ.F.JC.C:Boolean("Q", "Use Q", true)
-				Mainmenu.Champ.F.JC.C:Boolean("W", "Use W", true)
-				Mainmenu.Champ.F.JC.C:Boolean("E", "Use E", true)
-			Mainmenu.Champ.F.JC:Slider("MJC", "Minimun mana to JunglerClear", 20, 1, 100)
+		ConfigMenu.Champ.F:SubMenu("JC", "JunglerClear")
+			ConfigMenu.Champ.F.JC:SubMenu("H", "Human Mode")
+				ConfigMenu.Champ.F.JC.H:Boolean("Q", "Use Q", true)
+				ConfigMenu.Champ.F.JC.H:Boolean("W", "Use W", true)						
+			ConfigMenu.Champ.F.JC:SubMenu("C", "Cat Mode")
+				ConfigMenu.Champ.F.JC.C:Boolean("Q", "Use Q", true)
+				ConfigMenu.Champ.F.JC.C:Boolean("W", "Use W", true)
+				ConfigMenu.Champ.F.JC.C:Boolean("E", "Use E", true)
+			ConfigMenu.Champ.F.JC:Slider("MJC", "Minimun mana to JunglerClear", 20, 1, 100)
 
 
-	Mainmenu.Champ:Menu("HE", "Heals")
-		Mainmenu.Champ.HE:Boolean("R", "Force human for heal?", true)
-		Mainmenu.Champ.HE:Slider("E", "Use E under hp (Ursef)", 20, 1, 100) 
+	ConfigMenu.Champ:Menu("HE", "Heals")
+		ConfigMenu.Champ.HE:Boolean("R", "Force human for heal?", true)
+		ConfigMenu.Champ.HE:Slider("E", "Use E under hp (Ursef)", 20, 1, 100) 
 		DelayAction(function()
 			for k, v in ipairs(GetAllyHeroes()) do
-				Mainmenu.Champ.HE:SubMenu(GetObjectName(v), "Heal config for "..GetObjectName(v))
-					Mainmenu.Champ.HE[GetObjectName(v)]:Boolean("H"..GetObjectName(v), "Heal on "..GetObjectName(v).."?", true)
-					Mainmenu.Champ.HE[GetObjectName(v)]:Boolean("FH"..GetObjectName(v), "Force heal on "..GetObjectName(v).."?", false)
-					Mainmenu.Champ.HE[GetObjectName(v)]:Slider("HV"..GetObjectName(v), "Heal on "..GetObjectName(v).." under hp", 20, 1, 100)			
+				ConfigMenu.Champ.HE:SubMenu(GetObjectName(v), "Heal config for "..GetObjectName(v))
+					ConfigMenu.Champ.HE[GetObjectName(v)]:Boolean("H"..GetObjectName(v), "Heal on "..GetObjectName(v).."?", true)
+					ConfigMenu.Champ.HE[GetObjectName(v)]:Boolean("FH"..GetObjectName(v), "Force heal on "..GetObjectName(v).."?", false)
+					ConfigMenu.Champ.HE[GetObjectName(v)]:Slider("HV"..GetObjectName(v), "Heal on "..GetObjectName(v).." under hp", 20, 1, 100)			
 			end
 		end, 0.1)
 
-	Mainmenu.Champ:Menu("S", "Run bitch")
-		Mainmenu.Champ.S:Boolean("R", "Switch to Cat?", true) 
-		Mainmenu.Champ.S:Boolean("W", "Use Cat W", true)
+	ConfigMenu.Champ:Menu("S", "Run bitch")
+		ConfigMenu.Champ.S:Boolean("R", "Switch to Cat?", true) 
+		ConfigMenu.Champ.S:Boolean("W", "Use Cat W", true)
 
-	Mainmenu.Champ:Menu("D", "Draws")
-		Mainmenu.Champ.D:Boolean("F", "Draw different form CD?", true)
-		Mainmenu.Champ.D:SubMenu("HD", "Human Draws")
-			Mainmenu.Champ.D.HD:Boolean("Q", "Draw Q range", true)
-			Mainmenu.Champ.D.HD:Boolean("W", "Draw W range", true)
-			Mainmenu.Champ.D.HD:Boolean("E", "Draw E range", true)
-		Mainmenu.Champ.D:Slider("Q", "Quality", 155, 1, 255)
-		Mainmenu.Champ.D:Boolean("DD", "Draw Total Dmg?", true)
-      	Mainmenu.Champ.D:SubMenu("S", "Sprites")
-      		Mainmenu.Champ.D.S:SubMenu("X", "X Pos")
-	      		Mainmenu.Champ.D.S.X:Slider("QX", "PosX", 0, -1000, 1000)
-	      	Mainmenu.Champ.D.S:SubMenu("Y", "Y Pos")
-	      		Mainmenu.Champ.D.S.Y:Slider("QY", "PosX", 0, -1000, 1000)
-	      	Mainmenu.Champ.D.S:Boolean("H", "Horizontal?", true)
-	      	Mainmenu.Champ.D.S:Slider("T", "Move ur time", 0, -40, 40)
+	ConfigMenu.Champ:Menu("D", "Draws")
+		ConfigMenu.Champ.D:Boolean("F", "Draw different form CD?", true)
+		ConfigMenu.Champ.D:SubMenu("HD", "Human Draws")
+			ConfigMenu.Champ.D.HD:Boolean("Q", "Draw Q range", true)
+			ConfigMenu.Champ.D.HD:Boolean("W", "Draw W range", true)
+			ConfigMenu.Champ.D.HD:Boolean("E", "Draw E range", true)
+		ConfigMenu.Champ.D:Slider("Q", "Quality", 155, 1, 255)
+		ConfigMenu.Champ.D:Boolean("DD", "Draw Total Dmg?", true)
+      	ConfigMenu.Champ.D:SubMenu("S", "Sprites")
+      		ConfigMenu.Champ.D.S:SubMenu("X", "X Pos")
+	      		ConfigMenu.Champ.D.S.X:Slider("QX", "PosX", 0, -1000, 1000)
+	      	ConfigMenu.Champ.D.S:SubMenu("Y", "Y Pos")
+	      		ConfigMenu.Champ.D.S.Y:Slider("QY", "PosX", 0, -1000, 1000)
+	      	ConfigMenu.Champ.D.S:Boolean("H", "Horizontal?", true)
+	      	ConfigMenu.Champ.D.S:Slider("T", "Move ur time", 0, -40, 40)
 
 
-	Mainmenu.Champ:Menu("Orb", "Hotkeys")
-		Mainmenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-		Mainmenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-		Mainmenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
-		Mainmenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
-		Mainmenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
-		Mainmenu.Champ.Orb:KeyBinding("WJ", "WallJump", string.byte("G"), false)
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+		ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("WJ", "WallJump", string.byte("G"), false)
 
 	OnDraw(function(myHero) self:Draw(myHero) end)
 	OnTick(function(myHero) self:Tick(myHero) end)
@@ -2455,7 +2455,7 @@ end
 
 function Nidalee:Draw(myHero)
 	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
-		if Mainmenu.Champ.D.F:Value() then
+		if ConfigMenu.Champ.D.F:Value() then
 			for k = 0, 3, 1 do
 				if self.Human then
 					self.Dick2[k][self.Spells2[k].Ready](Unit)
@@ -2467,19 +2467,19 @@ function Nidalee:Draw(myHero)
 	end
 
 	if not IsDead(myHero) then
-		if self.Spells[0].Ready and Mainmenu.Champ.D.HD.Q:Value() then
-			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Pink)
+		if self.Spells[0].Ready and ConfigMenu.Champ.D.HD.Q:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, ConfigMenu.Champ.D.Q:Value(), GoS.Pink)
 		end
 
-		if self.Spells[1].Ready and Mainmenu.Champ.D.HD.W:Value() then
-			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Green)
+		if self.Spells[1].Ready and ConfigMenu.Champ.D.HD.W:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, ConfigMenu.Champ.D.Q:Value(), GoS.Green)
 		end
 
-		if self.Spells[2].Ready and Mainmenu.Champ.D.HD.E:Value() then
-			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Black)
+		if self.Spells[2].Ready and ConfigMenu.Champ.D.HD.E:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, ConfigMenu.Champ.D.Q:Value(), GoS.Black)
 		end
 
-		if self.Spells[2].Ready and Mainmenu.Champ.D.HD.E:Value() then
+		if self.Spells[2].Ready and ConfigMenu.Champ.D.HD.E:Value() then
 			local asd = 5 + 40*GetCastLevel(myHero, 2) + GetBonusAP(myHero)/2
 			local HpBar = GetHPBarPos(myHero)
 			local What = (asd*100)/GetMaxHP(myHero)
@@ -2502,7 +2502,7 @@ function Nidalee:Draw(myHero)
 			end
 		end
 
-		if Mainmenu.Champ.D.DD:Value() then
+		if ConfigMenu.Champ.D.DD:Value() then
 			for k, v in pairs(GetEnemyHeroes()) do
 				local asd = self:TotalDmg(v)
 				local HpBar = GetHPBarPos(v)
@@ -2526,34 +2526,34 @@ function Nidalee:Tick(myHero)
 	self:Walljump()
 	self:KS()
 
-	if Mainmenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
+	if ConfigMenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
 		self:Combo(CustomTarget)
 	end
 
-	if Mainmenu.Champ.Orb.H:Value() and CustomTarget ~= nil then
+	if ConfigMenu.Champ.Orb.H:Value() and CustomTarget ~= nil then
 		self:Harass(CustomTarget)
 	end
 
-	if Mainmenu.Champ.Orb.LH:Value() then
+	if ConfigMenu.Champ.Orb.LH:Value() then
 		self:LastHit()
 	end
 
-	if Mainmenu.Champ.Orb.LC:Value() then
+	if ConfigMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
 	end
 
-	if Mainmenu.Champ.Orb.F:Value() then
+	if ConfigMenu.Champ.Orb.F:Value() then
 		self:Flee()
 	end
 end
 
 function Nidalee:Flee()
 	if self.Human then
-		if self.Spells[3].Ready and Mainmenu.Champ.S.R:Value() then
+		if self.Spells[3].Ready and ConfigMenu.Champ.S.R:Value() then
 			CastSpell(3)
 		end
 	else
-		if self.Spells2[1].Ready and Mainmenu.Champ.S.W:Value() then
+		if self.Spells2[1].Ready and ConfigMenu.Champ.S.W:Value() then
 			CastSkillShot(1, GetMousePos())
 		end
 		MoveToXYZ(GetMousePos())
@@ -2563,7 +2563,7 @@ end
 function Nidalee:Walljump()
 	local V1 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*375
 	local V2 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*187
-	if Mainmenu.Champ.Orb.WJ:Value() then
+	if ConfigMenu.Champ.Orb.WJ:Value() then
 		if not MapPosition:inWall(GetMousePos()) and not MapPosition:inWall(V1) and MapPosition:inWall(V2) then
 			self.Pos[1] = GetMousePos()
 			self.Pos[2] = V1
@@ -2597,63 +2597,63 @@ function Nidalee:Walljump()
 end
 
 function Nidalee:Combo(Unit)
-	if Mainmenu.Champ.C.F:Value() == 1 then
+	if ConfigMenu.Champ.C.F:Value() == 1 then
 		if self.Human then
-			if Mainmenu.Champ.C.H.Q:Value() then
+			if ConfigMenu.Champ.C.H.Q:Value() then
 				self:CastQH(Unit)
 			end
-			if Mainmenu.Champ.C.H.W:Value() then
+			if ConfigMenu.Champ.C.H.W:Value() then
 				self:CastWH(Unit)
 			end
 		else
 			if not self.Spells2[3].Ready then
-				if Mainmenu.Champ.C.C.Q:Value() then
+				if ConfigMenu.Champ.C.C.Q:Value() then
 					self:CastQC(Unit)
 				end
 
-				if Mainmenu.Champ.C.C.W:Value() then
+				if ConfigMenu.Champ.C.C.W:Value() then
 					self:CastWC(Unit)
 				end
 
-				if Mainmenu.Champ.C.C.E:Value() then
+				if ConfigMenu.Champ.C.C.E:Value() then
 					self:CastEC(Unit)
 				end
 			else
 				self:CastRC(Unit)
 			end
 		end
-	elseif Mainmenu.Champ.C.F:Value() == 2 then
+	elseif ConfigMenu.Champ.C.F:Value() == 2 then
 		if self.Human then
 			if self.Spells[3].Ready then
 				self:CastRH(Unit)
 			else
-				if Mainmenu.Champ.C.H.Q:Value() then
+				if ConfigMenu.Champ.C.H.Q:Value() then
 					self:CastQH(Unit)
 				end
 
-				if Mainmenu.Champ.C.H.W:Value() then
+				if ConfigMenu.Champ.C.H.W:Value() then
 					self:CastWH(Unit)
 				end
 			end
 		else
-			if Mainmenu.Champ.C.C.Q:Value() then
+			if ConfigMenu.Champ.C.C.Q:Value() then
 				self:CastQC(Unit)
 			end
-			if Mainmenu.Champ.C.C.W:Value() then
+			if ConfigMenu.Champ.C.C.W:Value() then
 				self:CastWC(Unit)
 			end
 
-			if Mainmenu.Champ.C.C.E:Value() then
+			if ConfigMenu.Champ.C.C.E:Value() then
 				self:CastEC(Unit)
 			end
 		end
-	elseif Mainmenu.Champ.C.F:Value() == 3 then
+	elseif ConfigMenu.Champ.C.F:Value() == 3 then
 		if self.Human then
-			if Mainmenu.Champ.C.H.Q:Value() then
+			if ConfigMenu.Champ.C.H.Q:Value() then
 				self:CastQH(Unit)
 			end
 
-			if Mainmenu.Champ.C.H.W:Value() then
+			if ConfigMenu.Champ.C.H.W:Value() then
 				self:CastWH(Unit)
 			end
 
@@ -2661,15 +2661,15 @@ function Nidalee:Combo(Unit)
 				self:CastRH(Unit)
 			end
 		else
-			if Mainmenu.Champ.C.C.Q:Value() then
+			if ConfigMenu.Champ.C.C.Q:Value() then
 				self:CastQC(Unit)
 			end
 
-			if Mainmenu.Champ.C.C.W:Value() then
+			if ConfigMenu.Champ.C.C.W:Value() then
 				self:CastWC(Unit)
 			end
 
-			if Mainmenu.Champ.C.C.E:Value() then
+			if ConfigMenu.Champ.C.C.E:Value() then
 				self:CastEC(Unit)
 			end
 
@@ -2686,11 +2686,11 @@ end
 
 function Nidalee:Harass(Unit)
 	if not self.Human then
-		if Mainmenu.Champ.H.R:Value() and self.Spells2[3].Ready then
+		if ConfigMenu.Champ.H.R:Value() and self.Spells2[3].Ready then
 			self:CastRC(Unit)
 		end
 	else
-		if Mainmenu.Champ.H.Q:Value() and self.Spells[0].Ready then
+		if ConfigMenu.Champ.H.Q:Value() and self.Spells[0].Ready then
 			self:CastQH(Unit)
 		end
 	end
@@ -2745,9 +2745,9 @@ end
 function Nidalee:LastHit()
 	for k, v in ipairs(minionManager.objects) do
 		if GetTeam(v) == 200 then
-			if Mainmenu.Champ.F.LH.F:Value() == 1 then
+			if ConfigMenu.Champ.F.LH.F:Value() == 1 then
 				if self.Human then
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and Mainmenu.Champ.F.LH.H.Q:Value() and v.valid then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
 						self:CastQG(v)
 					end
 				else
@@ -2755,19 +2755,19 @@ function Nidalee:LastHit()
 						self:CastRC(v)
 					end
 				end
-			elseif Mainmenu.Champ.F.LH.F:Value() == 2 then
+			elseif ConfigMenu.Champ.F.LH.F:Value() == 2 then
 				if self.Human then
 					if self.Spells[3].Ready and v.valid then
 						self:CastRH(v)
 					end
 				else
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and Mainmenu.Champ.F.LH.C.Q:Value() and v.valid then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and v.valid then
 						self:CastQC(v)
 					end
 				end
-			elseif Mainmenu.Champ.F.LH.F:Value() == 3 then
+			elseif ConfigMenu.Champ.F.LH.F:Value() == 3 then
 				if self.Human then
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and Mainmenu.Champ.F.LH.H.Q:Value() and v.valid then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
 						self:CastQH(v)
 					end
 
@@ -2775,7 +2775,7 @@ function Nidalee:LastHit()
 						self:CastRC(v)
 					end
 				else
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and Mainmenu.Champ.F.LH.C.Q:Value() and v.valid then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and v.valid then
 						self:CastQC(v)
 					end
 
@@ -2792,41 +2792,41 @@ function Nidalee:LaneClear()
 	for k, v in ipairs(minionManager.objects) do
 		if ValidTarget(v, 1000) then
 			if GetTeam(v) == 200 then
-				if Mainmenu.Champ.F.LC.F:Value() == 1 then
+				if ConfigMenu.Champ.F.LC.F:Value() == 1 then
 					if self.Human then
-						if Mainmenu.Champ.F.LC.H.Q:Value() then
+						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
 
-						if Mainmenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+						if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
 							CastSkillShot(1, GetOrigin(v))
 						end
 					else
 						self:CastRC(v)
 					end
-				elseif Mainmenu.Champ.F.LC.F:Value() == 2 then
+				elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
 					if self.Human then
 						self:CastRH(v)
 					else
-						if Mainmenu.Champ.F.LC.C.Q:Value() then
+						if ConfigMenu.Champ.F.LC.C.Q:Value() then
 							self:CastQC(v)
 						end
 
-						if Mainmenu.Champ.F.LC.C.W:Value() then
+						if ConfigMenu.Champ.F.LC.C.W:Value() then
 							self:CastWC(v)
 						end
 
-						if Mainmenu.Champ.F.LC.C.E:Value() then
+						if ConfigMenu.Champ.F.LC.C.E:Value() then
 							self:CastEC(v)
 						end
 					end
-				elseif Mainmenu.Champ.F.LC.F:Value() == 3 then
+				elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
 					if self.Human then
-						if Mainmenu.Champ.F.LC.H.Q:Value() then
+						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
 
-						if Mainmenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+						if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
 							CastSkillShot(1, GetOrigin(v))
 						end
 
@@ -2834,15 +2834,15 @@ function Nidalee:LaneClear()
 							self:CastRH(v)
 						end
 					else
-						if Mainmenu.Champ.F.LC.C.Q:Value() then
+						if ConfigMenu.Champ.F.LC.C.Q:Value() then
 							self:CastQC(v)
 						end
 
-						if Mainmenu.Champ.F.LC.C.W:Value() then
+						if ConfigMenu.Champ.F.LC.C.W:Value() then
 							self:CastWC(v)
 						end
 
-						if Mainmenu.Champ.F.LC.C.E:Value() then
+						if ConfigMenu.Champ.F.LC.C.E:Value() then
 							self:CastEC(v)
 						end
 
@@ -2855,7 +2855,7 @@ function Nidalee:LaneClear()
 
 			if GetTeam(v) == 300 then
 				if self.Human then
-					if Mainmenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+					if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
 						CastSkillShot(1, GetOrigin(v))
 					end
 
@@ -2863,11 +2863,11 @@ function Nidalee:LaneClear()
 						self:CastRH(v)
 					end
 				else
-					if Mainmenu.Champ.F.JC.C.W:Value() then
+					if ConfigMenu.Champ.F.JC.C.W:Value() then
 						self:CastWC(v)
 					end
 
-					if Mainmenu.Champ.F.JC.C.E:Value() then
+					if ConfigMenu.Champ.F.JC.C.E:Value() then
 						self:CastEC(v)
 					end
 
@@ -2985,12 +2985,12 @@ function Nidalee:CastQH(Unit)
 end
 
 function Nidalee:CastWH(Unit)
-	if Mainmenu.Champ.C.H.W:Value() == 2 then
+	if ConfigMenu.Champ.C.H.W:Value() == 2 then
 		local WPred = GetPrediction(Unit, self.Spells[1])
 		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and WPred and WPred.hitChance*100 >= 20 then
 			CastSkillShot(1, WPred.castPos)
 		end
-	elseif Mainmenu.Champ.C.H.W:Value() == 1 then
+	elseif ConfigMenu.Champ.C.H.W:Value() == 1 then
 		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and self:CC(Unit) then
 			CastSkillShot(1, GetOrigin(Unit))
 		end
@@ -3015,7 +3015,7 @@ end
 function Nidalee:CastWC(Unit)
 	local V1 = GetOrigin(myHero) - Vector(Vector(GetOrigin(myHero)) - Vector(GetOrigin(Unit))):normalized()*375
 	if self.Spells2[1].Ready and not self.Human then
-		if Mainmenu.Champ.C.C.WT:Value() then
+		if ConfigMenu.Champ.C.C.WT:Value() then
 			if self:Hunteds(Unit) then
 				if ValidTarget(Unit, 750) then
 					CastTargetSpell(Unit, 1)
@@ -3055,23 +3055,23 @@ end
 function Nidalee:CastEH()
 	if not self.Recalling then
 		if self.Human then
-			if GetPercentHP(myHero) < Mainmenu.Champ.HE.E:Value() and self.Spells[2].Ready then
+			if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and self.Spells[2].Ready then
 				CastTargetSpell(myHero, 2)
 			end
 
 			for k, v in ipairs(GetAllyHeroes()) do
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < Mainmenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastTargetSpell(v, 2)
 				end
 			end
 		else
-			if GetPercentHP(myHero) < Mainmenu.Champ.HE.E:Value() and Mainmenu.Champ.HE.R:Value() and self.Spells[2].Ready then
+			if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and ConfigMenu.Champ.HE.R:Value() and self.Spells[2].Ready then
 				CastSpell(3)
 				DelayAction(function() CastTargetSpell(myHero, 2) end, 0.1)
 			end
 
 			for k, v in ipairs(GetAllyHeroes()) do
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < Mainmenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastSpell(3)
 					DelayAction(function() CastTargetSpell(v, 2) end, 0.1)
 				end
@@ -3096,15 +3096,15 @@ function Nidalee:OnProcComplete(unit, spellProc)
 			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
 		end
 
-		if Mainmenu.Champ.Orb.LC:Value() then
+		if ConfigMenu.Champ.Orb.LC:Value() then
 			for k, v in ipairs(minionManager.objects) do
 				if spellProc.name:lower():find("attack") then
 					if self.Human then
-						if Mainmenu.Champ.F.LC.H.Q:Value() then
+						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
 					else
-						if Mainmenu.Champ.F.LC.C.Q:Value() then
+						if ConfigMenu.Champ.F.LC.C.Q:Value() then
 							self:CastQC(v)
 						end
 					end
@@ -3179,9 +3179,9 @@ class "DmgDraw"
 
 function DmgDraw:__init()
 
-	MainMenu:Menu("DD", "Draw Dmg")
-		MainMenu.DD:Boolean("DTD", "Draw Total Damage", true)
-		MainMenu.DD:ColorPick("DColor", "Damage Color", {255,255,0,255})	
+	ConfigMenu:Menu("DD", "Draw Dmg")
+		ConfigMenu.DD:Boolean("DTD", "Draw Total Damage", true)
+		ConfigMenu.DD:ColorPick("DColor", "Damage Color", {255,255,0,255})	
 
 	OnDraw(function(myHero) self:Draw(myHero) end)
 end
@@ -3197,9 +3197,9 @@ function DmgDraw:Draw(myHero)
 			local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
 			if IsVisible(v) and ValidTarget(v, 2000) then
 				if GetCurrentHP(v) > asd then
-					FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5,MainMenu.DD.DColor:Value())
+					FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5,ConfigMenu.DD.DColor:Value())
 				else
-					FillRect(HpBar.x+1,HpBar.y,hp*1.03,5,MainMenu.DD.DColor:Value())
+					FillRect(HpBar.x+1,HpBar.y,hp*1.03,5,ConfigMenu.DD.DColor:Value())
 				end
 			end
 		end
