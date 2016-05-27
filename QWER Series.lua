@@ -7,10 +7,20 @@ local ChampTable =
 	["Poppy"] 		= true,
 	["Elise"]	 	= true,
 	["Irelia"]		= true,
+	["Nidalee"] 		= true,
 	}
 
 local CustomTarget = nil
 
+local Towers = {}
+
+Callback.Add("ObjectLoad", function(Object)
+	if GetObjectName(myHero) == "Nidalee" then
+		if GetObjectType(Object) == Obj_AI_Turret and GetTeam(Object) ~= GetTeam(myHero) then
+			table.insert(Towers, 1, Object)
+		end
+	end
+end)
 
 
 Callback.Add("Load", function()
@@ -19,7 +29,9 @@ Callback.Add("Load", function()
 		_G[GetObjectName(myHero)]()
 		SkinChanger()
 		Autolvl()
-		DmgDraw()
+		if GetObjectName(myHero) ~= "Nidalee" then
+			DmgDraw()
+		end
 		TargetSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
@@ -29,12 +41,12 @@ Callback.Add("Load", function()
 	else
 		PrintChat(GetObjectName(myHero).." Is not supported!")
 	end
-	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" then
+	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" or GetObjectName(myHero) == "Nidalee" then
 		require('MapPositionGOS')
 	end
 end)
 
-local ver = "0.992"
+local ver = "0.993"
 
 class "Start"
 
@@ -64,6 +76,7 @@ function SkinChanger:__init()
 		["Poppy"] 		= {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer", "Off"},
 		["Elise"]	 	= {"Classic", "Death Blossom", "Victorious", "Blood Moon"},
 		["Irelia"]		= {"Classic", "Nightblade", "Aviator", "Infiltrator", "Frostbutt", "Lotus"},
+		["Nidalee"]		= {"Classic", "Snow Bunny", "Leopard", "Hot Maid", "Pharaoh", "Bewitching", "HeadHunter", "Warring Kindomgs", "Challenger"}
 		}
 
 
@@ -2061,6 +2074,1103 @@ function Irelia:OnRemove(Object, buff)
 
 		if buff.Name == "sheen" then
 			Trinity = false
+		end
+	end
+end
+
+class "Nidalee"
+
+function Nidalee:__init()
+
+	self.Color = ARGB(255,255,255,255)
+	self.Human = true
+	self.Cat = false
+	self.Recalling = false
+	self.QCDmg = {[1] = 4, [2] = 20, [3] = 50, [4] = 90}
+	self.QCDmgM = {[1] = 1, [2] = 1.25, [3] = 1.5, [4] = 1.75}
+	self.Multi = {[1] = 2, [2] = 2.25, [3] = 2.5, [4] = 2.75}
+	self.aaTimer = 0
+	self.aaTimeReady = 0
+	self.windUP = 0
+	self.baseAS = GetBaseAttackSpeed(myHero)
+	self.Pos = {pos = nil, pos2 = nil, pos3 = nil, time = 0, time2 = 0}
+	self.abc = false
+
+	self.Sprite = 
+	{
+		[1] 	= 	{FName = "Nidalee\\Q_H.png", 		Sprite = nil,		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H.png"},
+		[2] 	= 	{FName = "Nidalee\\W_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H.png"},
+		[3] 	= 	{FName = "Nidalee\\E_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H.png"},
+		[4] 	= 	{FName = "Nidalee\\R_H.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H.png"},
+		[5] 	= 	{FName = "Nidalee\\Q_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_H_CD.png"},
+		[6] 	= 	{FName = "Nidalee\\W_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_H_CD.png"},
+		[7] 	= 	{FName = "Nidalee\\E_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_H_CD.png"},
+		[8] 	= 	{FName = "Nidalee\\R_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_H_CD.png"},
+		[9] 	= 	{FName = "Nidalee\\Q_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C.png"},
+		[10] 	= 	{FName = "Nidalee\\W_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end,		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C.png"},
+		[11] 	= 	{FName = "Nidalee\\E_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C.png"},
+		[12] 	= 	{FName = "Nidalee\\R_C.png", 		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C.png"},
+		[13] 	= 	{FName = "Nidalee\\Q_C_CD.png",		Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-127 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+200 end end, Web = "Q_C_CD.png"},
+		[14] 	= 	{FName = "Nidalee\\W_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-90 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+237 end end, Web = "W_C_CD.png"},
+		[15] 	= 	{FName = "Nidalee\\E_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-53 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+274 end end, Web = "E_C_CD.png"},
+		[16] 	= 	{FName = "Nidalee\\R_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().x/2-16 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if Mainmenu.Champ.D.S.H:Value() then return GetResolution().y/2+275 else return GetResolution().y/2+311 end end, Web = "R_C_CD.png"},
+	}
+
+	self.Dick = 
+	{
+
+		[0] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 20, self.Sprite[1].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())	
+											end
+										end end,
+		},
+
+		[1] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit)	if self.abc then 
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 20, self.Sprite[2].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},
+		[2] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then 
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then 
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 20, self.Sprite[3].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},
+		[3] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then 
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+ Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 20, self.Sprite[4].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+
+		},
+	}
+
+	self.Dick2 =
+	{
+
+		[0] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 20, self.Sprite[9].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},
+		[1] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 20, self.Sprite[10].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},						
+		[2] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then 
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 20, self.Sprite[11].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},
+		[3] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)		
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if Mainmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+40 + Mainmenu.Champ.D.S.Y.QY:Value())
+											else
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 20, self.Sprite[12].PosX(Unit) - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value())
+											end
+										end end,
+		},
+	}
+
+	self.Spells =
+	{
+
+		[0] = 	{CD = function(myHero) return 	6 								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "JavelinToss", 		Timer = 0, Ready = false, speed = 1300, width = 60, range = 1500, delay = 0.25},
+		[1] = 	{CD = function(myHero) return 	14-1*GetCastLevel(myHero, 1) 	+ (14-1*GetCastLevel(myHero, 1))*GetCDR(myHero) 	end, CDT = 0, Name = "Bushwhack", 			Timer = 0, Ready = false, speed = math.huge, width = 90, range = 900, delay = 0.5},
+		[2] = 	{CD = function(myHero) return 	12 								+ 12*GetCDR(myHero) 								end, CDT = 0, Name = "PrimalSurge", 		Timer = 0, Ready = false, range = 600},
+		[3] = 	{CD = function(myHero) return 	3 								+ 3*GetCDR(myHero) 									end, CDT = 0, Name = "AspectOfTheCougar", 	Timer = 0, Ready = false},
+	}
+
+	self.Spells2 =
+	{
+		[0] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Takedown", 			Timer = 0, Ready = false},
+		[1] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Pounce", 				Timer = 0, Ready = false},
+		[2] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Swipe", 				Timer = 0, Ready = false},
+		[3] = 	{CD = function(myHero) return 	3 								+ 3*GetCDR(myHero) 									end, CDT = 0, Name = "AspectOfTheCougar", 	Timer = 0, Ready = false},
+	}
+--><
+	self.HDmg =
+	{
+		[0] = function(Unit) if self:QHDmg(myHero) + GetDistance(Unit)/100*self:QHDmg(myHero)*0.258 > self:QHDmg(myHero)*3 then return CalcDamage(myHero,Unit, 0, self:QHDmg(myHero)*3) else return CalcDamage(myHero,Unit, 0, self:QHDmg(myHero) + GetDistance(Unit)/100*self:QHDmg(myHero)*0.258) end end,	--HQ 
+		[1] = function(Unit) return CalcDamage(myHero,Unit, 0, 40*GetCastLevel(myHero, 1)+GetBonusAP(myHero)*0.2) end,			--HW
+	}
+
+	self.CDmg =
+	{
+		[0] = function(Unit)
+									if self:Hunteds(Unit) then
+										if GetPercentHP(Unit) ~= 100 then
+											if (self:Maths(myHero) + self:Maths(myHero)*(self.QCDmgM[GetCastLevel(myHero, 3)] * ((GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit))))*1.33 > (self:Maths(myHero)*self.Multi[GetCastLevel(myHero, 3)])*1.33 then
+												return CalcDamage(myHero, Unit, 0, (self:Maths(myHero)*self.Multi[GetCastLevel(myHero, 3)])*1.33)
+											else
+												return CalcDamage(myHero, Unit, 0, (self:Maths(myHero) + self:Maths(myHero)*(self.QCDmgM[GetCastLevel(myHero, 3)] * ((GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit))))*1.33)
+											end
+										else 
+											return CalcDamage(myHero, Unit, 0, (self:Maths(myHero)*1.33))
+										end
+									else
+										if GetPercentHP(Unit) ~= 100 then
+											if self:Maths(myHero) + self:Maths(myHero)*(self.QCDmgM[GetCastLevel(myHero, 3)] * (GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit)) > self:Maths(myHero)*self.Multi[GetCastLevel(myHero, 3)] then
+												return CalcDamage(myHero, Unit, 0, self:Maths(myHero)*self.Multi[GetCastLevel(myHero, 3)])
+											else
+												return CalcDamage(myHero, Unit, 0, self:Maths(myHero) + self:Maths(myHero)*(self.QCDmgM[GetCastLevel(myHero, 3)] * ((GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit)))*1.33)
+											end
+										else 
+											return CalcDamage(myHero, Unit, 0, self:Maths(myHero))
+										end
+									end
+									end,
+
+
+		[1] = function(Unit) return CalcDamage(myHero,Unit, 0, 10+50*GetCastLevel(myHero, 3) + GetBonusAP(myHero)*0.3)		end, 																																															--CW
+		[2] = function(Unit) return CalcDamage(myHero,Unit, 0, 10+60*GetCastLevel(myHero, 3) + GetBonusAP(myHero)*0.45) 	end,
+	}
+
+	self.DebuffTable = {[5] = true, [8] = true, [11] = true, [21] = true, [22] = true, [24] = true, [28] = true, [29] = true, [30] = true}
+	self.Fucked = {}
+	self.Hunted = {}
+
+	Mainmenu.Champ:Menu("C", "Combo")
+		Mainmenu.Champ.C:SubMenu("H", "Human Combo")
+			Mainmenu.Champ.C.H:Boolean("Q", "Use Q", true)
+			Mainmenu.Champ.C.H:DropDown("W", "Use W (Human) when", 1, {"Enemy on cc", "Always"})
+		Mainmenu.Champ.C:SubMenu("C", "Cat Combo")
+			Mainmenu.Champ.C.C:Boolean("Q", "Use Q", true)
+			Mainmenu.Champ.C.C:Boolean("W", "Use W", true)
+			Mainmenu.Champ.C.C:Boolean("WT", "Go under tower?", false)
+			Mainmenu.Champ.C.C:Boolean("E", "Use E", true)
+		Mainmenu.Champ.C:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+
+	Mainmenu.Champ:Menu("H", "Harass")
+		Mainmenu.Champ.H:Boolean("Q", "Use Human Q", true)
+		Mainmenu.Champ.H:Boolean("R", "Switch to human?", true)
+
+	Mainmenu.Champ:Menu("F", "Farm")
+		Mainmenu.Champ.F:SubMenu("LH", "LastHit")
+			Mainmenu.Champ.F.LH:SubMenu("H", "Human LT")
+				Mainmenu.Champ.F.LH.H:Boolean("Q", "Use Human Q", true)
+				Mainmenu.Champ.F.LH.H:Slider("Mn", "Mana for LastHit", 20, 1, 100)
+			Mainmenu.Champ.F.LH:SubMenu("C", "Cat LT")
+				Mainmenu.Champ.F.LH.C:Boolean("Q", "Use Cat Q", true)
+			Mainmenu.Champ.F.LH:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+
+		Mainmenu.Champ.F:SubMenu("LC", "LaneClear")
+			Mainmenu.Champ.F.LC:SubMenu("H", "Human Mode")
+				Mainmenu.Champ.F.LC.H:Boolean("Q", "Use Q", true)
+				Mainmenu.Champ.F.LC.H:Boolean("W", "Use W", true)
+			Mainmenu.Champ.F.LC:SubMenu("C", "Cat Mode")
+				Mainmenu.Champ.F.LC.C:Boolean("Q", "Use Q", true)
+				Mainmenu.Champ.F.LC.C:Boolean("W", "Use W", true)
+				Mainmenu.Champ.F.LC.C:Boolean("E", "Use E", true)
+			Mainmenu.Champ.F.LC:Slider("MLC", "Minimun mana to JunglerClear", 20, 1, 100)
+		Mainmenu.Champ.F.LC:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
+
+		Mainmenu.Champ.F:SubMenu("JC", "JunglerClear")
+			Mainmenu.Champ.F.JC:SubMenu("H", "Human Mode")
+				Mainmenu.Champ.F.JC.H:Boolean("Q", "Use Q", true)
+				Mainmenu.Champ.F.JC.H:Boolean("W", "Use W", true)						
+			Mainmenu.Champ.F.JC:SubMenu("C", "Cat Mode")
+				Mainmenu.Champ.F.JC.C:Boolean("Q", "Use Q", true)
+				Mainmenu.Champ.F.JC.C:Boolean("W", "Use W", true)
+				Mainmenu.Champ.F.JC.C:Boolean("E", "Use E", true)
+			Mainmenu.Champ.F.JC:Slider("MJC", "Minimun mana to JunglerClear", 20, 1, 100)
+
+
+	Mainmenu.Champ:Menu("HE", "Heals")
+		Mainmenu.Champ.HE:Boolean("R", "Force human for heal?", true)
+		Mainmenu.Champ.HE:Slider("E", "Use E under hp (Ursef)", 20, 1, 100) 
+		DelayAction(function()
+			for k, v in ipairs(GetAllyHeroes()) do
+				Mainmenu.Champ.HE:SubMenu(GetObjectName(v), "Heal config for "..GetObjectName(v))
+					Mainmenu.Champ.HE[GetObjectName(v)]:Boolean("H"..GetObjectName(v), "Heal on "..GetObjectName(v).."?", true)
+					Mainmenu.Champ.HE[GetObjectName(v)]:Boolean("FH"..GetObjectName(v), "Force heal on "..GetObjectName(v).."?", false)
+					Mainmenu.Champ.HE[GetObjectName(v)]:Slider("HV"..GetObjectName(v), "Heal on "..GetObjectName(v).." under hp", 20, 1, 100)			
+			end
+		end, 0.1)
+
+	Mainmenu.Champ:Menu("S", "Run bitch")
+		Mainmenu.Champ.S:Boolean("R", "Switch to Cat?", true) 
+		Mainmenu.Champ.S:Boolean("W", "Use Cat W", true)
+
+	Mainmenu.Champ:Menu("D", "Draws")
+		Mainmenu.Champ.D:Boolean("F", "Draw different form CD?", true)
+		Mainmenu.Champ.D:SubMenu("HD", "Human Draws")
+			Mainmenu.Champ.D.HD:Boolean("Q", "Draw Q range", true)
+			Mainmenu.Champ.D.HD:Boolean("W", "Draw W range", true)
+			Mainmenu.Champ.D.HD:Boolean("E", "Draw E range", true)
+		Mainmenu.Champ.D:Slider("Q", "Quality", 155, 1, 255)
+		Mainmenu.Champ.D:Boolean("DD", "Draw Total Dmg?", true)
+      	Mainmenu.Champ.D:SubMenu("S", "Sprites")
+      		Mainmenu.Champ.D.S:SubMenu("X", "X Pos")
+	      		Mainmenu.Champ.D.S.X:Slider("QX", "PosX", 0, -1000, 1000)
+	      	Mainmenu.Champ.D.S:SubMenu("Y", "Y Pos")
+	      		Mainmenu.Champ.D.S.Y:Slider("QY", "PosX", 0, -1000, 1000)
+	      	Mainmenu.Champ.D.S:Boolean("H", "Horizontal?", true)
+	      	Mainmenu.Champ.D.S:Slider("T", "Move ur time", 0, -40, 40)
+
+
+	Mainmenu.Champ:Menu("Orb", "Hotkeys")
+		Mainmenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		Mainmenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+		Mainmenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		Mainmenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+		Mainmenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
+		Mainmenu.Champ.Orb:KeyBinding("WJ", "WallJump", string.byte("G"), false)
+
+	OnDraw(function(myHero) self:Draw(myHero) end)
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnProcessSpellCast(function(unit, spell) self:OnCast(unit, spell) end)
+	OnProcessSpell(function(unit, spellProc) self:OnProc(unit, spellProc) end)
+	OnProcessSpellComplete(function(unit, spellProc) self:OnProcComplete(unit, spellProc) end)
+	OnUpdateBuff(function(unit, buff) self:OnUpdate(unit, buff) end)
+	OnRemoveBuff(function(unit, buff) self:OnRemove(unit, buff) end)
+	self:Download()
+	self:Sprites()
+
+end
+
+function Nidalee:Sprites()
+	for i = 1,16,1 do
+		if FileExist(SPRITE_PATH..self.Sprite[i].FName) then
+        	self.Sprite[i].Sprite = CreateSpriteFromFile(self.Sprite[i].FName, 0.5)
+		end
+	end
+end
+
+function Nidalee:Draw(myHero)
+	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
+		if Mainmenu.Champ.D.F:Value() then
+			for k = 0, 3, 1 do
+				if self.Human then
+					self.Dick2[k][self.Spells2[k].Ready](Unit)
+				else
+					self.Dick[k][self.Spells[k].Ready](Unit)
+				end
+			end
+		end
+	end
+
+	if not IsDead(myHero) then
+		if self.Spells[0].Ready and Mainmenu.Champ.D.HD.Q:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Pink)
+		end
+
+		if self.Spells[1].Ready and Mainmenu.Champ.D.HD.W:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[1].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Green)
+		end
+
+		if self.Spells[2].Ready and Mainmenu.Champ.D.HD.E:Value() then
+			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, Mainmenu.Champ.D.Q:Value(), GoS.Black)
+		end
+
+		if self.Spells[2].Ready and Mainmenu.Champ.D.HD.E:Value() then
+			local asd = 5 + 40*GetCastLevel(myHero, 2) + GetBonusAP(myHero)/2
+			local HpBar = GetHPBarPos(myHero)
+			local What = (asd*100)/GetMaxHP(myHero)
+			local hp = (GetCurrentHP(myHero)*100/GetMaxHP(myHero))
+			if GetMaxHP(myHero) - GetCurrentHP(myHero) ~= 0 then
+				if GetMaxHP(myHero) - GetCurrentHP(myHero) < asd then
+					FillRect(HpBar.x+hp+What*1.03,HpBar.y,What*1.03,5,GoS.Red)
+				end
+			end
+
+			for k, v in ipairs(GetAllyHeroes()) do
+				local HpBar = GetHPBarPos(v)
+				local What = (asd*100)/GetMaxHP(v)
+				local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
+				if GetMaxHP(v) - GetCurrentHP(v) ~= 0 then
+					if GetMaxHP(v) - GetCurrentHP(v) < asd then
+						FillRect(HpBar.x+hp+What*1.03,HpBar.y,What*1.03,5,GoS.Red)
+					end
+				end
+			end
+		end
+
+		if Mainmenu.Champ.D.DD:Value() then
+			for k, v in pairs(GetEnemyHeroes()) do
+				local asd = self:TotalDmg(v)
+				local HpBar = GetHPBarPos(v)
+				local What = (asd*100)/GetMaxHP(v)
+				local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
+				if IsVisible(v) and ValidTarget(v, 2000) then
+					if GetCurrentHP(v) > asd then
+						FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5, GoS.Red)
+					else
+						FillRect(HpBar.x+1,HpBar.y,hp*1.03,5, GoS.Red)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Nidalee:Tick(myHero)
+	self:Checks()
+	self:CastEH()
+	self:Walljump()
+	self:KS()
+
+	if Mainmenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
+		self:Combo(CustomTarget)
+	end
+
+	if Mainmenu.Champ.Orb.H:Value() and CustomTarget ~= nil then
+		self:Harass(CustomTarget)
+	end
+
+	if Mainmenu.Champ.Orb.LH:Value() then
+		self:LastHit()
+	end
+
+	if Mainmenu.Champ.Orb.LC:Value() then
+		self:LaneClear()
+	end
+
+	if Mainmenu.Champ.Orb.F:Value() then
+		self:Flee()
+	end
+end
+
+function Nidalee:Flee()
+	if self.Human then
+		if self.Spells[3].Ready and Mainmenu.Champ.S.R:Value() then
+			CastSpell(3)
+		end
+	else
+		if self.Spells2[1].Ready and Mainmenu.Champ.S.W:Value() then
+			CastSkillShot(1, GetMousePos())
+		end
+		MoveToXYZ(GetMousePos())
+	end
+end
+
+function Nidalee:Walljump()
+	local V1 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*375
+	local V2 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*187
+	if Mainmenu.Champ.Orb.WJ:Value() then
+		if not MapPosition:inWall(GetMousePos()) and not MapPosition:inWall(V1) and MapPosition:inWall(V2) then
+			self.Pos[1] = GetMousePos()
+			self.Pos[2] = V1
+			self.Pos[3] = GetOrigin(myHero)
+			DelayAction(function() self.Pos[4] = GetDistance(self.Pos[1])/GetMoveSpeed(myHero) end, 0.1)
+			self.Pos[5] = self.Spells2[3].Timer
+			MoveToXYZ(V1)
+		end
+--><
+		if self.Human then
+			if self.Spells[3].Ready then
+				CastSpell(3)
+			else
+				if self.Pos[4] ~= nil then
+					if self.Pos[5] < self.Pos[4] and (self.Pos[5] - self.Pos[4]) > 1 then
+						DelayAction(function() CastSpell(3) end, self.Pos[5])
+					else
+						DelayAction(function() CastSpell(3) end, self.Pos[5])
+					end
+				end
+			end
+		end
+	end
+
+	if not self.Human and self.Pos[1] ~= nil and self.Pos[2] ~= nil then
+		if GetDistance(self.Pos[2]) < 50 and self.Spells[1].Ready then
+			CastSkillShot(1, self.Pos[1])
+			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 end, 0.1)
+		end
+	end
+end
+
+function Nidalee:Combo(Unit)
+	if Mainmenu.Champ.C.F:Value() == 1 then
+		if self.Human then
+			if Mainmenu.Champ.C.H.Q:Value() then
+				self:CastQH(Unit)
+			end
+			if Mainmenu.Champ.C.H.W:Value() then
+				self:CastWH(Unit)
+			end
+		else
+			if not self.Spells2[3].Ready then
+				if Mainmenu.Champ.C.C.Q:Value() then
+					self:CastQC(Unit)
+				end
+
+				if Mainmenu.Champ.C.C.W:Value() then
+					self:CastWC(Unit)
+				end
+
+				if Mainmenu.Champ.C.C.E:Value() then
+					self:CastEC(Unit)
+				end
+			else
+				self:CastRC(Unit)
+			end
+		end
+	elseif Mainmenu.Champ.C.F:Value() == 2 then
+		if self.Human then
+			if self.Spells[3].Ready then
+				self:CastRH(Unit)
+			else
+				if Mainmenu.Champ.C.H.Q:Value() then
+					self:CastQH(Unit)
+				end
+
+				if Mainmenu.Champ.C.H.W:Value() then
+					self:CastWH(Unit)
+				end
+			end
+		else
+			if Mainmenu.Champ.C.C.Q:Value() then
+				self:CastQC(Unit)
+			end
+			if Mainmenu.Champ.C.C.W:Value() then
+				self:CastWC(Unit)
+			end
+
+			if Mainmenu.Champ.C.C.E:Value() then
+				self:CastEC(Unit)
+			end
+		end
+	elseif Mainmenu.Champ.C.F:Value() == 3 then
+		if self.Human then
+			if Mainmenu.Champ.C.H.Q:Value() then
+				self:CastQH(Unit)
+			end
+
+			if Mainmenu.Champ.C.H.W:Value() then
+				self:CastWH(Unit)
+			end
+
+			if not self.Spells[0].Ready and self.Spells[3].Ready then
+				self:CastRH(Unit)
+			end
+		else
+			if Mainmenu.Champ.C.C.Q:Value() then
+				self:CastQC(Unit)
+			end
+
+			if Mainmenu.Champ.C.C.W:Value() then
+				self:CastWC(Unit)
+			end
+
+			if Mainmenu.Champ.C.C.E:Value() then
+				self:CastEC(Unit)
+			end
+
+			if self.Spells2[3].Ready and self.Spells[0].Ready then
+				self:CastRC(Unit)
+			end
+		end
+	end
+
+	if self.Human then
+		self:CastWH(Unit)
+	end
+end
+
+function Nidalee:Harass(Unit)
+	if not self.Human then
+		if Mainmenu.Champ.H.R:Value() and self.Spells2[3].Ready then
+			self:CastRC(Unit)
+		end
+	else
+		if Mainmenu.Champ.H.Q:Value() and self.Spells[0].Ready then
+			self:CastQH(Unit)
+		end
+	end
+end
+
+function Nidalee:TotalDmg(Unit)
+	local TDmg = 0
+	if self.Spells[0].Ready then
+		TDmg = TDmg + self.HDmg[0](Unit)
+	end
+
+	if self.Spells[1].Ready then
+		TDmg = TDmg + self.HDmg[1](Unit)
+	end
+
+	if self.Spells2[0].Ready then
+		TDmg = TDmg + self.CDmg[0](Unit)
+	end
+
+	if self.Spells2[1].Ready then
+		TDmg = TDmg + self.CDmg[1](Unit)
+	end
+
+	if self.Spells2[2].Ready then
+		TDmg = TDmg + self.CDmg[2](Unit)
+	end
+	return TDmg
+end
+
+function Nidalee:KS()
+	for k, v in ipairs(GetEnemyHeroes()) do
+		if self.Human then
+			if GetCurrentHP(v) < self.HDmg[0] then
+				self:CastQH(v)
+			end
+		else
+			if GetCurrentHP(v) < self.CDmg[0] then
+				self:CastQC(v)
+			end
+
+			if GetCurrentHP(v) < self.CDmg[1] then
+				self:CastQW(v)
+			end
+
+			if GetCurrentHP(v) < self.CDmg[2] then
+				self:CastQE(v)
+			end	
+		end
+	end		
+end
+
+function Nidalee:LastHit()
+	for k, v in ipairs(minionManager.objects) do
+		if GetTeam(v) == 200 then
+			if Mainmenu.Champ.F.LH.F:Value() == 1 then
+				if self.Human then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and Mainmenu.Champ.F.LH.H.Q:Value() and v.valid then
+						self:CastQG(v)
+					end
+				else
+					if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
+						self:CastRC(v)
+					end
+				end
+			elseif Mainmenu.Champ.F.LH.F:Value() == 2 then
+				if self.Human then
+					if self.Spells[3].Ready and v.valid then
+						self:CastRH(v)
+					end
+				else
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and Mainmenu.Champ.F.LH.C.Q:Value() and v.valid then
+						self:CastQC(v)
+					end
+				end
+			elseif Mainmenu.Champ.F.LH.F:Value() == 3 then
+				if self.Human then
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and Mainmenu.Champ.F.LH.H.Q:Value() and v.valid then
+						self:CastQH(v)
+					end
+
+					if not self.Spells[0].Ready and self.Spells[3].Ready and v.valid then
+						self:CastRC(v)
+					end
+				else
+					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and Mainmenu.Champ.F.LH.C.Q:Value() and v.valid then
+						self:CastQC(v)
+					end
+
+					if not self.Spells2[0].Ready and self.Spells[0].Ready and v.valid then
+						self:CastRC(v)
+					end
+				end
+			end
+		end
+	end		
+end
+
+function Nidalee:LaneClear()
+	for k, v in ipairs(minionManager.objects) do
+		if ValidTarget(v, 1000) then
+			if GetTeam(v) == 200 then
+				if Mainmenu.Champ.F.LC.F:Value() == 1 then
+					if self.Human then
+						if Mainmenu.Champ.F.LC.H.Q:Value() then
+							self:CastQH(v)
+						end
+
+						if Mainmenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+							CastSkillShot(1, GetOrigin(v))
+						end
+					else
+						self:CastRC(v)
+					end
+				elseif Mainmenu.Champ.F.LC.F:Value() == 2 then
+					if self.Human then
+						self:CastRH(v)
+					else
+						if Mainmenu.Champ.F.LC.C.Q:Value() then
+							self:CastQC(v)
+						end
+
+						if Mainmenu.Champ.F.LC.C.W:Value() then
+							self:CastWC(v)
+						end
+
+						if Mainmenu.Champ.F.LC.C.E:Value() then
+							self:CastEC(v)
+						end
+					end
+				elseif Mainmenu.Champ.F.LC.F:Value() == 3 then
+					if self.Human then
+						if Mainmenu.Champ.F.LC.H.Q:Value() then
+							self:CastQH(v)
+						end
+
+						if Mainmenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+							CastSkillShot(1, GetOrigin(v))
+						end
+
+						if not self.Spells[0].Ready and not self.Spells[1].Ready then
+							self:CastRH(v)
+						end
+					else
+						if Mainmenu.Champ.F.LC.C.Q:Value() then
+							self:CastQC(v)
+						end
+
+						if Mainmenu.Champ.F.LC.C.W:Value() then
+							self:CastWC(v)
+						end
+
+						if Mainmenu.Champ.F.LC.C.E:Value() then
+							self:CastEC(v)
+						end
+
+						if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
+							self:CastRC(v)
+						end
+					end
+				end
+			end
+
+			if GetTeam(v) == 300 then
+				if self.Human then
+					if Mainmenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+						CastSkillShot(1, GetOrigin(v))
+					end
+
+					if not self.Spells[0].Ready and self.Spells[3].Ready then
+						self:CastRH(v)
+					end
+				else
+					if Mainmenu.Champ.F.JC.C.W:Value() then
+						self:CastWC(v)
+					end
+
+					if Mainmenu.Champ.F.JC.C.E:Value() then
+						self:CastEC(v)
+					end
+
+					if self.Spells[0].Ready and self.Spells2[3].Ready then
+						print"lel"
+						self:CastRC(v)
+					end
+				end
+			end
+		end
+	end
+end
+
+function Nidalee:Checks()
+	if GetCastName(myHero, 0) ~= "JavelinToss" then
+		self.Human = false
+		self.Cat = true
+	else
+		self.Human = true
+		self.Cat = false
+	end
+
+	for i = 0, 3, 1 do
+		self.Spells[i].Timer = self.Spells[i].CDT + self.Spells[i].CD(myHero) - GetGameTimer()
+		self.Spells2[i].Timer = self.Spells2[i].CDT + self.Spells2[i].CD(myHero) - GetGameTimer()
+		if self.Spells[i].Timer <= 0 then
+			self.Spells[i].Ready = true
+		else
+			self.Spells[i].Ready = false
+		end
+
+		if self.Spells[i].Timer <= 0 then
+			self.Spells[i].Timer = 0
+		end
+
+		if self.Spells2[i].Timer <= 0 then
+			self.Spells2[i].Ready = true
+		else
+			self.Spells2[i].Ready = false
+		end
+
+		if self.Spells2[i].Timer <= 0 then
+			self.Spells2[i].Timer = 0
+		end	
+	end
+
+	if self.aaTimeReady ~= nil then
+		self.aaTimer = self.aaTimeReady - GetGameTimer()
+		if self.aaTimer <= 0 then
+			self.aaTimer = 0
+		end
+	end
+
+	if self.Human then
+		if Ready(3) and not self.Spells2[3].Ready then
+			self.Spells[3].Ready = true
+			self.Spells2[3].Ready = true
+			self.Spells[3].Timer = 0
+			self.Spells2[3].Timer = 0
+		end
+	else
+		if Ready(1) and not self.Spells2[1].Ready then
+			self.Spells2[1].Ready = true
+		end
+
+		if Ready(3) and not self.Spells[3].Ready then
+			self.Spells2[3].Ready = true
+			self.Spells[3].Ready = true
+			self.Spells[3].Timer = 0
+			self.Spells2[3].Timer = 0
+		end
+	end
+end
+
+function Nidalee:UnderTower(Object)
+	for i = 1, #Towers, 1 do
+		if GetDistance(Object, Towers[i]) < 1000 then
+			return true
+		end
+	end
+	return false
+end
+
+function Nidalee:Hunteds(Unit)
+	for i = 1, #self.Hunted, 1 do
+		if self.Hunted[i] == Unit then
+			return true
+		end
+	end
+	return false
+end
+
+function Nidalee:CC(Unit)
+	for i = 1, #self.Fucked, 1 do
+		if self.Fucked[i] == Unit then
+			return true
+		end
+	end
+	return false
+end
+
+function Nidalee:QHDmg(Unit)
+	return 42+17.5*GetCastLevel(myHero, 0) + GetBonusAP(myHero)*0.4
+end
+
+function Nidalee:Maths(Unit)
+	return self.QCDmg[GetCastLevel(Unit, 3)] + (GetBaseDamage(Unit)+GetBonusDmg(Unit))*0.75 + GetBonusAP(Unit)*0.36
+end
+
+function Nidalee:CastQH(Unit)
+	local QPred = GetPrediction(Unit, self.Spells[0])
+	if self.Spells[0].Ready and ValidTarget(Unit, self.Spells[0].range) and self.Human and QPred and QPred.hitChance*100 >= 20 and not QPred:mCollision(1) then
+		CastSkillShot(0, QPred.castPos)
+	end
+end
+
+function Nidalee:CastWH(Unit)
+	if Mainmenu.Champ.C.H.W:Value() == 2 then
+		local WPred = GetPrediction(Unit, self.Spells[1])
+		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and WPred and WPred.hitChance*100 >= 20 then
+			CastSkillShot(1, WPred.castPos)
+		end
+	elseif Mainmenu.Champ.C.H.W:Value() == 1 then
+		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and self:CC(Unit) then
+			CastSkillShot(1, GetOrigin(Unit))
+		end
+	end
+end
+
+function Nidalee:CastRH(Unit)
+	if self.Spells[3].Ready and ValidTarget(Unit, 750) and self.Human then
+		CastSpell(3)
+	end
+end
+
+function Nidalee:CastQC(Unit)
+	if self.Spells2[0].Ready and ValidTarget(Unit, 200) and not self.Human then
+		CastSpell(0)
+		DelayAction(function()
+			AttackUnit(Unit)
+		end, 0.1)
+	end
+end
+
+function Nidalee:CastWC(Unit)
+	local V1 = GetOrigin(myHero) - Vector(Vector(GetOrigin(myHero)) - Vector(GetOrigin(Unit))):normalized()*375
+	if self.Spells2[1].Ready and not self.Human then
+		if Mainmenu.Champ.C.C.WT:Value() then
+			if self:Hunteds(Unit) then
+				if ValidTarget(Unit, 750) then
+					CastTargetSpell(Unit, 1)
+				end
+			else
+				if ValidTarget(Unit, 375) then
+					CastSkillShot(1, GetOrigin(Unit))
+				end
+			end
+		else
+			if self:Hunteds(Unit) then
+				if ValidTarget(Unit, 750) and not self:UnderTower(Unit) then
+					CastTargetSpell(Unit, 1)
+				end
+			else
+				if ValidTarget(Unit, 375) and not self:UnderTower(V1) then
+					CastSkillShot(1, GetOrigin(Unit))
+				end
+			end
+		end
+	end
+end
+
+
+function Nidalee:CastEC(Unit)
+	if self.Spells2[2].Ready and not self.Human and ValidTarget(Unit, 300) then
+		CastSkillShot(2, GetOrigin(Unit))
+	end
+end
+
+function Nidalee:CastRC(Unit)
+	if self.Spells[3].Ready and not self.Human and ValidTarget(Unit, self.Spells[0].range) then
+		CastSpell(3)
+	end
+end
+
+function Nidalee:CastEH()
+	if not self.Recalling then
+		if self.Human then
+			if GetPercentHP(myHero) < Mainmenu.Champ.HE.E:Value() and self.Spells[2].Ready then
+				CastTargetSpell(myHero, 2)
+			end
+
+			for k, v in ipairs(GetAllyHeroes()) do
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < Mainmenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+					CastTargetSpell(v, 2)
+				end
+			end
+		else
+			if GetPercentHP(myHero) < Mainmenu.Champ.HE.E:Value() and Mainmenu.Champ.HE.R:Value() and self.Spells[2].Ready then
+				CastSpell(3)
+				DelayAction(function() CastTargetSpell(myHero, 2) end, 0.1)
+			end
+
+			for k, v in ipairs(GetAllyHeroes()) do
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < Mainmenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and Mainmenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+					CastSpell(3)
+					DelayAction(function() CastTargetSpell(v, 2) end, 0.1)
+				end
+			end
+		end
+	end
+end
+
+function Nidalee:OnProc(unit, spellProc)
+	if unit == myHero and spellProc.name == self.Spells2[1].Name then
+		if self:Hunteds(spellProc.target) then
+			DelayAction(function() self.Spells2[1].Timer = self.Spells2[1].Timer*0.70 end, 0.1)
+		end
+	end
+end
+
+function Nidalee:OnProcComplete(unit, spellProc)
+	if unit == myHero then
+		if spellProc.name:lower():find("attack") then
+			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
+			self.windUP = spellProc.windUpTime
+			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
+		end
+
+		if Mainmenu.Champ.Orb.LC:Value() then
+			for k, v in ipairs(minionManager.objects) do
+				if spellProc.name:lower():find("attack") then
+					if self.Human then
+						if Mainmenu.Champ.F.LC.H.Q:Value() then
+							self:CastQH(v)
+						end
+					else
+						if Mainmenu.Champ.F.LC.C.Q:Value() then
+							self:CastQC(v)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Nidalee:OnCast(unit, spell)
+	if unit == myHero then
+		for i = 0, 3, 1 do
+			if self.Human then
+				if spell.name == self.Spells[i].Name then
+					self.Spells[i].CDT = GetGameTimer()
+				end
+			else
+				if spell.name == self.Spells2[i].Name then
+					self.Spells2[i].CDT = GetGameTimer()
+				end				
+			end
+		end
+	end
+end
+
+function Nidalee:OnUpdate(unit, buff)
+	if GetTeam(unit) ~= GetTeam(myHero) and GetObjectType(unit) == Obj_AI_Hero or GetObjectType(unit) == Obj_AI_Camp and buff and unit.valid then
+		if self.DebuffTable[buff.Type] then
+			table.insert(self.Fucked, 1, unit)
+		end
+		if buff.Name == "NidaleePassiveHunted" then
+			table.insert(self.Hunted, 1, unit)
+		end
+	end
+	if buff.Name == "recall" or buff.Name == "OdinRecall" and unit == myHero then
+		self.Recalling = true
+	end
+end
+
+function Nidalee:OnRemove(unit, buff)
+	if GetTeam(unit) ~= GetTeam(myHero) and GetObjectType(unit) == Obj_AI_Hero and buff then
+		for i = 1, #self.Fucked, 1 do
+			if self.Fucked[i] == unit and self.DebuffTable[buff.Type] then
+				self.Fucked[i] = nil
+			end
+		end
+		for i = 1, #self.Hunted, 1 do
+			if self.Hunted[i] == unit then
+				self.Hunted[i] = nil
+			end
+		end
+	end
+	if buff.Name == "recall" or buff.Name == "OdinRecall" and unit == myHero then
+		self.Recalling = false
+	end
+end
+
+function Nidalee:Download()
+	for i = 1,16,1 do
+		if FileExist(SPRITE_PATH..self.Sprite[i].FName) then self.abc = true return end
+		if not DirExists(SPRITE_PATH.."Nidalee") then
+			CreateDir(SPRITE_PATH.."Nidalee")
+		end
+
+		if DirExists(SPRITE_PATH.."Nidalee") then
+			DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/Sprites/Nidalee/"..self.Sprite[i].Web, SPRITE_PATH .. "Nidalee\\"..self.Sprite[i].Web, function() PrintChat("Downloading "..self.Sprite[i].Web.." F6x2!") return end)
 		end
 	end
 end
