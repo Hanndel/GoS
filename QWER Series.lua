@@ -46,7 +46,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.995"
+local ver = "0.996"
 
 class "Start"
 
@@ -2524,7 +2524,7 @@ function Nidalee:Tick(myHero)
 	self:Checks()
 	self:CastEH()
 	self:Walljump()
-	self:KS()
+	--self:KS()
 
 	if ConfigMenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
 		self:Combo(CustomTarget)
@@ -2720,7 +2720,7 @@ function Nidalee:TotalDmg(Unit)
 	return TDmg
 end
 
-function Nidalee:KS()
+--[[function Nidalee:KS()
 	for k, v in ipairs(GetEnemyHeroes()) do
 		if self.Human then
 			if GetCurrentHP(v) < self.HDmg[0](v) then
@@ -2740,7 +2740,7 @@ function Nidalee:KS()
 			end	
 		end
 	end		
-end
+end]]
 
 function Nidalee:LastHit()
 	for k, v in ipairs(minionManager.objects) do
