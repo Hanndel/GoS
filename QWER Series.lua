@@ -2723,19 +2723,19 @@ end
 function Nidalee:KS()
 	for k, v in ipairs(GetEnemyHeroes()) do
 		if self.Human then
-			if GetCurrentHP(v) < self.HDmg[0] then
+			if GetCurrentHP(v) < self.HDmg[0](v) then
 				self:CastQH(v)
 			end
 		else
-			if GetCurrentHP(v) < self.CDmg[0] then
+			if GetCurrentHP(v) < self.CDmg[0](v) then
 				self:CastQC(v)
 			end
 
-			if GetCurrentHP(v) < self.CDmg[1] then
+			if GetCurrentHP(v) < self.CDmg[1](v) then
 				self:CastQW(v)
 			end
 
-			if GetCurrentHP(v) < self.CDmg[2] then
+			if GetCurrentHP(v) < self.CDmg[2](v) then
 				self:CastQE(v)
 			end	
 		end
