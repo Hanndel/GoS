@@ -2591,7 +2591,7 @@ function Nidalee:Walljump()
 	if not self.Human and self.Pos[1] ~= nil and self.Pos[2] ~= nil then
 		if GetDistance(self.Pos[2]) < 50 and self.Spells[1].Ready then
 			CastSkillShot(1, self.Pos[1])
-			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 end, 0.1)
+			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 self.Pos[3] = nil self.Pos[5] = 0  end, 0.1)
 		end
 	end
 end
@@ -2872,7 +2872,6 @@ function Nidalee:LaneClear()
 					end
 
 					if self.Spells[0].Ready and self.Spells2[3].Ready then
-						print"lel"
 						self:CastRC(v)
 					end
 				end
