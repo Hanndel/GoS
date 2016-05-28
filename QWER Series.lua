@@ -2157,20 +2157,20 @@ function Nidalee:__init()
 		[0] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+20 + Configmenu.Champ.D.S.Y.QY:Value() + Configmenu.Champ.D.S.T:Value())
 											else
-												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))	
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 - Configmenu.Champ.D.S.T:Value() + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+15 + (Configmenu.Champ.D.S.Y.QY:Value()*1.25))	
 											end
 										end end,
 		},
@@ -2178,148 +2178,63 @@ function Nidalee:__init()
 		[1] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit)	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+20 + Configmenu.Champ.D.S.Y.QY:Value() + Configmenu.Champ.D.S.T:Value())
 											else
-												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 - Configmenu.Champ.D.S.T:Value() + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+15 + (Configmenu.Champ.D.S.Y.QY:Value()*1.25))
 											end
 										end end,
 		},
 		[2] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+20 + Configmenu.Champ.D.S.Y.QY:Value() + Configmenu.Champ.D.S.T:Value())
 											else
-												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 - Configmenu.Champ.D.S.T:Value() + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+15 + (Configmenu.Champ.D.S.Y.QY:Value()*1.25))
 											end
 										end end,
 		},
 		[3] = 
 		{
 			[true] 	= function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											else
-												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 											end
 										end end,
 
 			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
+											if Configmenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+20 + Configmenu.Champ.D.S.Y.QY:Value() + Configmenu.Champ.D.S.T:Value())
 											else
-												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
-												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + Configmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 - Configmenu.Champ.D.S.T:Value() + Configmenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+15 + (Configmenu.Champ.D.S.Y.QY:Value()*1.25))
 											end
 										end end,
 
-		},
-	}
-
-	self.Dick2 =
-	{
-
-		[0] = 
-		{
-			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
-											else
-												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
-											end
-										end end,
-
-			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[0].Timer), 25, self.Sprite[9].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
-											else
-												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[0].Timer), 25, self.Sprite[9].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
-											end
-										end end,
-		},
-		[1] = 
-		{
-			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
-											else
-												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
-											end
-										end end,
-
-			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells2[1].Timer), 25, self.Sprite[10].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
-											else
-												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
-												DrawText(string.format("%.2f", self.Spells2[1].Timer), 25, self.Sprite[10].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
-											end
-										end end,
-		},						
-		[2] = 
-		{
-			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
-											else
-												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
-											end
-										end end,
-
-			[false] = function(Unit) 	if self.abc then 
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[2].Timer), 25, self.Sprite[11].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
-											else
-												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[2].Timer), 25, self.Sprite[11].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
-											end
-										end end,
-		},
-		[3] = 
-		{
-			[true] 	= function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
-											else
-												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)		
-											end
-										end end,
-
-			[false] = function(Unit) 	if self.abc then
-											if Mainmenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[3].Timer), 25, self.Sprite[12].PosX(Unit)+12.5 + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+20 + Mainmenu.Champ.D.S.Y.QY:Value() + Mainmenu.Champ.D.S.T:Value())
-											else
-												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + Mainmenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
-												DrawText(string.format("%.2f", self.Spells2[3].Timer), 25, self.Sprite[12].PosX(Unit)+12.5 - Mainmenu.Champ.D.S.T:Value() + Mainmenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+15 + (Mainmenu.Champ.D.S.Y.QY:Value()*1.25))
-											end
-										end end,
 		},
 	}
 
