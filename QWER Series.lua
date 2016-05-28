@@ -59,7 +59,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.999"
+local ver = "0.9991"
 
 class "Start"
 
