@@ -22,6 +22,14 @@ Callback.Add("ObjectLoad", function(Object)
 	end
 end)
 
+Callback.Add("DeleteObj", function(Object)
+	for i = 1, #Towers, 1 do
+		if Object == Towers[i] then
+			Towers[i] = nil
+		end
+	end
+end)
+
 
 Callback.Add("Load", function()
 	if ChampTable[GetObjectName(myHero)] then
@@ -29,14 +37,14 @@ Callback.Add("Load", function()
 		_G[GetObjectName(myHero)]()
 		SkinChanger()
 		Autolvl()
-		if GetObjectName(myHero) ~= "Nidalee" then
+		if GetObjectName(myHero) ~= "Nidalee" and GetObjectName(myHero) ~= "Poppy" then
 			DmgDraw()
 		end
 		
 		if FileExist(COMMON_PATH.."Analytics.lua") then
 			require"Analytics"
+			Analytics("QWER-Series","Hanndel")
 		end
-		Analytics("QWER-Series","Hanndel")
 		TargetSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
@@ -426,6 +434,7 @@ function Zyra:__init()
 		Dmg = 
 	{
 		[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 35+GetCastLevel(myHero, 0)*35+GetBonusAP(myHero)*0.65) end,
+		[1] = function(Unit) return 0 end,
 		[2] = function(Unit) return CalcDamage(myHero, Unit, 0, 25+GetCastLevel(myHero, 2)*35+GetBonusAP(myHero)*0.50) end,
 		[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 95*GetCastLevel(myHero, 3)*85+GetBonusAP(myHero)*0.70) end,
 	}
@@ -519,12 +528,18 @@ end
 
 function Zyra:Tick()
 	self.Target = CustomTarget
-	if not IsDead(myHero) then
-		if ConfigMenu.Champ.Orb.C:Value() then
-		self:Combo(self.Target)
-		elseif ConfigMenu.Champ.Orb.H:Value() then
-			self:Harass(self.Target)
-		elseif ConfigMenu.Champ.Orb.LC:Value() then
+	if not IsDead(myHero)then
+		if self.Target ~= nil then
+			if ConfigMenu.Champ.Orb.C:Value() then
+			self:Combo(self.Target)
+			end
+
+			if ConfigMenu.Champ.Orb.H:Value() then
+				self:Harass(self.Target)
+			end
+		end
+
+		if ConfigMenu.Champ.Orb.LC:Value() then
 			self:LaneClear()
 		end
 		self:Ks()
@@ -608,15 +623,15 @@ function Zyra:Ks()
 		local Q = GetCircularAOEPrediction(enemy, self.Spells[0])
 		local E = GetPrediction(enemy, self.Spells[2])
 		local R = GetCircularAOEPrediction(enemy, self.Spells[3])
-		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy) then
+		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy) then
 			CastSkillShot(0, Q.castPos)
 		end
 
-		if ConfigMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[2](enemy) then
+		if ConfigMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 		end
 
-		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and ConfigMenu.Champ.KS.E:Value() and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < self.Dmg[0](enemy)+self.Dmg[2](enemy) then
+		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and ConfigMenu.Champ.KS.E:Value() and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy)+Dmg[2](enemy) then
 			CastSkillShot(2, E.castPos)
 			DelayAction(function() CastSkillShot(_Q, Q.castPos) end, GetDistance(enemy)/1500)
 		end
@@ -725,12 +740,12 @@ end
 function Zyra:OnProc(Object, spellProc)
 	local EPos = nil
 	if Object == myHero then
-		if ConfigMenu.Champ.Orb.C:Value() then
+		if ConfigMenu.Champ.Orb.C:Value() and self.Target ~= nil then
 			DelayAction(function()
 				if spellProc.name == GetCastName(myHero, 0) then
 					self:CastW(spellProc.endPos, GetCastName(myHero, 0))
 				elseif spellProc.name == GetCastName(myHero, 2) then
-					if ConfigMenu.Champ.Orb.C:Value() and self.Target.range < GetCastRange(myHero, 1) then
+					if ConfigMenu.Champ.Orb.C:Value() and self.Spells[2].range < GetCastRange(myHero, 1) then
 						EPos = GetOrigin(myHero) + Vector(Vector(spellProc.endPos) - Vector(spellProc.startPos)):normalized()*GetDistance(self.Target)
 						self:CastW(EPos, GetCastName(myHero, 2))
 					end
@@ -741,20 +756,24 @@ function Zyra:OnProc(Object, spellProc)
 end
 
 function Zyra:Onupdate(Object, buffProc)
-	if Object.Name == self.Target.Name then 
-		for i, buffs in pairs(self.DebuffTable) do
-			if buffProc.Type == buffs then
-				self.IsTargetFucked = true
+	if self.Target ~= nil then
+		if Object.Name == GetObjectName(self.Target) then 
+			for i, buffs in pairs(self.DebuffTable) do
+				if buffProc.Type == buffs then
+					self.IsTargetFucked = true
+				end
 			end
 		end
 	end
 end
 
 function Zyra:Onremove(Object, buffProc)
-	if Object.Name == self.Target.Name then 
-		for i, buffs in pairs(self.DebuffTable) do
-			if buffProc.Type == buffs then
-				self.IsTargetFucked = false
+	if self.Target ~= nil then
+		if Object.Name == GetObjectName(self.Target) then 
+			for i, buffs in pairs(self.DebuffTable) do
+				if buffProc.Type == buffs then
+					self.IsTargetFucked = false
+				end
 			end
 		end
 	end
@@ -828,6 +847,7 @@ function Kindred:__init()
 					return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
 				end
 		  end,
+	[3] = function(Unit) return 0 end
 	}
 	self.BaseAS = GetBaseAttackSpeed(myHero)
 	self.AAPS = self.BaseAS*GetAttackSpeed(myHero)
@@ -914,11 +934,12 @@ function Kindred:Tick()
 	if not IsDead(myHero) then
 	
 		self.target = CustomTarget
-
-		if ConfigMenu.Champ.Orb.C:Value() then
-			self:Combo(self.target)
-		elseif ConfigMenu.Champ.Orb.LC:Value() then
-			self:LaneClear()
+		if self.target ~= nil then
+			if ConfigMenu.Champ.Orb.C:Value() then
+				self:Combo(self.target)
+			elseif ConfigMenu.Champ.Orb.LC:Value() then
+				self:LaneClear()
+			end
 		end
 
 		self:AutoR()
@@ -1038,7 +1059,7 @@ function Kindred:OnProcComplete(unit, spell)
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
-			elseif ConfigMenu.Champ.Orb.C:Value() then
+			elseif ConfigMenu.Champ.Orb.C:Value() and self.target ~= nil then
 				if ConfigMenu.Champ.QOptions.QC:Value() and Ready(0) and ConfigMenu.Champ.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
@@ -1264,11 +1285,14 @@ function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
 	self.Target = CustomTarget
-	if ConfigMenu.Champ.Orb.C:Value() then
-		self:Combo(self.Target)
-	end
-	if ConfigMenu.Champ.Orb.H:Value() then
-		self:Harass(self.Target)
+	if self.Target ~= nil then
+		if ConfigMenu.Champ.Orb.C:Value() then
+			self:Combo(self.Target)
+		end
+
+		if ConfigMenu.Champ.Orb.H:Value() then
+			self:Harass(self.Target)
+		end
 	end
 	if ConfigMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
@@ -1429,6 +1453,7 @@ function Elise:__init()
 				{
 				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
 				[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
+				[2] = function(Unit) return 0 end,
 				[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
 				}
 
@@ -1780,12 +1805,14 @@ function Irelia:Tick(myHero)
 		end
 	end
 
-	if ConfigMenu.Champ.Orb.C:Value() then
-		self:Combo(CustomTarget)
-	end
+	if CustomTarget ~= nil then
+		if ConfigMenu.Champ.Orb.C:Value() then
+			self:Combo(CustomTarget)
+		end
 
-	if ConfigMenu.Champ.Orb.H:Value() then
-		self:Harass(CustomTarget)
+		if ConfigMenu.Champ.Orb.H:Value() then
+			self:Harass(CustomTarget)
+		end
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
@@ -1995,7 +2022,7 @@ function Irelia:Ks()
 end
 
 function Irelia:OnProcComplete(Object, spellProc)
-	if Object == myHero then
+	if Object == myHero and CustomTarget ~= nil then
 		if spellProc.name:lower():find("attack") then
 			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
 			self.windUP = spellProc.windUpTime
@@ -3197,8 +3224,8 @@ function DmgDraw:Draw(myHero)
 	local Keepo = {0, 0, 0, 0}
 	for k, v in pairs(GetEnemyHeroes()) do
 		for i = 0, 3, 1 do
-			Keepo[i] = Dmg[i](v)
-			local asd = Keepo[0] + Keepo[1] + Keepo[2] + Keepo[3]
+			Keepo[i+1] = Dmg[i](v)
+			local asd = Keepo[1] + Keepo[2] + Keepo[3] + Keepo[4]
 			local HpBar = GetHPBarPos(v)
 			local What = (asd*100)/GetMaxHP(v)
 			local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
