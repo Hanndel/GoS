@@ -32,6 +32,10 @@ Callback.Add("Load", function()
 		if GetObjectName(myHero) ~= "Nidalee" then
 			DmgDraw()
 		end
+		
+		if FileExist(COMMON_PATH.."Analytics.lua") then
+			require"Analytics"
+		end
 		TargetSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
@@ -46,7 +50,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.997"
+local ver = "0.998"
 
 class "Start"
 
@@ -61,6 +65,9 @@ function Start:__init()
    		end
 	end
 	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
+	if not FileExist(COMMON_PATH.."Analytics.lua") then
+		DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Analytics.lua", COMMON_PATH .. "Analytics.lua", function() PrintChat("Analytics Downloaded, F6x2!") return end)
+	end
 	local myName = myHero.charName
 	ConfigMenu = MenuConfig("QWER Series", "QWER Series")
 		ConfigMenu:Menu("Champ", "QWER "..myName)
