@@ -36,6 +36,7 @@ Callback.Add("Load", function()
 		if FileExist(COMMON_PATH.."Analytics.lua") then
 			require"Analytics"
 		end
+		Analytics("QWER-Series","Hanndel")
 		TargetSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
@@ -50,7 +51,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.998"
+local ver = "0.999"
 
 class "Start"
 
