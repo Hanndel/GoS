@@ -60,8 +60,6 @@ OnTick(function(myHero)
 	if target == nil then
 		Combo = false
 	end
-	print(Combo)
-	print(target)
 end)
 
 OnProcessSpellComplete(function(unit, spell)
