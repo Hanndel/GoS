@@ -59,7 +59,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.9997"
+local ver = "0.9998"
 
 class "Start"
 
@@ -2622,7 +2622,6 @@ function Nidalee:Tick(myHero)
 	self:Checks()
 	self:CastEH()
 	self:Walljump()
-	self:KS()
 
 	if ConfigMenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
 		self:Combo(CustomTarget)
