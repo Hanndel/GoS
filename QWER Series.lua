@@ -3087,7 +3087,7 @@ function Nidalee:CastEH()
 					CastTargetSpell(myHero, 2)
 				end
 
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE["HM"..GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastTargetSpell(v, 2)
 				end
 			else
@@ -3096,7 +3096,7 @@ function Nidalee:CastEH()
 					DelayAction(function() CastTargetSpell(myHero, 2) end, 0.1)
 				end
 
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["HO"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE["HM"..GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE["HM"..GetObjectName(v)]["HO"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE["HM"..GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastSpell(3)
 					DelayAction(function() CastTargetSpell(v, 2) end, 0.1)
 				end
