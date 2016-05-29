@@ -59,7 +59,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.9993"
+local ver = "0.9994"
 
 class "Start"
 
@@ -2425,12 +2425,12 @@ function Nidalee:__init()
 		ConfigMenu.Champ.HE:Slider("E", "Use E under hp (Ursef)", 20, 1, 100) 
 		DelayAction(function()
 			for k, v in ipairs(GetAllyHeroes()) do
-				ConfigMenu.Champ.HE:SubMenu(GetObjectName(v), "Heal config for "..GetObjectName(v))
-					ConfigMenu.Champ.HE[GetObjectName(v)]:Boolean("H"..GetObjectName(v), "Heal on "..GetObjectName(v).."?", true)
-					ConfigMenu.Champ.HE[GetObjectName(v)]:Boolean("FH"..GetObjectName(v), "Force heal on "..GetObjectName(v).."?", false)
-					ConfigMenu.Champ.HE[GetObjectName(v)]:Slider("HV"..GetObjectName(v), "Heal on "..GetObjectName(v).." under hp", 20, 1, 100)			
+				ConfigMenu.Champ.HE:SubMenu("HM"..GetObjectName(v), "Heal config for "..GetObjectName(v))
+					ConfigMenu.Champ.HE["HM"..GetObjectName(v)]:Boolean("HO"..GetObjectName(v), "Heal on "..GetObjectName(v).."?", true) 
+					ConfigMenu.Champ.HE["HM"..GetObjectName(v)]:Boolean("FH"..GetObjectName(v), "Force heal on "..GetObjectName(v).."?", false)
+					ConfigMenu.Champ.HE["HM"..GetObjectName(v)]:Slider("HV"..GetObjectName(v), "Heal on "..GetObjectName(v).." under hp", 20, 1, 100)
 			end
-		end, 0.1)
+		end, 0.001)
 
 	ConfigMenu.Champ:Menu("S", "Run bitch")
 		ConfigMenu.Champ.S:Boolean("R", "Switch to Cat?", true) 
@@ -3080,25 +3080,23 @@ function Nidalee:CastRC(Unit)
 end
 
 function Nidalee:CastEH()
-	if not self.Recalling then
-		if self.Human then
-			if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and self.Spells[2].Ready then
-				CastTargetSpell(myHero, 2)
-			end
+	for k, v in ipairs(GetAllyHeroes()) do
+		if not self.Recalling and ConfigMenu.Champ.HE["HM"..GetObjectName(v)] ~= nil then
+			if self.Human then
+				if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and self.Spells[2].Ready then
+					CastTargetSpell(myHero, 2)
+				end
 
-			for k, v in ipairs(GetAllyHeroes()) do
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastTargetSpell(v, 2)
 				end
-			end
-		else
-			if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and ConfigMenu.Champ.HE.R:Value() and self.Spells[2].Ready then
-				CastSpell(3)
-				DelayAction(function() CastTargetSpell(myHero, 2) end, 0.1)
-			end
+			else
+				if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and ConfigMenu.Champ.HE.R:Value() and self.Spells[2].Ready then
+					CastSpell(3)
+					DelayAction(function() CastTargetSpell(myHero, 2) end, 0.1)
+				end
 
-			for k, v in ipairs(GetAllyHeroes()) do
-				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["H"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
+				if GetDistance(v) < self.Spells[2].range and GetPercentHP(v) < ConfigMenu.Champ.HE[GetObjectName(v)]["HV"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["HO"..GetObjectName(v)]:Value() and ConfigMenu.Champ.HE[GetObjectName(v)]["FH"..GetObjectName(v)]:Value() and self.Spells[2].Ready then
 					CastSpell(3)
 					DelayAction(function() CastTargetSpell(v, 2) end, 0.1)
 				end
