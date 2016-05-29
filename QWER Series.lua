@@ -45,7 +45,7 @@ Callback.Add("Load", function()
 			require"Analytics"
 			Analytics("QWER-Series","Hanndel")
 		end
-		TargetSelector()
+		DickSelector()
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
 		end
@@ -59,7 +59,7 @@ Callback.Add("Load", function()
 	end
 end)
 
-local ver = "0.9995"
+local ver = "0.9997"
 
 class "Start"
 
@@ -133,20 +133,20 @@ function AutoSmite:__init()
 
 	self.Mobs = 
 	{
-		[1] = {BaseName = "SRU_Baron", Name = "Baron"},
-		[2] = {BaseName = "SRU_Dragon_Water", Name = "Water Drake"},
-		[3] = {BaseName = "SRU_Dragon_Fire", Name = "Fire Drake"},
-		[4] = {BaseName = "SRU_Dragon_Earth", Name = "Earth Drake"},
-		[5] = {BaseName = "SRU_Dragon_Air", Name = "Air Drake"},
-		[6] = {BaseName = "SRU_Dragon_Elder", Name = "Elder Drake"},
-		[7] = {BaseName = "SRU_RiftHerald", Name = "Herald"},
-		[8] = {BaseName = "Sru_Crab", Name = "Crab"},
-		[9] = {BaseName = "SRU_Blue", Name = "Blue"},
-		[10] = {BaseName = "SRU_Red", Name = "Red"}
+		[1] = 	{BaseName = "SRU_Baron", 			Name = "Baron"},
+		[2] = 	{BaseName = "SRU_Dragon_Water", 	Name = "Water Drake"},
+		[3] = 	{BaseName = "SRU_Dragon_Fire", 		Name = "Fire Drake"},
+		[4] = 	{BaseName = "SRU_Dragon_Earth", 	Name = "Earth Drake"},
+		[5] = 	{BaseName = "SRU_Dragon_Air", 		Name = "Air Drake"},
+		[6] = 	{BaseName = "SRU_Dragon_Elder", 	Name = "Elder Drake"},
+		[7] = 	{BaseName = "SRU_RiftHerald", 		Name = "Herald"},
+		[8] = 	{BaseName = "Sru_Crab", 			Name = "Crab"},
+		[9] = 	{BaseName = "SRU_Blue", 			Name = "Blue"},
+		[10] = 	{BaseName = "SRU_Red", 				Name = "Red"}
 	}
 
 	self.Smite = nil
-	self.SmiteDmg = {[1] = 390, [2] = 410, [3] = 430, [4] = 450 ,[5] = 480, [6] = 510, [7] = 540, [8] = 570, [9] = 600, [10] = 640, [11] = 680, [12] = 720, [13] = 760, [14] = 800, [15] = 850, [16] = 900, [17] = 950, [18] = 1000}
+	self.SmiteDmgM = {[1] = 390, [2] = 410, [3] = 430, [4] = 450 ,[5] = 480, [6] = 510, [7] = 540, [8] = 570, [9] = 600, [10] = 640, [11] = 680, [12] = 720, [13] = 760, [14] = 800, [15] = 850, [16] = 900, [17] = 950, [18] = 1000}
 	self.SmiteHDmg = 20+8*GetLevel(myHero) 
 	self.PacketTable = {[110] = true, [99] = true, [257] = true}
 	self.SmiteDMG = false
@@ -158,12 +158,13 @@ function AutoSmite:__init()
 			AADelay = function(Unit) return 0 end,
 			[0] =
 			{
-				Range = 430,
+				Range = function(Unit) return 430 end,
 				Dmg = function(Unit) return CalcDamage(myHero, Unit, 15 + 20*GetCastLevel(myHero, 0) + GetBonusDmg(myHero)*0.8 + GetMaxHP(Unit)*0.007) end,
 				Delay = function(Unit) return 332 + GetLatency() end,
 				Cast = function(Unit) CastSkillShot(0, GetOrigin(Unit)) end,
 			},
 		},
+
 		["Elise"] =
 		{
 			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
@@ -184,33 +185,97 @@ function AutoSmite:__init()
 											end
 										end,
 
+				Range = function(Unit)		if Spider then
+												return 475
+											else
+												return 625
+											end
+										end,
+
 				Cast = function(Unit) CastTargetSpell(Unit, 0) end,
 			},
 		},
+
 		["Kindred"] =
 		{
 			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
 		},
+
 		["Irelia"] =
 		{
 			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return 0 end,
 			[0] =
 			{
-				Range = 650,
+				Range = function(Unit) return 650 end,
 				Dmg = function(Unit) return CalcDamage(myHero, Unit, -10+30*GetCastLevel(myHero, 0) + (GetBaseDamage(myHero) + GetBonusDmg(myHero))) end,
 				Delay = function(Unit) return GetDistance(Unit)/2000 end,
 				Cast = function(Unit) CastTargetSpell(Unit, 0) end,
 			},
+
 			[2] =
 			{
-				Range = 425,
+				Range = function(Unit) return 425 end,
 				Dmg = function(Unit) return CalcDamage(myHero, Unit, 0, 40+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*0.5) end,
 				Delay = function(Unit) return 500 + GetLatency() end,
 				Cast = function(Unit) CastTargetSpell(Unit, 2) end,
 			},
 		},
+
+		["Nidalee"] =
+		{
+			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADelay = function(Unit)	if Human then
+											return GetDistance(Unit)/1750
+										else
+											return 0
+										end
+									end,
+			[0] =
+			{
+				Range = function(Unit) 	if Human then
+											return 650
+										else
+											return 350
+										end
+									end,
+
+				Dmg = function(Unit) 	if Human then
+											local QHDmg = 42+17.5*GetCastLevel(myHero, 0) + GetBonusAP(myHero)*0.4
+											if QHDmg + GetDistance(Unit)/100*QHDmg*0.258 > QHDmg*3 then 
+												return CalcDamage(myHero,Unit, 0, QHDmg*3) 
+											else 
+												return CalcDamage(myHero,Unit, 0, QHDmg + GetDistance(Unit)/100*QHDmg*0.258) 
+											end
+										else
+											local QCDmg = {[1] = 4, [2] = 20, [3] = 50, [4] = 90}
+											local QCDmgM = {[1] = 1, [2] = 1.25, [3] = 1.5, [4] = 1.75}
+											local Multi = {[1] = 2, [2] = 2.25, [3] = 2.5, [4] = 2.75}
+											local Maths = QCDmg[GetCastLevel(myHero, 3)] + (GetBaseDamage(myHero)+GetBonusDmg(myHero))*0.75 + GetBonusAP(myHero)*0.36
+											if Maths + Maths*(QCDmgM[GetCastLevel(myHero, 3)] * (GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit)) > Maths*Multi[GetCastLevel(myHero, 3)] then
+												return CalcDamage(myHero, Unit, 0, Maths*Multi[GetCastLevel(myHero, 3)])
+											else
+												return CalcDamage(myHero, Unit, 0, Maths + Maths*(QCDmgM[GetCastLevel(myHero, 3)] * ((GetMaxHP(Unit) - GetCurrentHP(Unit)) / GetMaxHP(Unit)))*1.33)
+											end
+										end
+									end,
+
+				Delay = function(Unit)	if Human then
+											return GetDistance(Unit)/1500
+										else
+											return 220 + GetLatency()
+										end
+									end,
+
+				Cast = function(Unit)	if Human then
+											CastSkillShot(0, GetOrigin(Unit))
+										else
+											CastSpell(0) DelayAction(function() AttackUnit(Unit) end, 0.1)
+										end
+									end,
+			}
+		}
 	}
 
 
@@ -226,6 +291,8 @@ function AutoSmite:__init()
 		self.SmiteDMG = true
 	elseif GetCastName(myHero,5) == "S5_SummonerSmitePlayerGanker" then
 		self.SmiteDMG = true
+	else
+		self.SmiteDmg = false
 	end
 
 	ConfigMenu:Menu("AS", "Auto Smite")
@@ -256,28 +323,28 @@ function AutoSmite:Tick(myHero)
 		for k, i in ipairs(minionManager.objects) do
 			for v = 1, #self.Mobs do
 				if self.Table[GetObjectName(myHero)][0] ~= nil and ConfigMenu.AS.ASQ:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(0) and Ready(self.Smite) then
-						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range(i) and Ready(0) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
-							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(i)/1000)
 						end
 					end
 				end
 
 				if self.Table[GetObjectName(myHero)][1] ~= nil and ConfigMenu.AS.ASW:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(1) and Ready(self.Smite) then
-						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range(i) and Ready(1) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
-							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(i)/1000)
 						end
 					end
 				end
 
 				if self.Table[GetObjectName(myHero)][2] ~= nil and ConfigMenu.AS.ASE:Value() then
-					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range and Ready(2) and Ready(self.Smite) then
-						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmg[GetLevel(myHero)] then
+					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range(i) and Ready(2) and Ready(self.Smite) then
+						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
-							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(Unit)/1000)
+							DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)][0].Delay(i)/1000)
 						end
 					end
 				end
@@ -293,8 +360,8 @@ function AutoSmite:OnProc(Object, spellProc)
 				for k, i in ipairs(minionManager.objects) do
 					for v = 1, #self.Mobs do
 						if spellProc.target == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
-							if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)].AADmg(i) + self.SmiteDmg[GetLevel(myHero)] then
-								DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(Unit))
+							if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)].AADmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
+								DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(i))
 							end
 						end
 					end
@@ -311,21 +378,23 @@ function AutoSmite:Packets(Packet)
 				self.SmiteDMG = true
 			elseif GetCastName(myHero,5) == "S5_SummonerSmitePlayerGanker" then
 				self.SmiteDMG = true
+			else
+				self.SmiteDmg = false
 			end
 		end
 	end
 end
 
-class "TargetSelector"
+class "DickSelector"
 
-function TargetSelector:__init()
+function DickSelector:__init()
 	ConfigMenu:Menu("T", "TargetSelector")
 		ConfigMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
 
 	OnTick(function(myHero) self:Tick(myHero) end)
 end
 
-function TargetSelector:Targets()
+function DickSelector:Targets()
 	if ConfigMenu.T.ts:Value() == 1 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
@@ -418,7 +487,7 @@ function TargetSelector:Targets()
 	end
 end
 
-function TargetSelector:Tick(myHero)
+function DickSelector:Tick(myHero)
 	CustomTarget = self:Targets()
 end
 
@@ -2111,7 +2180,7 @@ class "Nidalee"
 function Nidalee:__init()
 
 	self.Color = ARGB(255,255,255,255)
-	self.Human = true
+	Human = true
 	self.Cat = false
 	self.Recalling = false
 	self.QCDmg = {[1] = 4, [2] = 20, [3] = 50, [4] = 90}
@@ -2123,6 +2192,7 @@ function Nidalee:__init()
 	self.baseAS = GetBaseAttackSpeed(myHero)
 	self.Pos = {pos = nil, pos2 = nil, pos3 = nil, time = 0, time2 = 0}
 	self.abc = false
+	self.asd = {[1] = false, [2] = false, [3] = false, [4] = false, [5] = false, [6] = false}
 
 	self.Sprite = 
 	{
@@ -2159,7 +2229,7 @@ function Nidalee:__init()
 
 			[false] = function(Unit) 	if self.abc then
 											if ConfigMenu.Champ.D.S.H:Value() then
-												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
 												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
 											else
 												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
@@ -2485,7 +2555,7 @@ function Nidalee:Draw(myHero)
 	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
 		if ConfigMenu.Champ.D.F:Value() then
 			for k = 0, 3, 1 do
-				if self.Human then
+				if Human then
 					self.Dick2[k][self.Spells2[k].Ready](Unit)
 				else
 					self.Dick[k][self.Spells[k].Ready](Unit)
@@ -2552,7 +2622,7 @@ function Nidalee:Tick(myHero)
 	self:Checks()
 	self:CastEH()
 	self:Walljump()
-	--self:KS()
+	self:KS()
 
 	if ConfigMenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
 		self:Combo(CustomTarget)
@@ -2576,7 +2646,7 @@ function Nidalee:Tick(myHero)
 end
 
 function Nidalee:Flee()
-	if self.Human then
+	if Human then
 		if self.Spells[3].Ready and ConfigMenu.Champ.S.R:Value() then
 			CastSpell(3)
 		end
@@ -2601,7 +2671,7 @@ function Nidalee:Walljump()
 			MoveToXYZ(V1)
 		end
 --><
-		if self.Human then
+		if Human then
 			if self.Spells[3].Ready then
 				CastSpell(3)
 			else
@@ -2616,17 +2686,17 @@ function Nidalee:Walljump()
 		end
 	end
 
-	if not self.Human and self.Pos[1] ~= nil and self.Pos[2] ~= nil then
+	if not Human and self.Pos[1] ~= nil and self.Pos[2] ~= nil then
 		if GetDistance(self.Pos[2]) < 50 and self.Spells[1].Ready then
 			CastSkillShot(1, self.Pos[1])
-			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 self.Pos[3] = nil self.Pos[5] = 0  end, 0.1)
+			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 end, 0.1)
 		end
 	end
 end
 
 function Nidalee:Combo(Unit)
 	if ConfigMenu.Champ.C.F:Value() == 1 then
-		if self.Human then
+		if Human then
 			if ConfigMenu.Champ.C.H.Q:Value() then
 				self:CastQH(Unit)
 			end
@@ -2651,7 +2721,7 @@ function Nidalee:Combo(Unit)
 			end
 		end
 	elseif ConfigMenu.Champ.C.F:Value() == 2 then
-		if self.Human then
+		if Human then
 			if self.Spells[3].Ready then
 				self:CastRH(Unit)
 			else
@@ -2676,7 +2746,7 @@ function Nidalee:Combo(Unit)
 			end
 		end
 	elseif ConfigMenu.Champ.C.F:Value() == 3 then
-		if self.Human then
+		if Human then
 			if ConfigMenu.Champ.C.H.Q:Value() then
 				self:CastQH(Unit)
 			end
@@ -2707,13 +2777,13 @@ function Nidalee:Combo(Unit)
 		end
 	end
 
-	if self.Human then
+	if Human then
 		self:CastWH(Unit)
 	end
 end
 
 function Nidalee:Harass(Unit)
-	if not self.Human then
+	if not Human then
 		if ConfigMenu.Champ.H.R:Value() and self.Spells2[3].Ready then
 			self:CastRC(Unit)
 		end
@@ -2748,35 +2818,13 @@ function Nidalee:TotalDmg(Unit)
 	return TDmg
 end
 
---[[function Nidalee:KS()
-	for k, v in ipairs(GetEnemyHeroes()) do
-		if self.Human then
-			if GetCurrentHP(v) < self.HDmg[0](v) then
-				self:CastQH(v)
-			end
-		else
-			if GetCurrentHP(v) < self.CDmg[0](v) then
-				self:CastQC(v)
-			end
-
-			if GetCurrentHP(v) < self.CDmg[1](v) then
-				self:CastQW(v)
-			end
-
-			if GetCurrentHP(v) < self.CDmg[2](v) then
-				self:CastQE(v)
-			end	
-		end
-	end		
-end]]
-
 function Nidalee:LastHit()
 	for k, v in ipairs(minionManager.objects) do
 		if GetTeam(v) == 200 then
 			if ConfigMenu.Champ.F.LH.F:Value() == 1 then
-				if self.Human then
+				if Human then
 					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
-						self:CastQG(v)
+						self:CastQH(v)
 					end
 				else
 					if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
@@ -2784,7 +2832,7 @@ function Nidalee:LastHit()
 					end
 				end
 			elseif ConfigMenu.Champ.F.LH.F:Value() == 2 then
-				if self.Human then
+				if Human then
 					if self.Spells[3].Ready and v.valid then
 						self:CastRH(v)
 					end
@@ -2794,7 +2842,7 @@ function Nidalee:LastHit()
 					end
 				end
 			elseif ConfigMenu.Champ.F.LH.F:Value() == 3 then
-				if self.Human then
+				if Human then
 					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
 						self:CastQH(v)
 					end
@@ -2821,7 +2869,7 @@ function Nidalee:LaneClear()
 		if ValidTarget(v, 1000) then
 			if GetTeam(v) == 200 then
 				if ConfigMenu.Champ.F.LC.F:Value() == 1 then
-					if self.Human then
+					if Human then
 						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
@@ -2833,7 +2881,7 @@ function Nidalee:LaneClear()
 						self:CastRC(v)
 					end
 				elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
-					if self.Human then
+					if Human then
 						self:CastRH(v)
 					else
 						if ConfigMenu.Champ.F.LC.C.Q:Value() then
@@ -2849,7 +2897,7 @@ function Nidalee:LaneClear()
 						end
 					end
 				elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
-					if self.Human then
+					if Human then
 						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
@@ -2882,7 +2930,7 @@ function Nidalee:LaneClear()
 			end
 
 			if GetTeam(v) == 300 then
-				if self.Human then
+				if Human then
 					if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
 						CastSkillShot(1, GetOrigin(v))
 					end
@@ -2910,10 +2958,10 @@ end
 
 function Nidalee:Checks()
 	if GetCastName(myHero, 0) ~= "JavelinToss" then
-		self.Human = false
+		Human = false
 		self.Cat = true
 	else
-		self.Human = true
+		Human = true
 		self.Cat = false
 	end
 
@@ -2948,7 +2996,22 @@ function Nidalee:Checks()
 		end
 	end
 
-	if self.Human then
+	if Human then
+		if self.Spells[0].Ready and GetCastLevel(myHero, 0) == 0 and not self.asd[1] then
+			self.Spells[0].Ready = false
+			self.Spells2[0].Ready = false
+		end
+
+		if self.Spells[1].Ready and GetCastLevel(myHero, 1) == 0 and not self.asd[2] then
+			self.Spells[1].Ready = false
+			self.Spells2[1].Ready = false
+		end
+
+		if self.Spells[2].Ready and GetCastLevel(myHero, 2) == 0 and not self.asd[3] then
+			self.Spells[2].Ready = false
+			self.Spells2[2].Ready = false
+		end
+
 		if Ready(3) and not self.Spells2[3].Ready then
 			self.Spells[3].Ready = true
 			self.Spells2[3].Ready = true
@@ -2956,6 +3019,21 @@ function Nidalee:Checks()
 			self.Spells2[3].Timer = 0
 		end
 	else
+		if self.Spells2[0].Ready and GetCastLevel(myHero, 0) == 0 and not self.asd[1] then
+			self.Spells[0].Ready = false
+			self.Spells2[0].Ready = false
+		end
+
+		if self.Spells2[1].Ready and GetCastLevel(myHero, 1) == 0 and not self.asd[2] then
+			self.Spells[1].Ready = false
+			self.Spells2[1].Ready = false
+		end
+
+		if self.Spells2[2].Ready and GetCastLevel(myHero, 2) == 0 and not self.asd[3] then
+			self.Spells[2].Ready = false
+			self.Spells2[2].Ready = false
+		end
+
 		if Ready(1) and not self.Spells2[1].Ready then
 			self.Spells2[1].Ready = true
 		end
@@ -2965,6 +3043,12 @@ function Nidalee:Checks()
 			self.Spells[3].Ready = true
 			self.Spells[3].Timer = 0
 			self.Spells2[3].Timer = 0
+		end
+	end
+
+	for i = 1, 3, 1 do
+		if GetCastLevel(myHero, i-1) ~= 0 then
+			self.asd[i] = true
 		end
 	end
 end
@@ -3006,7 +3090,7 @@ end
 
 function Nidalee:CastQH(Unit)
 	local QPred = GetPrediction(Unit, self.Spells[0])
-	if self.Spells[0].Ready and ValidTarget(Unit, self.Spells[0].range) and self.Human and QPred and QPred.hitChance*100 >= 20 and not QPred:mCollision(1) then
+	if self.Spells[0].Ready and ValidTarget(Unit, self.Spells[0].range) and Human and QPred and QPred.hitChance*100 >= 20 and not QPred:mCollision(1) then
 		CastSkillShot(0, QPred.castPos)
 	end
 end
@@ -3014,24 +3098,24 @@ end
 function Nidalee:CastWH(Unit)
 	if ConfigMenu.Champ.C.H.W:Value() == 2 then
 		local WPred = GetPrediction(Unit, self.Spells[1])
-		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and WPred and WPred.hitChance*100 >= 20 then
+		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and Human and WPred and WPred.hitChance*100 >= 20 then
 			CastSkillShot(1, WPred.castPos)
 		end
 	elseif ConfigMenu.Champ.C.H.W:Value() == 1 then
-		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and self.Human and self:CC(Unit) then
+		if self.Spells[1].Ready and ValidTarget(Unit, self.Spells[1].range) and Human and self:CC(Unit) then
 			CastSkillShot(1, GetOrigin(Unit))
 		end
 	end
 end
 
 function Nidalee:CastRH(Unit)
-	if self.Spells[3].Ready and ValidTarget(Unit, 750) and self.Human then
+	if self.Spells[3].Ready and ValidTarget(Unit, 750) and Human then
 		CastSpell(3)
 	end
 end
 
 function Nidalee:CastQC(Unit)
-	if self.Spells2[0].Ready and ValidTarget(Unit, 200) and not self.Human then
+	if self.Spells2[0].Ready and ValidTarget(Unit, 200) and not Human then
 		CastSpell(0)
 		DelayAction(function()
 			AttackUnit(Unit)
@@ -3041,7 +3125,7 @@ end
 
 function Nidalee:CastWC(Unit)
 	local V1 = GetOrigin(myHero) - Vector(Vector(GetOrigin(myHero)) - Vector(GetOrigin(Unit))):normalized()*375
-	if self.Spells2[1].Ready and not self.Human then
+	if self.Spells2[1].Ready and not Human then
 		if ConfigMenu.Champ.C.C.WT:Value() then
 			if self:Hunteds(Unit) then
 				if ValidTarget(Unit, 750) then
@@ -3068,13 +3152,13 @@ end
 
 
 function Nidalee:CastEC(Unit)
-	if self.Spells2[2].Ready and not self.Human and ValidTarget(Unit, 300) then
+	if self.Spells2[2].Ready and not Human and ValidTarget(Unit, 300) then
 		CastSkillShot(2, GetOrigin(Unit))
 	end
 end
 
 function Nidalee:CastRC(Unit)
-	if self.Spells[3].Ready and not self.Human and ValidTarget(Unit, self.Spells[0].range) then
+	if self.Spells[3].Ready and not Human and ValidTarget(Unit, self.Spells[0].range) then
 		CastSpell(3)
 	end
 end
@@ -3082,7 +3166,7 @@ end
 function Nidalee:CastEH()
 	for k, v in ipairs(GetAllyHeroes()) do
 		if not self.Recalling and ConfigMenu.Champ.HE["HM"..GetObjectName(v)] ~= nil then
-			if self.Human then
+			if Human then
 				if GetPercentHP(myHero) < ConfigMenu.Champ.HE.E:Value() and self.Spells[2].Ready then
 					CastTargetSpell(myHero, 2)
 				end
@@ -3124,7 +3208,7 @@ function Nidalee:OnProcComplete(unit, spellProc)
 		if ConfigMenu.Champ.Orb.LC:Value() then
 			for k, v in ipairs(minionManager.objects) do
 				if spellProc.name:lower():find("attack") then
-					if self.Human then
+					if Human then
 						if ConfigMenu.Champ.F.LC.H.Q:Value() then
 							self:CastQH(v)
 						end
@@ -3142,7 +3226,7 @@ end
 function Nidalee:OnCast(unit, spell)
 	if unit == myHero then
 		for i = 0, 3, 1 do
-			if self.Human then
+			if Human then
 				if spell.name == self.Spells[i].Name then
 					self.Spells[i].CDT = GetGameTimer()
 				end
