@@ -60,7 +60,7 @@ end)
 
 
 
-local ver = "0.1"
+local ver = "0.2"
 
 class "Start"
 
@@ -3253,169 +3253,6 @@ function Nidalee:__init()
 				},
 			},
 		},
-
-		["LaneClear"] =
-		{
-			[MINION_ENEMY] = 
-			{
-				[1] =
-				{
-					[true] = 	function(Unit)
-									if ConfigMenu.Champ.F.LC.H.Q:Value() then
-										self:CastQH(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
-								end,
-
-					[false] =	function(Unit)
-									self:CastRC(Unit)
-								end
-				},
-
-				[2] =
-				{
-					[true] = 	function(Unit)
-									self:CastRH(Unit)
-								end,
-
-					[false] =	function(Unit)
-									if ConfigMenu.Champ.F.LC.C.Q:Value() then
-										self:CastQC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-								end
-				},
-
-				[3] =
-				{
-					[true] = 	function(Unit)
-									if ConfigMenu.Champ.F.LC.H.Q:Value() then
-										self:CastQH(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
-
-									if not self.Spells[0].Ready and not self.Spells[1].Ready then
-										self:CastRH(Unit)
-									end
-								end,
-
-					[false] =	function(Unit)
-									if ConfigMenu.Champ.F.LC.C.Q:Value() then
-										self:CastQC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-
-									if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
-										self:CastRC(Unit)
-									end
-								end
-				},
-			},
-
-			[MINION_JUNGLE] = 
-			{
-				[1] =
-				{
-					[true] = 	function(Unit)
-									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
-
-									if not self.Spells[0].Ready and self.Spells[3].Ready then
-										self:CastRH(Unit)
-									end
-								end,
-
-					[false] =	function(Unit)
-									if ConfigMenu.Champ.F.JC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.JC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-
-									if self.Spells[0].Ready and self.Spells2[3].Ready then
-										self:CastRC(Unit)
-									end
-								end
-				},
-
-				[2] =
-				{
-					[true] = 	function(Unit)
-									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
-
-									if not self.Spells[0].Ready and self.Spells[3].Ready then
-										self:CastRH(Unit)
-									end
-								end,
-
-					[false] =	function(Unit)
-									if ConfigMenu.Champ.F.JC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.JC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-
-									if self.Spells[0].Ready and self.Spells2[3].Ready then
-										self:CastRC(Unit)
-									end
-								end
-				},
-
-				[3] =
-				{
-					[true] = 	function(Unit)
-									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
-
-									if not self.Spells[0].Ready and self.Spells[3].Ready then
-										self:CastRH(Unit)
-									end
-								end,
-
-					[false] =	function(Unit)
-									if ConfigMenu.Champ.F.JC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.JC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-
-									if self.Spells[0].Ready and self.Spells2[3].Ready then
-										self:CastRC(Unit)
-									end
-								end
-				},	
-			},
-		},
 	}
 
 
@@ -3588,15 +3425,11 @@ function Nidalee:Tick(myHero)
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
-		for k, v in ipairs(minionManager.objects) do
-			self.Stuff["LaneClear"][GetTeam(v)][ConfigMenu.Champ.F.LC.F:Value()][Human](v)
-		end
+		self:LaneClear()
 	end
 
 	if ConfigMenu.Champ.Orb.LH:Value() then
-		for k, v in ipairs(minionManager.objects) do
-			self.Stuff["LastHit"][GetTeam(v)][ConfigMenu.Champ.F.LH.F:Value()][Human](v)
-		end	
+		self:LastHit()
 	end	
 
 	if ConfigMenu.Champ.Orb.F:Value() then
@@ -3618,6 +3451,140 @@ function Nidalee:Flee()
 
 	if LastTick + 300 < GetGameTimer() then
 		MoveToXYZ(GetMousePos())
+	end
+end
+
+function Nidalee:LaneClear()
+	for k, Unit in ipairs(minionManager.objects) do
+		if GetTeam(Unit) == 200 then
+			if ConfigMenu.Champ.F.LC.F:Value() == 1 then 
+				if Human then 
+									if ConfigMenu.Champ.F.LC.H.Q:Value() then
+										self:CastQH(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end		
+				else
+					self:CastRC(Unit)
+				end
+			elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
+				if Human then 
+					self:CastRH(Unit)
+				else
+									if ConfigMenu.Champ.F.LC.C.Q:Value() then
+										self:CastQC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+				end
+			elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
+				if Human then
+									if ConfigMenu.Champ.F.LC.H.Q:Value() then
+										self:CastQH(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+
+									if not self.Spells[0].Ready and not self.Spells[1].Ready then
+										self:CastRH(Unit)
+									end
+				else
+									if ConfigMenu.Champ.F.LC.C.Q:Value() then
+										self:CastQC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+
+									if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
+										self:CastRC(Unit)
+									end
+				end
+			end
+		elseif GetTeam(Unit) == 300 then
+			if Human then 
+				if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+					CastSkillShot(1, GetOrigin(Unit))
+				end
+
+				if not self.Spells[0].Ready and self.Spells[3].Ready then
+					self:CastRH(Unit)
+				end
+			else
+				if ConfigMenu.Champ.F.JC.C.W:Value() then
+					self:CastWC(Unit)
+				end
+
+				if ConfigMenu.Champ.F.JC.C.E:Value() then
+					self:CastEC(Unit)
+				end
+
+				if self.Spells[0].Ready and self.Spells2[3].Ready then
+					self:CastRC(Unit)
+				end
+			end
+		end
+	end
+end
+
+function Nidalee:LastHit()
+	for k, Unit in ipairs(minionManager.objects) do
+		if GetTeam(Unit) == 200 then
+			if ConfigMenu.Champ.F.LH.F:Value() == 1 then
+				if Human then
+					if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
+						self:CastQH(Unit)
+					end
+				else 
+					if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
+						self:CastRC(Unit)
+					end
+				end
+			elseif ConfigMenu.Champ.F.LH.F:Value() == 2 then
+				if Human then
+					if self.Spells[3].Ready and v.valid then
+						self:CastRH(Unit)
+					end
+				else
+					if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
+						self:CastQC(Unit)
+					end
+				end
+			elseif 	ConfigMenu.Champ.F.LH.F:Value() == 3 then
+				if Human then
+					if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
+						self:CastQH(Unit)
+					end
+
+					if not self.Spells[0].Ready and self.Spells[3].Ready and Unit.valid then
+						self:CastRC(Unit)
+					end
+				else
+					if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
+						self:CastQC(Unit)
+					end
+
+					if not self.Spells2[0].Ready and self.Spells[0].Ready and Unit.valid then
+						self:CastRC(Unit)
+					end		
+				end
+			end
+		end	
 	end
 end
 
@@ -3665,7 +3632,7 @@ function Nidalee:TotalDmg(Unit)
 	end
 
 	if self.Spells[1].Ready then
-		TDmg = TDmg + self.HDmg[1](Unit)
+		TDmg = TDmg
 	end
 
 	if self.Spells2[0].Ready then
@@ -3787,26 +3754,28 @@ function Nidalee:CastQC(Unit)
 end
 
 function Nidalee:CastWC(Unit)
-	local V1 = GetOrigin(myHero) - Vector(Vector(GetOrigin(myHero)) - Vector(GetOrigin(Unit))):normalized()*375
-	if self.Spells2[1].Ready and not Human then
-		if ConfigMenu.Champ.C.C.WT:Value() then
-			if self:Hunteds(Unit) then
-				if ValidTarget(Unit, 750) then
-					CastTargetSpell(Unit, 1)
+	if Unit ~= nil then 
+		local V1 = GetOrigin(myHero) - Vector(Vector(GetOrigin(myHero)) - Vector(GetOrigin(Unit))):normalized()*375
+		if self.Spells2[1].Ready and not Human then
+			if ConfigMenu.Champ.C.C.WT:Value() then
+				if self:Hunteds(Unit) then
+					if ValidTarget(Unit, 750) then
+						CastTargetSpell(Unit, 1)
+					end
+				else
+					if ValidTarget(Unit, 375) then
+						CastSkillShot(1, GetOrigin(Unit))
+					end
 				end
 			else
-				if ValidTarget(Unit, 375) then
-					CastSkillShot(1, GetOrigin(Unit))
-				end
-			end
-		else
-			if self:Hunteds(Unit) then
-				if ValidTarget(Unit, 750) and not self:UnderTower(Unit) then
-					CastTargetSpell(Unit, 1)
-				end
-			else
-				if ValidTarget(Unit, 375) and not self:UnderTower(V1) then
-					CastSkillShot(1, GetOrigin(Unit))
+				if self:Hunteds(Unit) then
+					if ValidTarget(Unit, 750) and not self:UnderTower(Unit) then
+						CastTargetSpell(Unit, 1)
+					end
+				else
+					if ValidTarget(Unit, 375) and not self:UnderTower(V1) then
+						CastSkillShot(1, GetOrigin(Unit))
+					end
 				end
 			end
 		end
