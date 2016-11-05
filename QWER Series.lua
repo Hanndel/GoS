@@ -1,20 +1,20 @@
 require "OpenPredict"
 
 local ChampTable =
+	--Set = {"Kindred", "Zyra", "Poppy", "Elise", "Irelia", "Nidalee", "Riven", "Singed", "Olaf"}
 	{
 	["Kindred"] 	= true,
-	["Zyra"] 		= true,
+	--["Zyra"] 		= true,
 	["Poppy"] 		= true,
 	["Elise"]	 	= true,
 	["Irelia"]		= true,
-	["Nidalee"] 		= true,
+	["Nidalee"] 	= true,
+	["Singed"] 		= true,
 	}
-
-local CustomTarget = nil
 
 local Towers = {}
 
-Callback.Add("ObjectLoad", function(Object)
+Callback.Add("CreateObj", function(Object)
 	if GetObjectName(myHero) == "Nidalee" then
 		if GetObjectType(Object) == Obj_AI_Turret and GetTeam(Object) ~= GetTeam(myHero) then
 			table.insert(Towers, 1, Object)
@@ -23,9 +23,11 @@ Callback.Add("ObjectLoad", function(Object)
 end)
 
 Callback.Add("DeleteObj", function(Object)
-	for i = 1, #Towers, 1 do
-		if Object == Towers[i] then
-			Towers[i] = nil
+	if Towers then
+		for i = 1, #Towers, 1 do
+			if Object == Towers[i] then
+				Towers[i] = nil
+			end
 		end
 	end
 end)
@@ -34,18 +36,15 @@ end)
 Callback.Add("Load", function()
 	if ChampTable[GetObjectName(myHero)] then
 		Start()
-		_G[GetObjectName(myHero)]()
+		DickSelector()
 		SkinChanger()
 		Autolvl()
-		if GetObjectName(myHero) ~= "Nidalee" and GetObjectName(myHero) ~= "Poppy" then
+		_G[GetObjectName(myHero)]()
+		if GetObjectName(myHero) ~= "Nidalee" then
 			DmgDraw()
 		end
-		
-		if FileExist(COMMON_PATH.."Analytics.lua") then
-			require"Analytics"
-			Analytics("QWER-Series","Hanndel")
-		end
-		DickSelector()
+		require"Analytics"
+		Analytics("QWER-Series","Hanndel")
 		if GetCastName(myHero,4):lower():find("summonersmite") or GetCastName(myHero,5):lower():find("summonersmite") then
 			AutoSmite()
 		end
@@ -54,28 +53,34 @@ Callback.Add("Load", function()
 	else
 		PrintChat(GetObjectName(myHero).." Is not supported!")
 	end
-	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" or GetObjectName(myHero) == "Nidalee" then
+	if GetObjectName(myHero) == "Kindred" or GetObjectName(myHero) == "Poppy" or GetObjectName(myHero) == "Nidalee" or GetObjectName(myHero) == "Gnar" then
 		require('MapPositionGOS')
 	end
 end)
 
-local ver = "0.9998"
+
+
+local ver = "0.1"
 
 class "Start"
 
 function Start:__init()
-	function AutoUpdate(data)
-    	if tonumber(data) > tonumber(ver) then
-        	PrintChat("New version found! " .. data)
-        	PrintChat("Downloading update, please wait...")
-        	DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
-   		else
-        	PrintChat("No updates found!")
-   		end
+	if GetUser() ~= "Hanndel" then 
+		function AutoUpdate(data)
+	    	if tonumber(data) > tonumber(ver) then
+	        	PrintChat("New version found! " .. data)
+	        	PrintChat("Downloading update, please wait...")
+	        	DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.lua", SCRIPT_PATH .. "QWER Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
+	   		else
+	        	PrintChat("No updates found!")
+	   		end
+		end
+		GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 	end
-	GetWebResultAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/QWER%20Series.version", AutoUpdate)
 	if not FileExist(COMMON_PATH.."Analytics.lua") then
 		DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Analytics.lua", COMMON_PATH .. "Analytics.lua", function() PrintChat("Analytics Downloaded, F6x2!") return end)
+	else
+		require"Analytics"
 	end
 	local myName = myHero.charName
 	ConfigMenu = MenuConfig("QWER Series", "QWER Series")
@@ -92,12 +97,13 @@ function SkinChanger:__init()
 		["Poppy"] 		= {"Classic", "Noxus", "Blacksmith", "Lollipoppy","Ragdoll", "Battle Regalia", "Scarlet Hammer"},
 		["Elise"]	 	= {"Classic", "Death Blossom", "Victorious", "Blood Moon"},
 		["Irelia"]		= {"Classic", "Nightblade", "Aviator", "Infiltrator", "Frostbutt", "Lotus"},
-		["Nidalee"]		= {"Classic", "Snow Bunny", "Leopard", "Hot Maid", "Pharaoh", "Bewitching", "HeadHunter", "Warring Kindomgs", "Challenger"}
+		--["Nidalee"]		= {"Classic", "Snow Bunny", "Leopard", "Hot Maid", "Pharaoh", "Bewitching", "HeadHunter", "Warring Kindomgs", "Challenger"}
 		}
 
-
-	ConfigMenu:Menu("SK", "Skinchanger")--
-		ConfigMenu.SK:DropDown("S", "SkinChanger", 1, Table[GetObjectName(myHero)], function() HeroSkinChanger(myHero, ConfigMenu.SK.S:Value() - 1) end)
+	if Table[GetObjectName(myHero)] then
+		ConfigMenu:Menu("SK", "Skinchanger")--
+			ConfigMenu.SK:DropDown("S", "SkinChanger", 1, Table[GetObjectName(myHero)], function() HeroSkinChanger(myHero, ConfigMenu.SK.S:Value() - 1) end)
+	end
 end
 
 class "Autolvl"
@@ -115,7 +121,6 @@ function Autolvl:__init()
 				[5] = {_E,_W,_Q,_E,_E,_R,_E,_W,_E,_W,_R,_W,_W,_Q,_Q,_R,_Q,_Q},
 				[6] = {_E,_Q,_W,_E,_E,_R,_E,_Q,_E,_Q,_R,_Q,_Q,_W,_W,_R,_W,_W},
 				}
-
 	OnTick(function(myHero) self:Autolvl(myHero) end)
 end
 
@@ -154,7 +159,7 @@ function AutoSmite:__init()
 	{
 		["Poppy"] = 
 		{	
-			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADmg = function(Unit) return CalcDamage(myHero,Unit,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return 0 end,
 			[0] =
 			{
@@ -167,7 +172,7 @@ function AutoSmite:__init()
 
 		["Elise"] =
 		{
-			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADmg = function(Unit) return CalcDamage(myHero,Unit,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
 			[0] =
 			{
@@ -198,13 +203,13 @@ function AutoSmite:__init()
 
 		["Kindred"] =
 		{
-			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADmg = function(Unit) return CalcDamage(myHero,Unit,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return GetDistance(Unit)/2000 end,
 		},
 
 		["Irelia"] =
 		{
-			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADmg = function(Unit) return CalcDamage(myHero,Unit,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit) return 0 end,
 			[0] =
 			{
@@ -225,7 +230,7 @@ function AutoSmite:__init()
 
 		["Nidalee"] =
 		{
-			AADmg = function(Unit) return CalcDamage(myHero,target,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
+			AADmg = function(Unit) return CalcDamage(myHero,Unit,(GetBaseDamage(myHero)+GetBonusDmg(myHero))) end,
 			AADelay = function(Unit)	if Human then
 											return GetDistance(Unit)/1750
 										else
@@ -304,15 +309,15 @@ function AutoSmite:__init()
 		ConfigMenu.AS:Boolean("ASK", "AutoSmite ks", true)
 		ConfigMenu.AS:Boolean("ASQ", "Use Q", true)
 		ConfigMenu.AS:Boolean("ASW", "Use W", true)
-		ConfigMenu.AS:Boolean("ASE", "Use E", true)
+		ConfigMenu.AS:Boolean("ASEE", "Use E", true)
 		ConfigMenu.AS:Boolean("ASA", "AA Smite", true)
 
-	OnTick(function(myHero) self:Tick(myHero) end)
 	OnProcessPacket(function(Packet) self:Packets(Packet) end)
 	OnProcessSpell(function(Object, spellProc) self:OnProc(Object, spellProc) end)
+	OnTick(function(myHero) self:Tick(myHero) end)
 end
 
-function AutoSmite:Tick(myHero) 
+function AutoSmite:Tick(myHero)
 	for k, v in ipairs(GetEnemyHeroes()) do
 		if GetCurrentHP(v) <= self.SmiteHDmg and ValidTarget(v, 500) and self.SmiteDMG and ConfigMenu.AS.ASK:Value() then
 			CastTargetSpell(self.Smite, v)
@@ -340,7 +345,7 @@ function AutoSmite:Tick(myHero)
 					end
 				end
 
-				if self.Table[GetObjectName(myHero)][2] ~= nil and ConfigMenu.AS.ASE:Value() then
+				if self.Table[GetObjectName(myHero)][2] ~= nil and ConfigMenu.AS.ASEE:Value() then
 					if GetObjectName(i) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() and GetDistance(i) <= self.Table[GetObjectName(myHero)][0].Range(i) and Ready(2) and Ready(self.Smite) then
 						if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)][0].Dmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
 							self.Table[GetObjectName(myHero)][0].Cast(i)
@@ -354,15 +359,13 @@ function AutoSmite:Tick(myHero)
 end
 
 function AutoSmite:OnProc(Object, spellProc)
-	if self.Table[GetObjectName(myHero)] ~= nil then
-		if Object == myHero and spellProc.name:lower():find("attack") then
+	if self.Table[GetObjectName(myHero)] ~= nil and Object == myHero then
+		if spellProc.name:lower():find("attack") then
 			if Ready(self.Smite) then
-				for k, i in ipairs(minionManager.objects) do
-					for v = 1, #self.Mobs do
-						if spellProc.target == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
-							if GetCurrentHP(i) <= self.Table[GetObjectName(myHero)].AADmg(i) + self.SmiteDmgM[GetLevel(myHero)] then
-								DelayAction(function() CastTargetSpell(i, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(i))
-							end
+				for v = 1, #self.Mobs do
+					if GetObjectName(spellProc.target) == self.Mobs[v].BaseName and ConfigMenu.AS.ASM["Pleb"..self.Mobs[v].BaseName]:Value() then
+						if GetCurrentHP(spellProc.target) <= self.Table[GetObjectName(myHero)].AADmg(spellProc.target) + self.SmiteDmgM[GetLevel(myHero)] then
+							DelayAction(function() CastTargetSpell(spellProc.target, self.Smite) end, self.Table[GetObjectName(myHero)].AADelay(spellProc.target) + spellProc.windUpTime)
 						end
 					end
 				end
@@ -388,17 +391,35 @@ end
 class "DickSelector"
 
 function DickSelector:__init()
-	ConfigMenu:Menu("T", "TargetSelector")
-		ConfigMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast"})
+	self.Table =
+	{
+		[5] = Set {"Alistar", "Amumu", "Blitzcrank", "Braum", "ChoGath", "DrMundo", "Garen", "Gnar", "Hecarim", "JarvanIV", "Leona", "Lulu", "Malphite", "Nasus", "Nautilus", "Nunu", "Olaf", "Rammus", "Renekton", "Sejuani", "Shen", "Shyvana", "Singed", "Sion", "Skarner", "Taric", "Thresh", "Volibear", "Warwick", "MonkeyKing", "Yorick", "Zac"},
+		[4] = Set {"Aatrox", "Darius", "Elise", "Evelynn", "Galio", "Gangplank", "Gragas", "Irelia", "Jax","LeeSin", "Maokai", "Morgana", "Nocturne", "Pantheon", "Poppy", "Rengar", "Rumble", "Ryze", "Swain","Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai"},
+		[3] = Set {"Akali", "Diana", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Janna", "Jayce", "Kassadin","Kayle", "KhaZix", "Lissandra", "Mordekaiser", "Nami", "Nidalee", "Riven", "Shaco", "Sona", "Soraka", "TahmKench", "Vladimir", "Yasuo", "Zilean", "Zyra"},
+		[2] = Set {"Ahri", "Anivia", "Annie", "Brand",  "Cassiopeia", "Ekko", "Karma", "Karthus", "Katarina", "Kennen", "LeBlanc",  "Lux", "Malzahar", "MasterYi", "Orianna", "Syndra", "Talon",  "TwistedFate", "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs", "Taliyah" },
+		[1] = Set {"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jinx", "Kalista", "KogMaw", "Lucian", "MissFortune", "Quinn", "Sivir", "Teemo", "Tristana", "Twitch", "Varus", "Vayne", "Jhin", },
+	}
 
-	OnTick(function(myHero) self:Tick(myHero) end)
+	ConfigMenu:Menu("T", "TargetSelector")
+		ConfigMenu.T:DropDown("ts", "Select Mode", 1, {"Closest", "Closest to mouse", "Most AP", "Most AD", "Lowest Health", "Less Cast", "Priority"}, 
+			function() 
+				if ConfigMenu.T.ts:Value() == 7 then 
+					DelayAction(function() 
+						for k, v in ipairs(GetEnemyHeroes()) do
+							ConfigMenu.T:Slider(GetObjectName(v), "Priority: "..GetObjectName(v), (self.Table[5][GetObjectName(v)] and 5 or self.Table[4][GetObjectName(v)] and 4 or self.Table[3][GetObjectName(v)] and 3 or self.Table[2][GetObjectName(v)] and 2 or self.Table[1][GetObjectName(v)] and 1 or 1), 1, 5, 1) 
+						end
+					end, 0.1)
+				elseif ConfigMenu.T.ts:Value() ~= 7 then
+					print("F6x2")
+				end
+			end)
 end
 
-function DickSelector:Targets()
+function DickSelector:Targets(Distance)
 	if ConfigMenu.T.ts:Value() == 1 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if not closest and enemies then
 					closest = enemies
 				end
@@ -413,7 +434,7 @@ function DickSelector:Targets()
 	elseif ConfigMenu.T.ts:Value() == 2 then
 		local closest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if not closest and enemies then
 					closest = enemies
 				end
@@ -428,7 +449,7 @@ function DickSelector:Targets()
 	elseif ConfigMenu.T.ts:Value() == 3 then
 		local MostAp = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if not MostAp and enemies then
 				MostAp = enemies
 				end
@@ -443,7 +464,7 @@ function DickSelector:Targets()
 	elseif ConfigMenu.T.ts:Value() == 4 then
 		local MostAD = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if not MostAD and enemies then
 					MostAD = enemies
 				end
@@ -458,7 +479,7 @@ function DickSelector:Targets()
 	elseif ConfigMenu.T.ts:Value() == 5 then
 		local Lowest = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if not Lowest and enemies then
 					Lowest = enemies
 				end
@@ -473,7 +494,7 @@ function DickSelector:Targets()
 	elseif ConfigMenu.T.ts:Value() == 6 then
 		local LessCast = nil
 		for _, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, 1000) then
+			if ValidTarget(enemies, Distance) then
 				if LessCast == nil and enemies then
 					LessCast = enemies
 				end
@@ -484,11 +505,23 @@ function DickSelector:Targets()
 			end
 		end
 		return LessCast
-	end
-end
 
-function DickSelector:Tick(myHero)
-	CustomTarget = self:Targets()
+	elseif ConfigMenu.T.ts:Value() == 7 then
+		local target = nil
+		for _, enemies in pairs(GetEnemyHeroes()) do
+			if ConfigMenu.T[GetObjectName(enemies)] then
+				if ValidTarget(enemies, Distance) then
+					if not target and enemies then
+						target = enemies
+					end
+
+					if ConfigMenu.T[GetObjectName(target)]:Value() > ConfigMenu.T[GetObjectName(enemies)]:Value() then
+						target = enemies
+					end
+				end
+			end
+		end
+	end
 end
 
 class "Zyra"
@@ -503,9 +536,8 @@ function Zyra:__init()
 		Dmg = 
 	{
 		[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 35+GetCastLevel(myHero, 0)*35+GetBonusAP(myHero)*0.65) end,
-		[1] = function(Unit) return 0 end,
 		[2] = function(Unit) return CalcDamage(myHero, Unit, 0, 25+GetCastLevel(myHero, 2)*35+GetBonusAP(myHero)*0.50) end,
-		[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 95*GetCastLevel(myHero, 3)*85+GetBonusAP(myHero)*0.70) end,
+		[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 95+GetCastLevel(myHero, 3)*85+GetBonusAP(myHero)*0.70) end,
 	}
 	self.QPoint = nil
 	self.EPoint = nil
@@ -529,7 +561,6 @@ ConfigMenu.Champ.C:Boolean("W", "Use W", true)
 ConfigMenu.Champ.C:Boolean("E", "Use E", true)
 ConfigMenu.Champ.C:Boolean("R", "Use R", true)
 ConfigMenu.Champ.C:Slider("ER", "Enemies to R", 3, 1, 5)
-ConfigMenu.Champ.C:Boolean("P", "Use Passive", true)
 
 ConfigMenu.Champ:Menu("H", "Harass")
 ConfigMenu.Champ.H:Boolean("Q", "Use Q", true)
@@ -582,8 +613,6 @@ ConfigMenu.Champ.D.DR:Boolean("DE", "Draw E range", true)
 ConfigMenu.Champ.D.DR:Boolean("DR", "Draw R range", true)
 ConfigMenu.Champ.D.DR:Slider("DH", "Quality", 155, 1, 475)
 
-ConfigMenu.Champ:Menu("M", "Misc")
-ConfigMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
 
 
 OnTick(function(myHero) self:Tick() end)
@@ -593,10 +622,11 @@ OnUpdateBuff(function(Object, buff) self:Onupdate(Object, buff) end)
 OnRemoveBuff(function(Object, buff) self:Onremove(Object, buff) end)
 OnCreateObj(function(Object) self:OnCreate(Object) end)
 OnDeleteObj(function(Object) self:OnDelete(Object) end)
+OnAggro(function(unit, flag) self:OnAggro(unit, flag) end)
 end
 
 function Zyra:Tick()
-	self.Target = CustomTarget
+	self.Target = DickSelector:Targets(1000)
 	if not IsDead(myHero)then
 		if self.Target ~= nil then
 			if ConfigMenu.Champ.Orb.C:Value() then
@@ -613,29 +643,17 @@ function Zyra:Tick()
 		end
 		self:Ks()
 	end
+	Autolvl:Autolvl(myHero)
+end
+
+function Zyra:OnAggro(unit, flag)
+	if unit and flag then
+		print(unit)
+		print(flag)
+	end
 end
 
 function Zyra:Draw()
-	--[[if ConfigMenu.Champ.D.DR.D:Value() then
-		for _, enemy in pairs(GetEnemyHeroes()) do
-		local Qdmg = self.Dmg[0](enemy)
-		local Edmg = self.Dmg[2](enemy)
-		local Rdmg = self.Dmg[3](enemy)
-		local Tdmg = Qdmg + Edmg + Rdmg
-		if Tdmg < GetCurrentHP(enemy) then
-			if ConfigMenu.Champ.D.DD.DQ:Value() and ValidTarget(enemy, 800) and Ready(0) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Qdmg,GoS.Red)
-			end
-			if ConfigMenu.Champ.D.DD.DE:Value() and ValidTarget(enemy, 1100) and Ready(2) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Edmg,GoS.Blue)
-			end
-			if ConfigMenu.Champ.D.DD.DR:Value() and ValidTarget(enemy, 700) and Ready(3) then
-				DrawDmgOverHpBar(enemy,GetCurrentHP(enemy),0,Rdmg,GoS.Pink)
-			end
-		else 
-			DrawText("Killiable!",12,enemy.x,enemy.y,GoS.White)
-		end
-	end]]
 	if ConfigMenu.Champ.D.DR.D:Value() then
 		if ConfigMenu.Champ.D.DR.DQ:Value() and Ready(0) then
 			DrawCircle(GetOrigin(myHero), 800, 1, ConfigMenu.Champ.D.DR.DH:Value(), GoS.Red)
@@ -652,7 +670,7 @@ function Zyra:Draw()
 end
 
 function Zyra:Combo(Target)
-	if ConfigMenu.Champ.C.Q:Value() then
+	if ConfigMenu.Champ.C.Q:Value() and (not Ready(2) or not ConfigMenu.Champ.C.E:Value()) then
 		self:CastQ(Target)
 	end
 	if ConfigMenu.Champ.C.E:Value() then
@@ -684,25 +702,28 @@ function Zyra:LaneClear()
 				end
 			end
 		end
+
+		if ValidTarget(mob, 1100) then
+			if ConfigMenu.Champ.LC.E:Value() and Ready(2) then
+				CastSkillShot(2, GetOrigin(mob))
+			end
+		end
 	end
 end
 
 function Zyra:Ks()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		local Q = GetCircularAOEPrediction(enemy, self.Spells[0])
-		local E = GetPrediction(enemy, self.Spells[2])
-		local R = GetCircularAOEPrediction(enemy, self.Spells[3])
-		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy) then
-			CastSkillShot(0, Q.castPos)
+		if ConfigMenu.Champ.KS.Q:Value() and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy) then
+			self:CastQ(enemy)
 		end
 
-		if ConfigMenu.Champ.KS.E:Value() and Ready(2)  and ValidTarget(enemy, 1100) and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[2](enemy) then
-			CastSkillShot(2, E.castPos)
+		if ConfigMenu.Champ.KS.E:Value() and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[2](enemy) then
+			self:CastE(enemy)
 		end
 
-		if ConfigMenu.Champ.KS.Q:Value() and Ready(0) and ValidTarget(enemy, 800) and Ready(2) and ConfigMenu.Champ.KS.E:Value() and Q.hitChance >= (ConfigMenu.Champ.HC.Q:Value())/100 and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy)+Dmg[2](enemy) then
-			CastSkillShot(2, E.castPos)
-			DelayAction(function() CastSkillShot(_Q, Q.castPos) end, GetDistance(enemy)/1500)
+		if ConfigMenu.Champ.KS.Q:Value() and (GetCurrentHP(enemy)+GetDmgShield(enemy)) < Dmg[0](enemy)+Dmg[2](enemy) then
+			self:CastE(enemy)
+			DelayAction(function() self:CastQ(enemy) end, GetDistance(enemy)/1500)
 		end
 
 		if self.Ignite ~= nil then
@@ -867,8 +888,8 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 		if GetOrigin(enemies) ~= nil and ValidTarget(enemies, 700) then
 		local hit = EnemiesAround(GetOrigin(enemies), 500)
 			if hit > BestHit and GetDistance(enemies) < 700 then
-				BestHit = hit
-				BestPos = Vector(enemies)
+				BestRHit = hit
+				BestRPos = Vector(enemies)
 				if BestHit == #GetEnemyHeroes() then
 					break
 				end
@@ -878,45 +899,58 @@ function Zyra:BestRPos() -- Modded from Inspired lib
 	return BestRPos, BestRHit
 end
 
-function Zyra:BestFarmPos(range, width, Objects) -- Modded from Inspired lib
-	local BestPos 
+function Zyra:BestFarmPos() -- Modded from Inspired lib
+	--[[local BestPos 
 	local BestHit = 0
-	for i, object in pairs(Objects) do
-		if GetOrigin(object) ~= nil and IsObjectAlive(object) then
-			local hit = CountObjectsNearPos(Vector(object), range, width, Objects)
-				if hit > BestHit and GetDistanceSqr(Vector(object)) < range * range then
-				BestHit = hit
-				BestPos = Vector(object)
-				if BestHit == #Objects then
-					break
-				end
-			end
+	for i, object in pairs(self.Seeds) do
+		if GetOrigin(object) ~= nil and Object then
+			local k = GetOrigin(Object) - Vector(Vector(GetOrigin(myHero)) + Vector(GetOrigin(object))):perpendicular():normalized()*X
+			local v = GetOrigin(Object) - Vector(Vector(GetOrigin(myHero)) + Vector(GetOrigin(object))):perpendicular2():normalized()*X
+			local w = self:CountObjectsOnLineSegment(K, v, 200?, object)
+
 		end
 	end
-	return BestPos, BestHit
+	return BestPos, BestHit]]
+end
+
+function Zyra:CountObjectsOnLineSegment(StartPos, EndPos, width, objects, team)
+	local n = 0
+	if object ~= nil and object.valid then
+		local pointSegment, pointLine, isOnSegment = VectorPointProjectionOnLineSegment(StartPos, EndPos, GetOrigin(object))
+		local w = width
+		if isOnSegment and GetDistanceSqr(pointSegment, GetOrigin(object)) < w^2 and GetDistanceSqr(StartPos, EndPos) > GetDistanceSqr(StartPos, GetOrigin(object)) then
+			n = n + 1
+		end
+	end
+	return n
 end
 
 
 class "Kindred"
 
 function Kindred:__init()
-	self.Spells = {
-	[0] = {range = 500, dash = 340, mana = 35},
-	[1] = {range = 800, duration = 8, mana = 40},
-	[2] = {range = 500, mana = 70, mana = 70},
-	[3] = {range = 500, mana = 100},
+	self.Spells = 
+	{
+		[0] = {range = 500, dash = 340, mana = 35},
+		[1] = {range = 800, duration = 8, mana = 40},
+		[2] = {range = 500, mana = 70, mana = 70},
+		[3] = {range = 500, mana = 100},
 	}
 	Dmg = 
 	{
-	[0] = function(Unit) return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20) end,
-	[1] = function(Unit) return CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+0.40*(GetBaseDamage(myHero) + GetBonusDmg(myHero))+0.40*self:PassiveDmg(Unit)) end,
-	[2] = function(Unit) 	if GetTeam(Unit) == MINION_JUNGLE then
-					return CalcDamage(myHero, Unit, math.max(300,30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05))
-				else 
-					return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
-				end
-		  end,
-	[3] = function(Unit) return 0 end
+		[0] = 	function(Unit) return CalcDamage(myHero, Unit, 35+20*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+5*self.Passive) end,
+		[1] = 	function(Unit) 	if GetTeam(Unit) == MINION_ENEMY then
+									return CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.40+self:PassiveDmg(Unit))
+								else
+									return CalcDamage(myHero, Unit, (20+5*GetCastLevel(myHero, 1)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.40+self:PassiveDmg(Unit)*0.40)*1.5)
+								end
+				end,
+		[2] = 	function(Unit) 	if GetTeam(Unit) == MINION_JUNGLE and CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05) > 300 then
+									return CalcDamage(myHero, Unit, 300)
+								else 
+									return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
+								end
+			 	end,
 	}
 	self.BaseAS = GetBaseAttackSpeed(myHero)
 	self.AAPS = self.BaseAS*GetAttackSpeed(myHero)
@@ -933,9 +967,9 @@ function Kindred:__init()
 	OnTick(function(myHero) self:Tick() end)
 	OnDraw(function(myHero) self:Draw() end)
 	OnProcessSpellComplete(function(unit, spell) self:OnProcComplete(unit, spell) end)
-	OnProcessSpell(function(unit, spell) self:OnProc(unit, spell) end)
 	self.Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
 	self.target = nil
+	pos = {pos = nil, pos2 = nil}
 	
 	ConfigMenu.Champ:Menu("Combo", "Combo")
 	ConfigMenu.Champ.Combo:Boolean("Q", "Use Q", true)
@@ -974,7 +1008,6 @@ function Kindred:__init()
 	ConfigMenu.Champ.QOptions:Boolean("QC", "AA reset Combo", true)
 	ConfigMenu.Champ.QOptions:Boolean("QL", "AA reset LaneClear", true)
 	ConfigMenu.Champ.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
-	ConfigMenu.Champ.QOptions:Boolean("C", "Cancel animation?", false)
 
 	ConfigMenu.Champ:Menu("D", "Draw")
 	--[[ConfigMenu.Champ.D:SubMenu("DD", "Draw Damage")
@@ -999,14 +1032,13 @@ end
 
 function Kindred:Tick()
 	if not IsDead(myHero) then
-	
-		self.target = CustomTarget
-		if self.target ~= nil then
-			if ConfigMenu.Champ.Orb.C:Value() then
+		self.target = DickSelector:Targets(self.Spells[0].range)
+		if ConfigMenu.Champ.Orb.C:Value() then
+			if self.target ~= nil then
 				self:Combo(self.target)
-			elseif ConfigMenu.Champ.Orb.LC:Value() then
-				self:LaneClear()
 			end
+		elseif ConfigMenu.Champ.Orb.LC:Value() then
+			self:LaneClear()
 		end
 
 		self:AutoR()
@@ -1016,11 +1048,7 @@ function Kindred:Tick()
 					DelayAction(function() CastSkillShot(0, GetMousePos()) end, 1)					  
 			end
 		end
-		if ConfigMenu.Champ.Misc.WP:Value() then
-			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and Ready(0) then
-				CastSkillShot(0, GetMousePos())
-			end
-		end
+
 		self.Passive = GetBuffData(myHero,"kindredmarkofthekindredstackcounter").Stacks
 		if ConfigMenu.Champ.Misc.B:Value() then
 			if not self.Farsight and GetLevel(myHero) >= 9 and GetDistance(myHero,basePos) < 550 then
@@ -1028,6 +1056,7 @@ function Kindred:Tick()
 				self.Farsight = true
 			end
 		end
+		self:Walljump()
 	end
 end
 
@@ -1059,12 +1088,15 @@ local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):no
 		CastSkillShot(0, GetMousePos())
 			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
 	end
+
 	if Ready(0) and ConfigMenu.Champ.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and ConfigMenu.Champ.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
     	CastSkillShot(0, GetMousePos()) 
 	end
+
 	if Ready(1) and ConfigMenu.Champ.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
 		CastSpell(1)
 	end
+
 	if Ready(2) and ConfigMenu.Champ.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
 		CastTargetSpell(Unit, 2)
 	end
@@ -1079,9 +1111,11 @@ function Kindred:LaneClear()
 			if ConfigMenu.Champ.QOptions.QJ:Value() == false and Ready(0) and ConfigMenu.Champ.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() then 
 				CastSkillShot(0, GetMousePos())
 			end
+
 			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and ConfigMenu.Champ.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
    				CastSpell(1)
     		end
+
     		if Ready(2) and ValidTarget(mob, self.Spells[2].range) and ConfigMenu.Champ.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
    				CastTargetSpell(mob, 2)
    			end
@@ -1090,9 +1124,11 @@ function Kindred:LaneClear()
 			if ConfigMenu.Champ.QOptions.QL:Value() == false and Ready(0) and ConfigMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
 				CastSkillShot(0, GetMousePos())
 			end
+
 			if Ready(1) and ValidTarget(mob, self.Spells[1].range) and ConfigMenu.Champ.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
 				CastSpell(1)
 			end
+
 			if Ready(2) and ValidTarget(mob, self.Spells[2].range) and ConfigMenu.Champ.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
 				CastTargetSpell(mob, 2)
 			end
@@ -1103,10 +1139,11 @@ end
 function Kindred:AutoR()
 	if ConfigMenu.Champ.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and Ready(1) then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 20 and ConfigMenu.Champ.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= ConfigMenu.Champ.ROptions.EA:Value() then
+			if GetPercentHP(allies) <= 20 and ConfigMenu.Champ.ROptions["Pleb"..GetObjectName(allies)]:Value() and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= ConfigMenu.Champ.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
+
 		if GetPercentHP(myHero) <= 20 and ConfigMenu.Champ.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= ConfigMenu.Champ.ROptions.EA:Value() then
 			CastTargetSpell(myHero, 3)
 		end
@@ -1122,10 +1159,12 @@ function Kindred:OnProcComplete(unit, spell)
 					if ConfigMenu.Champ.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and ConfigMenu.Champ.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.LaneClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos())
 					end
+
 					if ConfigMenu.Champ.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and ConfigMenu.Champ.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JunglerClear.MM:Value() and Ready(0) then
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
+
 			elseif ConfigMenu.Champ.Orb.C:Value() and self.target ~= nil then
 				if ConfigMenu.Champ.QOptions.QC:Value() and Ready(0) and ConfigMenu.Champ.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
@@ -1135,20 +1174,11 @@ function Kindred:OnProcComplete(unit, spell)
 	end
 end
 
-function Kindred:OnProc(unit, spell)
-	if unit == myHero and spell.name == "KindredQ" and ConfigMenu.Champ.QOptions.C:Value() then
-		DelayAction(function() CastEmote(EMOTE_DANCE) end, .001)
-	end
-end
-
 function Kindred:OnUpdate(unit, buff)
 	if unit == myHero then
 		if buff.Name == "recall" or buff.Name == "OdinRecall" then
 			self.Recalling = true
 		end
-		--[[if buff.Name == "kindredmarkofthekindredstackcounter" then
-			self.Passive = self.Passive + buff.Stacks
-		end]]
 	end
 end
 
@@ -1180,13 +1210,21 @@ function Kindred:TotalHp(range, pos)
 	return hp
 end
 
-function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
+function Kindred:Walljump()
+	local V1 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*340
+	local V2 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*170
+	if ConfigMenu.Champ.Misc.WP:Value() then
+		if not MapPosition:inWall(GetMousePos()) and not MapPosition:inWall(V1) and MapPosition:inWall(V2) then
+			MoveToXYZ(V1)
+			pos[1] = V1
+			pos[2] = GetMousePos()
+		end
+	end
 
-	local Check = p1 + (Vector(p2) - p1):normalized()*distance/2
-	local Checkdistance = p1 +(Vector(p2) - p1):normalized()*distance
-	
-	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
-		return true
+	if pos[1] ~= nil then
+		if GetDistance(pos[1]) <= 50 and Ready(0) then
+			CastSkillShot(0, pos[2])
+		end
 	end
 end
 
@@ -1295,8 +1333,6 @@ function Poppy:__init()
 	ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
 	ConfigMenu.Champ.C:Boolean("E", "Use E", true)
 	ConfigMenu.Champ.C:Boolean("R", "Use R", true)
-	ConfigMenu.Champ.C:SubMenu("ASC", "Auto Stun ONLY in Combo", true)
-	ConfigMenu.Champ.C.ASC:Boolean("AS", "Auto Stun enable?", true)
 	ConfigMenu.Champ.C:KeyBinding("I", "Insec Flash+E", string.byte("Y"), false) 
 
 	ConfigMenu.Champ:Menu("H", "Harass")
@@ -1335,7 +1371,6 @@ function Poppy:__init()
 			end
 
 			ConfigMenu.Champ.ASA:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
-			ConfigMenu.Champ.C.ASC:Boolean("Pleb"..GetObjectName(enemies), "Auto Stun On "..GetObjectName(enemies), true)
 		end
 	end, 0.1)
 
@@ -1346,7 +1381,7 @@ end
 function Poppy:Tick(myHero)
 	self:Stun()
 	self:Insec()
-	self.Target = CustomTarget
+	self.Target = DickSelector:Targets(600)
 	if self.Target ~= nil then
 		if ConfigMenu.Champ.Orb.C:Value() then
 			self:Combo(self.Target)
@@ -1387,7 +1422,7 @@ function Poppy:LaneClear()
 	local QMana = (30+5*GetCastLevel(myHero, 0)*100)/GetMaxMana(myHero)
 	local EMana = (self.Spells[2].mana*100)/GetMaxMana(myHero)
 	for _, mobs in pairs(minionManager.objects) do
-		if ValidTarget(mobs, 400) then
+		if ValidTarget(mobs, 600) then
 			if GetTeam(mobs) == 200 then
 				if Ready(0) and ConfigMenu.Champ.LC.Q:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
@@ -1397,8 +1432,9 @@ function Poppy:LaneClear()
 				if Ready(0) and ConfigMenu.Champ.JC.Q:Value() and (GetPercentMP(myHero)- QMana) >= ConfigMenu.Champ.JC.MM:Value() and ValidTarget(mobs, self.Spells[0].range) then
 					CastSkillShot(0, GetOrigin(mobs))
 				end
+				--DrawLine(WorldToScreen(0,myHero).x, WorldToScreen(0,myHero).y, WorldToScreen(0,MyPos).x, WorldToScreen(0,MyPos).y, 1, GoS.Pink)
 				if Ready(2) and ConfigMenu.Champ.JC.E:Value() and (GetPercentMP(myHero)- EMana) >= ConfigMenu.Champ.JC.MM:Value() and MapPosition:inWall(MyPos) and ValidTarget(mobs, self.Spells[2].range) then
-						CastTargetSpell(mobs, 2)
+					CastTargetSpell(mobs, 2)
 				end
 			end
 		end
@@ -1435,9 +1471,7 @@ function Poppy:Stun()
 		local MyPos = GetOrigin(myHero) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*GetDistance(enemies) + Vector(E.castPos - Vector(GetOrigin(myHero))):normalized()*325
 		local MyMousePos = MousePos + Vector(E.castPos - Vector(MousePos)):normalized()*GetDistance(enemies, MousePos) + Vector(E.castPos - Vector(MousePos)):normalized()*325
 		if ValidTarget(enemies, 400) and Ready(2) then
-			if not ConfigMenu.Champ.ASA.AS:Value() and ConfigMenu.Champ.C.ASC.AS:Value() and ConfigMenu.Champ.C.ASC["Pleb"..GetObjectName(enemies)] and ConfigMenu.Champ.Orb.C:Value() and MapPosition:inWall(MyPos) then
-				CastTargetSpell(enemies, 2)
-			elseif ConfigMenu.Champ.ASA.AS:Value() and not ConfigMenu.Champ.C.ASC.AS:Value() and ConfigMenu.Champ.ASA["Pleb"..GetObjectName(enemies)] and MapPosition:inWall(MyPos) then
+			if ConfigMenu.Champ.ASA["Pleb"..GetObjectName(enemies)]:Value() and MapPosition:inWall(MyPos) then
 				CastTargetSpell(enemies, 2)
 			end
 		elseif GetDistance(enemies, MousePos) <= 425 and MapPosition:inWall(MyMousePos) and ConfigMenu.Champ.ASA.T:Value() and Ready(2) then
@@ -1452,11 +1486,11 @@ function Poppy:OnProc(Object, spellProc)
 		DelayAction(function()
 			if self.DashTable[GetObjectName(enemies)] then
 				if self.DashTable[GetObjectName(enemies)].type == "Untarget" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)] and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)]:Value() and (GetDistance(spellProc.endPos) <= self.Spells[1].range or GetDistance(spellProc.startPos) <= self.Spells[1].range) and Ready(1) then
 						CastSpell(1)
 					end
 				elseif self.DashTable[GetObjectName(enemies)].type == "Target" then
-					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)] and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
+					if spellProc.name == GetCastName(enemies, self.DashTable[GetObjectName(enemies)].SpellSlot) and ConfigMenu.Champ.F["Pleb"..GetObjectName(enemies)]:Value() and GetDistance(spellProc.target) <= self.Spells[1].range and Ready(1) then
 						CastSpell(1)
 					end
 				end
@@ -1483,277 +1517,873 @@ end
 class "Elise"
 
 function Elise:__init()
-
-	self.HSpells =
-				{
-				[0] = {range = 625},
-				[1] = {range = 950},
-				[2] = {range = 1075, width = 70, speed = 1450, delay = 0.250}
-				}
-
-	self.SSpells =
-				{
-				[0] = {range = 475},
-				[2] = {range = 750},
-				}
-
-	self.HReady =
-			{
-			[0] = true,
-			[1] = true,
-			[2] = true,
-			}
-
-	self.SReady =
-			{
-			[0] = true,
-			[1] = true,
-			[2] = true,
-			}
-
 	Dmg =
-				{
-				[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
-				[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
-				[2] = function(Unit) return 0 end,
-				[3] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
-				}
+	{
+		[0] = function(Unit) return CalcDamage(myHero, Unit, 0, 5+35*GetCastLevel(myHero, 0)+(GetCurrentHP(Unit)*0.04)/100+0.03*GetBonusAP(myHero)) end,
+		[1] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+50*GetCastLevel(myHero, 1)+0.8*GetBonusAP(myHero)) end,
+		[2] = function(Unit) return CalcDamage(myHero, Unit, 0, 20+40*GetCastLevel(myHero, 0)+((GetMaxHP(Unit)-GetCurrentHP(Unit)*0.08)/100+0.03*GetBonusAP(myHero)))  end,
+	}
 
-	self.Spots = 
+	self.Spells =
+	{
+		[0] = {CD = function(myHero) return 	6 								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "EliseHumanQ", 		Timer = 0, Ready = false},
+		[1] = {CD = function(myHero) return 	12 								+ 12*GetCDR(myHero) 								end, CDT = 0, Name = "EliseHumanW", 		Timer = 0, Ready = false},
+		[2] = {CD = function(myHero) return 	15-GetCastLevel(myHero, 2) 		+ (15-GetCastLevel(myHero, 2))*GetCDR(myHero) 		end, CDT = 0, Name = "EliseHumanE", 		Timer = 0, Ready = false, speed = 1100, width = 55, range = 1600, delay = 0.25},
+		[3] = {CD = function(myHero) return 	4								+ 4*GetCDR(myHero) 									end, CDT = 0, Name = "EliseR", 				Timer = 0, Ready = false},
+	}
+
+	self.Spells2 =
+	{
+		[0] = {CD = function(myHero) return 	6 								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "EliseSpiderQCast", 	Timer = 0, Ready = false},
+		[1] = {CD = function(myHero) return 	12 								+ 12*GetCDR(myHero) 								end, CDT = 0, Name = "EliseSpiderW", 		Timer = 0, Ready = false},
+		[2] = {CD = function(myHero) return 	29-GetCastLevel(myHero, 2)*3 	+ (29-GetCastLevel(myHero, 2)*3)*GetCDR(myHero) 	end, CDT = 0, Name = "EliseSpiderEDescent", Timer = 0, Ready = false},
+		[3] = {CD = function(myHero) return 	4								+ 4*GetCDR(myHero) 									end, CDT = 0, Name = "EliseRSpider", 		Timer = 0, Ready = false},
+	}
+
+	self.Sprite = 
+	{
+		[1] 	= 	{FName = "Elise\\Elise_Human_Q.png", 		Sprite = nil,		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Elise_Human_Q.png"},
+		[2] 	= 	{FName = "Elise\\Elise_Human_W.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "Elise_Human_W.png"},
+		[3] 	= 	{FName = "Elise\\Elise_Human_E.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2		else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "Elise_Human_E.png"},
+		[4] 	= 	{FName = "Elise\\Elise_Human_R.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "Elise_Human_R.png"},
+		[5] 	= 	{FName = "Elise\\Elise_Human_Q_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Elise_Human_Q_CD.png"},
+		[6] 	= 	{FName = "Elise\\Elise_Human_W_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "Elise_Human_W_CD.png"},
+		[7] 	= 	{FName = "Elise\\Elise_Human_E_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2	 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "Elise_Human_E_CD.png"},
+		[8] 	= 	{FName = "Elise\\Elise_Human_R_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "Elise_Human_R_CD.png"},
+		[9] 	= 	{FName = "Elise\\Elise_Spider_Q.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Elise_Spider_Q.png"},
+		[10] 	= 	{FName = "Elise\\Elise_Spider_W.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75 	else return GetResolution().x/2-127	end end,		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "Elise_Spider_W.png"},
+		[11] 	= 	{FName = "Elise\\Elise_Spider_E.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2	 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "Elise_Spider_E.png"},
+		[12] 	= 	{FName = "Elise\\Elise_Spider_R.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "Elise_Spider_R.png"},
+		[13] 	= 	{FName = "Elise\\Elise_Spider_Q_CD.png",	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Elise_Spider_Q_CD.png"},
+		[14] 	= 	{FName = "Elise\\Elise_Spider_W_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "Elise_Spider_W_CD.png"},
+		[15] 	= 	{FName = "Elise\\Elise_Spider_E_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "Elise_Spider_E_CD.png"},
+		[16] 	= 	{FName = "Elise\\Elise_Spider_R_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "Elise_Spider_R_CD.png"},
+	}
+
+	--[[self.SpellsTable =
+	{
+		["AatroxE"]=					{charName="Aatrox",					slot=2,		type="Line",		delay=0.25,		range=1075,		radius=35,			speed=1250,				addHitbox=true,			danger=3,			dangerous=false,			proj="AatroxEConeMissile",				killTime=0},
+		["AhriOrbofDeception"]=			{charName="Ahri",					slot=0,		type="Line",		delay=0.25,		range=1000,		radius=100,			speed=2500,				addHitbox=true,			danger=2,			dangerous=false,			proj="AhriOrbMissile",					killTime=0},
+		["AhriOrbReturn"]=				{charName="Ahri",					slot=0,		type="Line",		delay=0.25,		range=1000,		radius=100,			speed=60,				addHitbox=true,			danger=2,			dangerous=false,			proj="AhriOrbReturn",					killTime=0},
+		["AhriSeduce"]=					{charName="Ahri",					slot=2,		type="Line",		delay=0.25,		range=1000,		radius=60,			speed=1550,				addHitbox=true,			danger=3,			dangerous=true,				proj="AhriSeduceMissile",				killTime=0},
+		["BandageToss"]=				{charName="Amumu",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=90,			speed=2000,				addHitbox=true,			danger=3,			dangerous=true,				proj="SadMummyBandageToss",				killTime=0},
+		["FlashFrost"]=					{charName="Anivia",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=110,			speed=850,				addHitbox=true,			danger=3,			dangerous=true,				proj="FlashFrostSpell",					killTime=0},
+		["Volley"]=						{charName="Ashe",					slot=1,		type="Line",		delay=0.25,		range=1250,		radius=60,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="VolleyAttack",					killTime=0},
+		["EnchantedCrystalArrow"]=		{charName="Ashe",					slot=3,		type="Line",		delay=0.25,		range=20000,	radius=130,			speed=1600,				addHitbox=true,			danger=5,			dangerous=true,				proj="EnchantedCrystalArrow",			killTime=0},
+		["AurelionSolQ"]=				{charName="AurelionSol",			slot=0,		type="Line",		delay=0.25,		range=1500,		radius=180,			speed=850,				addHitbox=true,			danger=2,			dangerous=false,			proj="AurelionSolQMissile",				killTime=0},
+		["AurelionSolR"]=				{charName="AurelionSol",			slot=3,		type="Line",		delay=0.3,		range=1420,		radius=120,			speed=4500,				addHitbox=true,			danger=3,			dangerous=true,				proj="AurelionSolRBeamMissile",			killTime=0},
+		["BardQ"]=						{charName="Bard",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=1600,				addHitbox=true,			danger=3,			dangerous=true,				proj="BardQMissile",					killTime=0},
+		["BardR"]=						{charName="Bard",					slot=3,		type="Circle",		delay=0.5,		range=3400,		radius=350,			speed=2100,				addHitbox=true,			danger=2,			dangerous=false,			proj="BardR",							killTime=1},
+		["RocketGrab"]=					{charName="Blitzcrank",				slot=0,		type="Line",		delay=0.25,		range=1050,		radius=70,			speed=1800,				addHitbox=true,			danger=4,			dangerous=true,				proj="RocketGrabMissile",				killTime=0},
+		["BrandQ"]=						{charName="Brand",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=60,			speed=1600,				addHitbox=true,			danger=3,			dangerous=true,				proj="BrandQMissile",					killTime=0},
+		["BraumQ"]=						{charName="Braum",					slot=0,		type="Line",		delay=0.25,		range=1050,		radius=60,			speed=1700,				addHitbox=true,			danger=3,			dangerous=true,				proj="BraumQMissile",					killTime=0},
+		["BraumRWrapper"]=				{charName="Braum",					slot=3,		type="Line",		delay=0.5,		range=1200,		radius=115,			speed=1400,				addHitbox=true,			danger=4,			dangerous=true,				proj="braumrmissile",					killTime=0},
+		["CaitlynPiltoverPeacemaker"]=	{charName="Caitlyn",				slot=0,		type="Line",		delay=0.625,	range=1300,		radius=90,			speed=2200,				addHitbox=true,			danger=2,			dangerous=false,			proj="CaitlynPiltoverPeacemaker",		killTime=0},
+		["CaitlynEntrapment"]=			{charName="Caitlyn",				slot=2,		type="Line",		delay=0.125,	range=1000,		radius=70,			speed=1600,				addHitbox=true,			danger=1,			dangerous=false,			proj="CaitlynEntrapmentMissile",		killTime=0},
+		["CassiopeiaNoxiousBlast"]=		{charName="Cassiopeia",				slot=0,		type="Circle",		delay=0.75,		range=850,		radius=150,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="CassiopeiaNoxiousBlast",			killTime=0.2},
+		["CassiopeiaPetrifyingGaze"]=	{charName="Cassiopeia",				slot=3,		type="Cone",		delay=0.6,		range=825,		radius=80,			speed=999999999,		addHitbox=false,		danger=5,			dangerous=true,				proj="CassiopeiaPetrifyingGaze",		killTime=0},
+		["Rupture"]=					{charName="Chogath",				slot=0,		type="Circle",		delay=1.2,		range=950,		radius=250,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=false,			proj="Rupture",							killTime=0.45},
+		["PhosphorusBomb"]=				{charName="Corki",					slot=0,		type="Circle",		delay=0.3,		range=825,		radius=250,			speed=1000,				addHitbox=true,			danger=2,			dangerous=false,			proj="PhosphorusBombMissile",			killTime=0.35},
+		["MissileBarrage"]=				{charName="Corki",					slot=3,		type="Line",		delay=0.2,		range=1300,		radius=40,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="MissileBarrageMissile",			killTime=0},
+		["MissileBarrage2"]=			{charName="Corki",					slot=3,		type="Line",		delay=0.2,		range=1500,		radius=40,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="MissileBarrageMissile2",			killTime=0},
+		["DariusCleave"]=				{charName="Darius",					slot=0,		type="Circle",		delay=0.75,		range=0,		radius=425 - 50,	speed=999999999,		addHitbox=true,			danger=3,			dangerous=false,			proj="DariusCleave",					killTime=0},
+		["DariusAxeGrabCone"]=			{charName="Darius",					slot=2,		type="Cone",		delay=0.25,		range=550,		radius=80,			speed=999999999,		addHitbox=false,		danger=3,			dangerous=true,				proj="DariusAxeGrabCone",				killTime=0},
+		["DianaArc"]=					{charName="Diana",					slot=0,		type="Circle",		delay=0.25,		range=895,		radius=195,			speed=1400,				addHitbox=true,			danger=3,			dangerous=true,				proj="DianaArcArc",						killTime=0},
+		["DianaArcArc"]=				{charName="Diana",					slot=0,		type="Line",		delay=0.25,		range=895,		radius=195,			speed=1400,				addHitbox=true,			danger=3,			dangerous=true,				proj="DianaArcArc",						killTime=0},
+		["InfectedCleaverMissileCast"]=	{charName="DrMundo",				slot=0,		type="Line",		delay=0.25,		range=1050,		radius=60,			speed=2000,				addHitbox=true,			danger=3,			dangerous=false,			proj="InfectedCleaverMissile",			killTime=0},
+		["DravenDoubleShot"]=			{charName="Draven",					slot=2,		type="Line",		delay=0.25,		range=1100,		radius=130,			speed=1400,				addHitbox=true,			danger=3,			dangerous=true,				proj="DravenDoubleShotMissile",			killTime=0},
+		["DravenRCast"]=				{charName="Draven",					slot=3,		type="Line",		delay=0.4,		range=20000,	radius=160,			speed=2000,				addHitbox=true,			danger=5,			dangerous=true,				proj="DravenR",							killTime=0},
+		["EkkoQ"]=						{charName="Ekko",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=1650,				addHitbox=true,			danger=4,			dangerous=true,				proj="ekkoqmis",						killTime=0},
+		["EkkoW"]=						{charName="Ekko",					slot=1,		type="Circle",		delay=3.75,		range=1600,		radius=375,			speed=1650,				addHitbox=false,		danger=3,			dangerous=false,			proj="EkkoW",							killTime=1.2},
+		["EkkoR"]=						{charName="Ekko",					slot=3,		type="Circle",		delay=0.25,		range=1600,		radius=375,			speed=1650,				addHitbox=true,			danger=3,			dangerous=false,			proj="EkkoR",							killTime=0.2},
+		["EliseHumanE"]=				{charName="Elise",					slot=2,		type="Line",		delay=0.25,		range=1100,		radius=55,			speed=1600,				addHitbox=true,			danger=4,			dangerous=true,				proj="EliseHumanE",						killTime=0},
+		["EvelynnR"]=					{charName="Evelynn",				slot=3,		type="Circle",		delay=0.25,		range=650,		radius=350,			speed=999999999,		addHitbox=true,			danger=5,			dangerous=true,				proj="EvelynnR",						killTime=0.2},
+		["EzrealMysticShot"]=			{charName="Ezreal",					slot=0,		type="Line",		delay=0.25,		range=1200,		radius=60,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="EzrealMysticShotMissile",			killTime=0},
+		["EzrealEssenceFlux"]=			{charName="Ezreal",					slot=1,		type="Line",		delay=0.25,		range=1050,		radius=80,			speed=1600,				addHitbox=true,			danger=2,			dangerous=false,			proj="EzrealEssenceFluxMissile",		killTime=0},
+		["EzrealTrueshotBarrage"]=		{charName="Ezreal",					slot=3,		type="Line",		delay=1,		range=20000,	radius=160,			speed=2000,				addHitbox=true,			danger=3,			dangerous=true,				proj="EzrealTrueshotBarrage",			killTime=0},
+		["FioraW"]=						{charName="Fiora",					slot=1,		type="Line",		delay=0.5,		range=800,		radius=70,			speed=3200,				addHitbox=true,			danger=2,			dangerous=false,			proj="FioraWMissile",					killTime=0},
+		["FizzMarinerDoom"]=			{charName="Fizz",					slot=3,		type="Line",		delay=0.25,		range=1300,		radius=120,			speed=1350,				addHitbox=true,			danger=5,			dangerous=true,				proj="FizzMarinerDoomMissile",			killTime=0},
+		["GalioResoluteSmite"]=			{charName="Galio",					slot=0,		type="Circle",		delay=0.25,		range=900,		radius=200,			speed=1300,				addHitbox=true,			danger=2,			dangerous=false,			proj="GalioResoluteSmite",				killTime=0.2},
+		["GalioRighteousGust"]=			{charName="Galio",					slot=2,		type="Line",		delay=0.25,		range=1200,		radius=120,			speed=1200,				addHitbox=true,			danger=2,			dangerous=false,			proj="GalioRighteousGust",				killTime=0},
+		["GnarQ"]=						{charName="Gnar",					slot=0,		type="Line",		delay=0.25,		range=1125,		radius=60,			speed=2500,				addHitbox=true,			danger=2,			dangerous=false,			proj="gnarqmissile",					killTime=0},
+		["GnarQReturn"]=				{charName="Gnar",					slot=0,		type="Line",		delay=0,		range=2500,		radius=75,			speed=60,				addHitbox=true,			danger=2,			dangerous=false,			proj="GnarQMissileReturn",				killTime=0},
+		["GnarBigQ"]=					{charName="Gnar",					slot=0,		type="Line",		delay=0.5,		range=1150,		radius=90,			speed=2100,				addHitbox=true,			danger=2,			dangerous=false,			proj="GnarBigQMissile",					killTime=0},
+		["GnarBigW"]=					{charName="Gnar",					slot=1,		type="Line",		delay=0.6,		range=600,		radius=80,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="GnarBigW",						killTime=0},
+		["GnarE"]=						{charName="Gnar",					slot=2,		type="Circle",		delay=0,		range=473,		radius=150,			speed=903,				addHitbox=true,			danger=2,			dangerous=false,			proj="GnarE",							killTime=0.2},
+		["GnarBigE"]=					{charName="Gnar",					slot=2,		type="Circle",		delay=0.25,		range=475,		radius=200,			speed=1000,				addHitbox=true,			danger=2,			dangerous=false,			proj="GnarBigE",						killTime=0.2},
+		["GragasQ"]=					{charName="Gragas",					slot=0,		type="Circle",		delay=0.25,		range=1100,		radius=275,			speed=1300,				addHitbox=true,			danger=2,			dangerous=false,			proj="GragasQMissile",					killTime=2.5},
+		["GragasE"]=					{charName="Gragas",					slot=2,		type="Line",		delay=0,		range=950,		radius=200,			speed=1200,				addHitbox=true,			danger=2,			dangerous=false,			proj="GragasE",							killTime=0},
+		["GragasR"]=					{charName="Gragas",					slot=3,		type="Circle",		delay=0.25,		range=1050,		radius=375,			speed=1800,				addHitbox=true,			danger=5,			dangerous=true,				proj="GragasRBoom",						killTime=0.3},
+		["GravesQLineSpell"]=			{charName="Graves",					slot=0,		type="Line",		delay=0.25,		range=808,		radius=40,			speed=3000,				addHitbox=true,			danger=2,			dangerous=false,			proj="GravesQLineMis",					killTime=0},
+		["GravesChargeShot"]=			{charName="Graves",					slot=3,		type="Line",		delay=0.25,		range=1100,		radius=100,			speed=2100,				addHitbox=true,			danger=5,			dangerous=true,				proj="GravesChargeShotShot",			killTime=0},
+		["Heimerdingerwm"]=				{charName="Heimerdinger",			slot=1,		type="Line",		delay=0.25,		range=1500,		radius=70,			speed=1800,				addHitbox=true,			danger=2,			dangerous=false,			proj="HeimerdingerWAttack2",			killTime=0},
+		["HeimerdingerE"]=				{charName="Heimerdinger",			slot=2,		type="Circle",		delay=0.25,		range=925,		radius=100,			speed=1200,				addHitbox=true,			danger=2,			dangerous=false,			proj="heimerdingerespell",				killTime=0.3},
+		["IllaoiQ"]=					{charName="Illaoi",					slot=0,		type="Line",		delay=0.75,		range=850,		radius=100,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=true,				proj="illaoiemis",						killTime=0},
+		["IllaoiE"]=					{charName="Illaoi",					slot=2,		type="Line",		delay=0.25,		range=950,		radius=50,			speed=1900,				addHitbox=true,			danger=3,			dangerous=true,				proj="illaoiemis",						killTime=0},
+		["IreliaTranscendentBlades"]=	{charName="Irelia",					slot=3,		type="Line",		delay=0,		range=1200,		radius=65,			speed=1600,				addHitbox=true,			danger=2,			dangerous=false,			proj="IreliaTranscendentBlades",		killTime=0},
+		["JannaQ"]=						{charName="Janna",					slot=0,		type="Line",		delay=0.25,		range=1700,		radius=120,			speed=900,				addHitbox=true,			danger=2,			dangerous=false,			proj="HowlingGaleSpell",				killTime=0},
+		["JarvanIVDemacianStandard"]=	{charName="JarvanIV",				slot=2,		type="Circle",		delay=0.5,		range=860,		radius=175,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="JarvanIVDemacianStandard",		killTime=1.5},
+		["jayceshockblast"]=			{charName="Jayce",					slot=0,		type="Line",		delay=0.25,		range=1300,		radius=70,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="JayceShockBlastMis",				killTime=0},
+		["JayceQAccel"]=				{charName="Jayce",					slot=0,		type="Line",		delay=0.25,		range=1300,		radius=70,			speed=2350,				addHitbox=true,			danger=2,			dangerous=false,			proj="JayceShockBlastWallMis",			killTime=0},
+		["JhinW"]=						{charName="Jhin",					slot=1,		type="Line",		delay=0.75,		range=2550,		radius=40,			speed=5000,				addHitbox=true,			danger=3,			dangerous=true,				proj="JhinWMissile",					killTime=0},
+		["JhinRShot"]=					{charName="Jhin",					slot=3,		type="Line",		delay=0.25,		range=3500,		radius=80,			speed=5000,				addHitbox=true,			danger=3,			dangerous=true,				proj="JhinRShotMis",					killTime=0},
+		["JinxW"]=						{charName="Jinx",					slot=1,		type="Line",		delay=0.6,		range=1500,		radius=60,			speed=3300,				addHitbox=true,			danger=3,			dangerous=true,				proj="JinxWMissile",					killTime=0},
+		["JinxR"]=						{charName="Jinx",					slot=3,		type="Line",		delay=0.6,		range=20000,	radius=140,			speed=1700,				addHitbox=true,			danger=5,			dangerous=true,				proj="JinxR",							killTime=0},
+		["KalistaMysticShot"]=			{charName="Kalista",				slot=0,		type="Line",		delay=0.25,		range=1200,		radius=40,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="kalistamysticshotmis",			killTime=0},
+		["KarmaQ"]=						{charName="Karma",					slot=0,		type="Line",		delay=0.25,		range=1050,		radius=60,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="KarmaQMissile",					killTime=0},
+		["KarmaQMantra"]=				{charName="Karma",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=80,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="KarmaQMissileMantra",				killTime=0},
+		["RiftWalk"]=					{charName="Kassadin",				slot=3,		type="Circle",		delay=0.25,		range=450,		radius=270,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="RiftWalk",						killTime=0.3},
+		["KennenShurikenHurlMissile1"]=	{charName="Kennen",					slot=0,		type="Line",		delay=0.125,	range=1050,		radius=50,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="KennenShurikenHurlMissile1",		killTime=0},
+		["KhazixW"]=					{charName="Khazix",					slot=1,		type="Line",		delay=0.25,		range=1025,		radius=73,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="KhazixWMissile",					killTime=0},
+		["KhazixE"]=					{charName="Khazix",					slot=2,		type="Circle",		delay=0.25,		range=600,		radius=300,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="KhazixE",							killTime=0.2},
+		["KogMawQ"]=					{charName="Kogmaw",					slot=0,		type="Line",		delay=0.25,		range=1200,		radius=70,			speed=1650,				addHitbox=true,			danger=2,			dangerous=false,			proj="KogMawQ",							killTime=0},
+		["KogMawVoidOoze"]=				{charName="Kogmaw",					slot=2,		type="Line",		delay=0.25,		range=1360,		radius=120,			speed=1400,				addHitbox=true,			danger=2,			dangerous=false,			proj="KogMawVoidOozeMissile",			killTime=0},
+		["KogMawLivingArtillery"]=		{charName="Kogmaw",					slot=3,		type="Circle",		delay=1.2,		range=1800,		radius=225,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="KogMawLivingArtillery",			killTime=0.5},
+		["LeblancSlide"]=				{charName="Leblanc",				slot=1,		type="Circle",		delay=0,		range=600,		radius=220,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="LeblancSlide",					killTime=0.2},
+		["LeblancSlideM"]=				{charName="Leblanc",				slot=3,		type="Circle",		delay=0,		range=600,		radius=220,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="LeblancSlideM",					killTime=0.2},
+		["LeblancSoulShackle"]=			{charName="Leblanc",				slot=2,		type="Line",		delay=0.25,		range=950,		radius=70,			speed=1750,				addHitbox=true,			danger=3,			dangerous=true,				proj="LeblancSoulShackle",				killTime=0},
+		["LeblancSoulShackleM"]=		{charName="Leblanc",				slot=3,		type="Line",		delay=0.25,		range=950,		radius=70,			speed=1750,				addHitbox=true,			danger=3,			dangerous=true,				proj="LeblancSoulShackleM",				killTime=0},
+		["BlindMonkQOne"]=				{charName="LeeSin",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=65,			speed=1800,				addHitbox=true,			danger=3,			dangerous=true,				proj="BlindMonkQOne",					killTime=0},
+		["LeonaZenithBlade"]=			{charName="Leona",					slot=2,		type="Line",		delay=0.25,		range=905,		radius=70,			speed=2000,				addHitbox=true,			danger=3,			dangerous=true,				proj="LeonaZenithBladeMissile",			killTime=0},
+		["LeonaSolarFlare"]=			{charName="Leona",					slot=3,		type="Circle",		delay=1,		range=1200,		radius=300,			speed=999999999,		addHitbox=true,			danger=5,			dangerous=true,				proj="LeonaSolarFlare",					killTime=0.5},
+		["LissandraQ"]=					{charName="Lissandra",				slot=0,		type="Line",		delay=0.25,		range=700,		radius=75,			speed=2200,				addHitbox=true,			danger=2,			dangerous=false,			proj="LissandraQMissile",				killTime=0},
+		["LissandraQShards"]=			{charName="Lissandra",				slot=0,		type="Line",		delay=0.25,		range=700,		radius=90,			speed=2200,				addHitbox=true,			danger=2,			dangerous=false,			proj="lissandraqshards",				killTime=0},
+		["LissandraE"]=					{charName="Lissandra",				slot=2,		type="Line",		delay=0.25,		range=1025,		radius=125,			speed=850,				addHitbox=true,			danger=2,			dangerous=false,			proj="LissandraEMissile",				killTime=0},
+		["LucianQ"]=					{charName="Lucian",					slot=0,		type="Line",		delay=0.5,		range=1300,		radius=65,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="LucianQ",							killTime=0},
+		["LucianW"]=					{charName="Lucian",					slot=1,		type="Line",		delay=0.25,		range=1000,		radius=55,			speed=1600,				addHitbox=true,			danger=2,			dangerous=false,			proj="lucianwmissile",					killTime=0},
+		["LucianRMis"]=					{charName="Lucian",					slot=3,		type="Line",		delay=0.5,		range=1400,		radius=110,			speed=2800,				addHitbox=true,			danger=2,			dangerous=false,			proj="lucianrmissileoffhand",			killTime=0},
+		["LuluQ"]=						{charName="Lulu",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="LuluQMissile",					killTime=0},
+		["LuluQPix"]=					{charName="Lulu",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="LuluQMissileTwo",					killTime=0},
+		["LuxLightBinding"]=			{charName="Lux",					slot=0,		type="Line",		delay=0.25,		range=1300,		radius=70,			speed=1200,				addHitbox=true,			danger=3,			dangerous=true,				proj="LuxLightBindingMis",				killTime=0},
+		["LuxLightStrikeKugel"]=		{charName="Lux",					slot=2,		type="Circle",		delay=0.25,		range=1100,		radius=275,			speed=1300,				addHitbox=true,			danger=2,			dangerous=false,			proj="LuxLightStrikeKugel",				killTime=5.25},
+		["LuxMaliceCannon"]=			{charName="Lux",					slot=3,		type="Line",		delay=1,		range=3500,		radius=190,			speed=999999999,		addHitbox=true,			danger=5,			dangerous=true,				proj="LuxMaliceCannon",					killTime=0},
+		["UFSlash"]=					{charName="Malphite",				slot=3,		type="Circle",		delay=0,		range=1000,		radius=270,			speed=1500,				addHitbox=true,			danger=5,			dangerous=true,				proj="UFSlash",							killTime=0.4},
+		["MalzaharQ"]=					{charName="Malzahar",				slot=0,		type="Line",		delay=0.75,		range=900,		radius=85,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="MalzaharQ",						killTime=0},
+		["DarkBindingMissile"]=			{charName="Morgana",				slot=0,		type="Line",		delay=0.25,		range=1300,		radius=80,			speed=1200,				addHitbox=true,			danger=3,			dangerous=true,				proj="DarkBindingMissile",				killTime=0},
+		["NamiQ"]=						{charName="Nami",					slot=0,		type="Circle",		delay=0.95,		range=1625,		radius=150,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=true,				proj="namiqmissile",					killTime=0.35},
+		["NamiR"]=						{charName="Nami",					slot=3,		type="Line",		delay=0.5,		range=2750,		radius=260,			speed=850,				addHitbox=true,			danger=2,			dangerous=false,			proj="NamiRMissile",					killTime=0},
+		["NautilusAnchorDrag"]=			{charName="Nautilus",				slot=0,		type="Line",		delay=0.25,		range=1250,		radius=90,			speed=2000,				addHitbox=true,			danger=3,			dangerous=true,				proj="NautilusAnchorDragMissile",		killTime=0},
+		["NocturneDuskbringer"]=		{charName="Nocturne",				slot=0,		type="Line",		delay=0.25,		range=1125,		radius=60,			speed=1400,				addHitbox=true,			danger=2,			dangerous=false,			proj="NocturneDuskbringer",				killTime=0},
+		["JavelinToss"]=				{charName="Nidalee",				slot=0,		type="Line",		delay=0.25,		range=1500,		radius=40,			speed=1300,				addHitbox=true,			danger=3,			dangerous=true,				proj="JavelinToss",						killTime=0},
+		["OlafAxeThrowCast"]=			{charName="Olaf",					slot=0,		type="Line",		delay=0.25,		range=1000,		radius=105,			speed=1600,				addHitbox=true,			danger=2,			dangerous=false,			proj="olafaxethrow",					killTime=0},
+		["OriannasQ"]=					{charName="Orianna",				slot=0,		type="Line",		delay=0,		range=1500,		radius=80,			speed=1200,				addHitbox=true,			danger=2,			dangerous=false,			proj="orianaizuna",						killTime=0},
+		["OrianaDissonanceCommand-"]=	{charName="Orianna",				slot=1,		type="Circle",		delay=0.25,		range=0,		radius=255,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="OrianaDissonanceCommand-",		killTime=0.3},
+		["OriannasE"]=					{charName="Orianna",				slot=2,		type="Line",		delay=0,		range=1500,		radius=85,			speed=1850,				addHitbox=true,			danger=2,			dangerous=false,			proj="orianaredact",					killTime=0},
+		["OrianaDetonateCommand-"]=		{charName="Orianna",				slot=3,		type="Circle",		delay=0.7,		range=0,		radius=410,			speed=999999999,		addHitbox=true,			danger=5,			dangerous=true,				proj="OrianaDetonateCommand-",			killTime=0.5},
+		["QuinnQ"]=						{charName="Quinn",					slot=0,		type="Line",		delay=0.313,	range=1050,		radius=60,			speed=1550,				addHitbox=true,			danger=2,			dangerous=false,			proj="QuinnQ",							killTime=0},
+		["PoppyQ"]=						{charName="Poppy",					slot=0,		type="Line",		delay=0.5,		range=430,		radius=100,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="PoppyQ",							killTime=0},
+		["PoppyRSpell"]=				{charName="Poppy",					slot=3,		type="Line",		delay=0.3,		range=1200,		radius=100,			speed=1600,				addHitbox=true,			danger=3,			dangerous=true,				proj="PoppyRMissile",					killTime=0},
+		["RengarE"]=					{charName="Rengar",					slot=2,		type="Line",		delay=0.25,		range=1000,		radius=70,			speed=1500,				addHitbox=true,			danger=3,			dangerous=true,				proj="RengarEFinal",					killTime=0},
+		["reksaiqburrowed"]=			{charName="RekSai",					slot=0,		type="Line",		delay=0.5,		range=1625,		radius=60,			speed=1950,				addHitbox=true,			danger=3,			dangerous=false,			proj="RekSaiQBurrowedMis",				killTime=0},
+		["rivenizunablade"]=			{charName="Riven",					slot=3,		type="Line",		delay=0.25,		range=1100,		radius=125,			speed=1600,				addHitbox=false,		danger=5,			dangerous=true,				proj="RivenLightsaberMissile",			killTime=0},
+		["RumbleGrenade"]=				{charName="Rumble",					slot=2,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="RumbleGrenade",					killTime=0},
+		["RumbleCarpetBombM"]=			{charName="Rumble",					slot=3,		type="Line",		delay=0.4,		range=1200,		radius=200,			speed=1600,				addHitbox=true,			danger=4,			dangerous=false,			proj="RumbleCarpetBombMissile",			killTime=0},
+		["RyzeQ"]=						{charName="Ryze",					slot=0,		type="Line",		delay=0.25,		range=900,		radius=50,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="RyzeQ",							killTime=0},
+		["ryzerq"]=						{charName="Ryze",					slot=0,		type="Line",		delay=0.25,		range=900,		radius=50,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ryzerq",							killTime=0},
+		["SejuaniGlacialPrisonStart"]=	{charName="Sejuani",				slot=3,		type="Line",		delay=0.25,		range=1100,		radius=110,			speed=1600,				addHitbox=true,			danger=3,			dangerous=true,				proj="sejuaniglacialprison",			killTime=0},
+		["SionE"]=						{charName="Sion",					slot=2,		type="Line",		delay=0.25,		range=800,		radius=80,			speed=1800,				addHitbox=true,			danger=3,			dangerous=true,				proj="SionEMissile",					killTime=0},
+		["ShenE"]=						{charName="Shen",					slot=2,		type="Line",		delay=0,		range=650,		radius=50,			speed=1600,				addHitbox=true,			danger=3,			dangerous=true,				proj="ShenE",							killTime=0},
+		["ShyvanaFireball"]=			{charName="Shyvana",				slot=2,		type="Line",		delay=0.25,		range=950,		radius=60,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ShyvanaFireballMissile",			killTime=0},
+		["ShyvanaTransformCast"]=		{charName="Shyvana",				slot=3,		type="Line",		delay=0.25,		range=1000,		radius=150,			speed=1500,				addHitbox=true,			danger=3,			dangerous=true,				proj="ShyvanaTransformCast",			killTime=0},
+		["shyvanafireballdragon2"]=		{charName="Shyvana",				slot=3,		type="Line",		delay=0.25,		range=850,		radius=70,			speed=2000,				addHitbox=true,			danger=3,			dangerous=false,			proj="ShyvanaFireballDragonFxMissile",	killTime=0},
+		["SivirQReturn"]=				{charName="Sivir",					slot=0,		type="Line",		delay=0,		range=1250,		radius=100,			speed=1350,				addHitbox=true,			danger=2,			dangerous=false,			proj="SivirQMissileReturn",				killTime=0},
+		["SivirQ"]=						{charName="Sivir",					slot=0,		type="Line",		delay=0.25,		range=1250,		radius=90,			speed=1350,				addHitbox=true,			danger=2,			dangerous=false,			proj="SivirQMissile",					killTime=0},
+		["SkarnerFracture"]=			{charName="Skarner",				slot=2,		type="Line",		delay=0.25,		range=1000,		radius=70,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="SkarnerFractureMissile",			killTime=0},
+		["SonaR"]=						{charName="Sona",					slot=3,		type="Line",		delay=0.25,		range=1000,		radius=140,			speed=2400,				addHitbox=true,			danger=5,			dangerous=true,				proj="SonaR",							killTime=0},
+		["SwainShadowGrasp"]=			{charName="Swain",					slot=1,		type="Circle",		delay=1.1,		range=900,		radius=180,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=true,				proj="SwainShadowGrasp",				killTime=0.5},
+		["SyndraQ"]=					{charName="Syndra",					slot=0,		type="Circle",		delay=0.6,		range=800,		radius=150,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="SyndraQ",							killTime=0.2},
+		["syndrawcast"]=				{charName="Syndra",					slot=1,		type="Circle",		delay=0.25,		range=950,		radius=210,			speed=1450,				addHitbox=true,			danger=2,			dangerous=false,			proj="syndrawcast",						killTime=0.2},
+		["syndrae5"]=					{charName="Syndra",					slot=2,		type="Line",		delay=0,		range=950,		radius=100,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="syndrae5",						killTime=0},
+		["SyndraE"]=					{charName="Syndra",					slot=2,		type="Line",		delay=0,		range=950,		radius=100,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="SyndraE",							killTime=0},
+		["TalonRake"]=					{charName="Talon",					slot=1,		type="Line",		delay=0.25,		range=800,		radius=80,			speed=2300,				addHitbox=true,			danger=2,			dangerous=true,				proj="talonrakemissileone",				killTime=0},
+		["TalonRakeReturn"]=			{charName="Talon",					slot=1,		type="Line",		delay=0.25,		range=800,		radius=80,			speed=1850,				addHitbox=true,			danger=2,			dangerous=true,				proj="talonrakemissiletwo",				killTime=0},
+		["TahmKenchQ"]=					{charName="TahmKench",				slot=0,		type="Line",		delay=0.25,		range=951,		radius=90,			speed=2800,				addHitbox=true,			danger=3,			dangerous=true,				proj="tahmkenchqmissile",				killTime=0},
+		["TaricE"]=						{charName="Taric",					slot=2,		type="Line",		delay=1,		range=750,		radius=100,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=true,				proj="TaricE",							killTime=0},
+		["ThreshQ"]=					{charName="Thresh",					slot=0,		type="Line",		delay=0.5,		range=1100,		radius=70,			speed=1900,				addHitbox=true,			danger=3,			dangerous=true,				proj="ThreshQMissile",					killTime=0},
+		["ThreshEFlay"]=				{charName="Thresh",					slot=2,		type="Line",		delay=0.125,	range=1075,		radius=110,			speed=2000,				addHitbox=true,			danger=3,			dangerous=true,				proj="ThreshEMissile1",					killTime=0},
+		["RocketJump"]=					{charName="Tristana",				slot=1,		type="Circle",		delay=0.5,		range=900,		radius=270,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="RocketJump",						killTime=0.3},
+		["slashCast"]=					{charName="Tryndamere",				slot=2,		type="Line",		delay=0,		range=660,		radius=93,			speed=1300,				addHitbox=true,			danger=2,			dangerous=false,			proj="slashCast",						killTime=0},
+		["WildCards"]=					{charName="TwistedFate",			slot=0,		type="Line",		delay=0.25,		range=1450,		radius=40,			speed=1000,				addHitbox=true,			danger=2,			dangerous=false,			proj="SealFateMissile",					killTime=0},
+		["TwitchVenomCask"]=			{charName="Twitch",					slot=1,		type="Circle",		delay=0.25,		range=900,		radius=275,			speed=1400,				addHitbox=true,			danger=2,			dangerous=false,			proj="TwitchVenomCaskMissile",			killTime=0.3},
+		["UrgotHeatseekingLineMissile"]={charName="Urgot",					slot=0,		type="Line",		delay=0.125,	range=1000,		radius=60,			speed=1600,				addHitbox=true,			danger=2,			dangerous=false,			proj="UrgotHeatseekingLineMissile",		killTime=0},
+		["UrgotPlasmaGrenade"]=			{charName="Urgot",					slot=2,		type="Circle",		delay=0.25,		range=1100,		radius=210,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="UrgotPlasmaGrenadeBoom",			killTime=0.3},
+		["VarusQMissilee"]=				{charName="Varus",					slot=0,		type="Line",		delay=0.25,		range=1800,		radius=70,			speed=1900,				addHitbox=true,			danger=2,			dangerous=false,			proj="VarusQMissile",					killTime=0},
+		["VarusE"]=						{charName="Varus",					slot=2,		type="Circle",		delay=1,		range=925,		radius=235,			speed=1500,				addHitbox=true,			danger=2,			dangerous=false,			proj="VarusE",							killTime=1.5},
+		["VarusR"]=						{charName="Varus",					slot=3,		type="Line",		delay=0.25,		range=1200,		radius=120,			speed=1950,				addHitbox=true,			danger=3,			dangerous=true,				proj="VarusRMissile",					killTime=0},
+		["VeigarBalefulStrike"]=		{charName="Veigar",					slot=0,		type="Line",		delay=0.25,		range=950,		radius=70,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="VeigarBalefulStrikeMis",			killTime=0},
+		["VelkozQ"]=					{charName="Velkoz",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=50,			speed=1300,				addHitbox=true,			danger=2,			dangerous=false,			proj="VelkozQMissile",					killTime=0},
+		["VelkozQSplit"]=				{charName="Velkoz",					slot=0,		type="Line",		delay=0.25,		range=1100,		radius=55,			speed=2100,				addHitbox=true,			danger=2,			dangerous=false,			proj="VelkozQMissileSplit",				killTime=0},
+		["VelkozW"]=					{charName="Velkoz",					slot=1,		type="Line",		delay=0.25,		range=1200,		radius=88,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="VelkozWMissile",					killTime=0},
+		["VelkozE"]=					{charName="Velkoz",					slot=2,		type="Circle",		delay=0.5,		range=800,		radius=225,			speed=1500,				addHitbox=false,		danger=2,			dangerous=false,			proj="VelkozEMissile",					killTime=0.5},
+		["Vi-q"]=						{charName="Vi",						slot=0,		type="Line",		delay=0.25,		range=1000,		radius=90,			speed=1500,				addHitbox=true,			danger=3,			dangerous=true,				proj="ViQMissile",						killTime=0},
+		["Laser"]=						{charName="Viktor",					slot=2,		type="Line",		delay=0.25,		range=1500,		radius=80,			speed=1050,				addHitbox=true,			danger=2,			dangerous=false,			proj="ViktorDeathRayMissile",			killTime=0},
+		["xeratharcanopulse2"]=			{charName="Xerath",					slot=0,		type="Line",		delay=0.6,		range=1600,		radius=95,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="xeratharcanopulse2",				killTime=0},
+		["XerathArcaneBarrage2"]=		{charName="Xerath",					slot=1,		type="Circle",		delay=0.7,		range=1000,		radius=200,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="XerathArcaneBarrage2",			killTime=0.3},
+		["XerathMageSpear"]=			{charName="Xerath",					slot=2,		type="Line",		delay=0.2,		range=1150,		radius=60,			speed=1400,				addHitbox=true,			danger=2,			dangerous=true,				proj="XerathMageSpearMissile",			killTime=0},
+		["xerathrmissilewrapper"]=		{charName="Xerath",					slot=3,		type="Circle",		delay=0.7,		range=5600,		radius=130,			speed=999999999,		addHitbox=true,			danger=3,			dangerous=true,				proj="xerathrmissilewrapper",			killTime=0.4},
+		["YasuoQ3W"]=					{charName="Yasuo",					slot=0,		type="Line",		delay=0.5,		range=1150,		radius=90,			speed=1500,				addHitbox=true,			danger=3,			dangerous=true,				proj="yasuoq3w",						killTime=0},
+		["ZacQ"]=						{charName="Zac",					slot=0,		type="Line",		delay=0.5,		range=550,		radius=120,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="ZacQ",							killTime=0},
+		["ZedQ"]=						{charName="Zed",					slot=0,		type="Line",		delay=0.25,		range=925,		radius=50,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZedQMissile",						killTime=0},
+		["ZiggsQ"]=						{charName="Ziggs",					slot=0,		type="Circle",		delay=0.25,		range=850,		radius=140,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsQSpell",						killTime=0.2},
+		["ZiggsQBounce1"]=				{charName="Ziggs",					slot=0,		type="Circle",		delay=0.25,		range=850,		radius=140,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsQSpell2",					killTime=0.2},
+		["ZiggsQBounce2"]=				{charName="Ziggs",					slot=0,		type="Circle",		delay=0.25,		range=850,		radius=160,			speed=1700,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsQSpell3",					killTime=0.2},
+		["ZiggsW"]=						{charName="Ziggs",					slot=1,		type="Circle",		delay=0.25,		range=1000,		radius=275,			speed=1750,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsW",							killTime=2.25},
+		["ZiggsE"]=						{charName="Ziggs",					slot=2,		type="Circle",		delay=0.5,		range=900,		radius=235,			speed=1750,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsE",							killTime=2.5},
+		["ZiggsR"]=						{charName="Ziggs",					slot=3,		type="Circle",		delay=0,		range=5300,		radius=500,			speed=999999999,		addHitbox=true,			danger=2,			dangerous=false,			proj="ZiggsR",							killTime=1.25},
+		["ZileanQ"]=					{charName="Zilean",					slot=0,		type="Circle",		delay=0.3,		range=900,		radius=210,			speed=2000,				addHitbox=true,			danger=2,			dangerous=false,			proj="ZileanQMissile",					killTime=1.5},
+		["ZyraE"]=						{charName="Zyra",					slot=2,		type="Line",		delay=0.25,		range=1150,		radius=70,			speed=1150,				addHitbox=true,			danger=3,			dangerous=true,				proj="ZyraE",							killTime=0},
+	}]]
+
+	self.Color = ARGB(255,255,255,255)
+	self.abc = false
+	self.Point = nil
+
+	self.Dick = 
+	{
+
+		[0] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[1].Sprite ,self.Sprite[1].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[5].Sprite ,self.Sprite[5].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[5].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells[0].Timer), 25, self.Sprite[1].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[1].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))	
+											end
+										end end,
+		},
+
+		[1] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[2].Sprite ,self.Sprite[2].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit)	if self.abc then 
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[6].Sprite ,self.Sprite[6].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[6].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[1].Timer), 25, self.Sprite[2].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[2].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},
+		[2] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then 
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[3].Sprite ,self.Sprite[3].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then 
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[7].Sprite ,self.Sprite[7].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[7].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[2].Timer), 25, self.Sprite[3].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[3].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},
+		[3] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then 
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[4].Sprite ,self.Sprite[4].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[8].Sprite ,self.Sprite[8].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[8].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 		
+												DrawText(string.format("%.2f", self.Spells[3].Timer), 25, self.Sprite[4].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[4].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+
+		},
+	}
+
+	self.Dick2 =
+	{
+
+		[0] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[9].Sprite ,self.Sprite[9].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 25, self.Sprite[9].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[13].Sprite ,self.Sprite[13].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[13].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[0].Timer), 25, self.Sprite[9].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[9].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},
+		[1] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[10].Sprite ,self.Sprite[10].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 25, self.Sprite[10].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[14].Sprite ,self.Sprite[14].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[14].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 
+												DrawText(string.format("%.2f", self.Spells2[1].Timer), 25, self.Sprite[10].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[10].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},						
+		[2] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[11].Sprite ,self.Sprite[11].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)												
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then 
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 25, self.Sprite[11].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[15].Sprite ,self.Sprite[15].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[15].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[2].Timer), 25, self.Sprite[11].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[11].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},
+		[3] = 
+		{
+			[true] 	= function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)
+											else
+												DrawSprite(self.Sprite[12].Sprite ,self.Sprite[12].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color)		
+											end
+										end end,
+
+			[false] = function(Unit) 	if self.abc then
+											if ConfigMenu.Champ.D.S.H:Value() then
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 25, self.Sprite[12].PosX(Unit)+12.5 + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+20 + ConfigMenu.Champ.D.S.Y.QY:Value() + ConfigMenu.Champ.D.S.T:Value())
+											else
+												DrawSprite(self.Sprite[16].Sprite ,self.Sprite[16].PosX(Unit) + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[16].PosY(Unit) + ConfigMenu.Champ.D.S.Y.QY:Value(), 0, 0, 0, 0, self.Color) 	
+												DrawText(string.format("%.2f", self.Spells2[3].Timer), 25, self.Sprite[12].PosX(Unit)+12.5 - ConfigMenu.Champ.D.S.T:Value() + ConfigMenu.Champ.D.S.X.QX:Value(), self.Sprite[12].PosY(Unit)+15 + (ConfigMenu.Champ.D.S.Y.QY:Value()*1.25))
+											end
+										end end,
+		},
+	}
+
+	self.Stuff =
+	{
+		["Combo"] =
+		{
+			[1] =
 			{
-			{x = 8414, y = 51, z = 2711},
-			{x = 7750, y = 54, z = 3979},
-			{x = 6969, y = 52, z = 5414},
-			{x = 3791, y = 52, z = 6484},
-			{x = 3800, y = 52, z = 7953},
-			{x = 2121, y = 51, z = 8432},
-			{x = 6472, y = 56, z = 12168},
-			{x = 7050, y = 56, z = 10881},
-			{x = 7850, y = 52, z = 9415},
-			{x = 10987, y = 62, z = 8370},
-			{x = 10869, y = 51, z = 7034},
-			{x = 12654, y = 51, z = 6407},	
-			}
+				[true] = 	function(Unit) 						
+								if ConfigMenu.Champ.C.H.Q:Value() then
+									self:CastQ(Unit)
+								end
 
-	Spider = nil
+								if ConfigMenu.Champ.C.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if ConfigMenu.Champ.C.H.E:Value() then
+									self:CastE(Unit)
+								end
+							end,
+
+				[false] = 	function(Unit)
+								if not self.Spells[3].Ready then
+									if ConfigMenu.Champ.C.S.Q:Value() then 
+										self:CastSQ(Unit)
+									end 
+
+									if ConfigMenu.Champ.C.S.W:Value() then 
+										self:CastSW(Unit)
+									end 
+								else 
+									CastSpell(3) 
+								end 
+							end,
+			},
+
+			[2] =
+			{
+				[true] = 	function(Unit)
+								if not self.Spells2[3].Ready then
+									if ConfigMenu.Champ.C.H.Q:Value() then
+										self:CastQ(Unit)
+									end
+
+									if ConfigMenu.Champ.C.H.W:Value() then
+										self:CastW(Unit)
+									end
+									self:CastE(Unit)
+								else
+									CastSpell(3)
+								end
+							end,
+
+				[false] = 	function(Unit)
+								if ConfigMenu.Champ.C.S.Q:Value() then 
+									self:CastSQ(Unit) 
+								end 
+
+								if ConfigMenu.Champ.C.S.W:Value() then 
+									self:CastSW(Unit) 
+								end 
+							end,
+
+			},
+
+			[3] =
+			{
+				[true] = 	function(Unit)
+								if ConfigMenu.Champ.C.H.Q:Value() then
+									self:CastQ(Unit)
+								end
+
+								if ConfigMenu.Champ.C.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if ConfigMenu.Champ.C.H.E:Value() then
+									self:CastE(Unit)
+								end
+
+								if not self.Spells[3].Ready then
+									self:CastE(Unit)
+								else
+									if not self.Spells[0].Ready and not self.Spells[1].Ready and not self.Spells[2].Ready then
+										CastSpell(3)
+									end
+								end
+							end,
+
+				[false] = 	function(Unit)
+								if ConfigMenu.Champ.C.S.Q:Value() then
+									self:CastSQ(Unit)
+								end
+
+								if ConfigMenu.Champ.C.S.W:Value() then
+									self:CastSW(Unit)
+								end
+
+								if self.Spells2[3].Ready then
+									if not self.Spells2[0].Ready and self.Spells[0].Ready then
+										CastSpell(3)
+									end
+								end
+							end,	
+			},		
+		},
+
+		["LaneClear"] =
+		{
+			[MINION_ENEMY] = 
+			{
+				[true] = 	function(Unit)
+								if ConfigMenu.Champ.LC.H.Q:Value() then
+									self:CastQ(Unit)
+								end
+
+								if ConfigMenu.Champ.LC.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
+									CastSpell(3)
+								end
+							end,
+
+				[false] =	function(Unit)
+								if ConfigMenu.Champ.LC.H.Q:Value() then
+									self:CastSQ(Unit)
+								end
+
+								if ConfigMenu.Champ.LC.H.W:Value() then
+									self:CastSW(Unit)
+								end
+
+								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
+									CastSpell(3)
+								end
+							end
+			},
+
+			[MINION_JUNGLE] = 
+			{
+				[true] = 	function(Unit)
+								if ConfigMenu.Champ.JC.H.Q:Value() then
+									self:CastQ(Unit)
+								end
+
+								if ConfigMenu.Champ.JC.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
+									CastSpell(3)
+								end
+							end,
+
+				[false] =	function(Unit)
+								if ConfigMenu.Champ.JC.H.Q:Value() then
+									self:CastSQ(Unit)
+								end
+
+								if ConfigMenu.Champ.JC.H.W:Value() then
+									self:CastSW(Unit)
+								end
+
+								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
+									CastSpell(3)
+								end
+							end			
+			},
+		},
+	}
+
+
+	Human = true
 	self.WBuff = nil
+	self.WTable = {}
+	self.Point = nil
+	self.Unit = nil
+	self.aaTimer = 0
+	self.aaTimeReady = 0
+	self.windUP = 0
+	self.baseAS = GetBaseAttackSpeed(myHero)
 
 	ConfigMenu.Champ:Menu("C", "Combo")
-	ConfigMenu.Champ.C:Boolean("Q", "Use Human Q in Combo", true)
-	ConfigMenu.Champ.C:Boolean("W", "Use Human W in Combo", true)
-	ConfigMenu.Champ.C:Boolean("SQ", "Use Spider Q in Combo", true)
-	ConfigMenu.Champ.C:Boolean("SW", "Use Spider W in Combo", true)
-	ConfigMenu.Champ.C:Boolean("S", "Use Logic R Combo", true)
+		ConfigMenu.Champ.C:SubMenu("H", "Human Combo")
+			ConfigMenu.Champ.C.H:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.C.H:Boolean("W", "Use W", true)
+			ConfigMenu.Champ.C.H:Boolean("E", "Use W", true)
+		ConfigMenu.Champ.C:SubMenu("S", "Spider Combo")
+			ConfigMenu.Champ.C.S:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.C.S:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.C:DropDown("F", "Choose ur form", 3, {"Human", "Spider", "Both"})		
 
 	ConfigMenu.Champ:Menu("JC", "JunglerClear")
-	ConfigMenu.Champ.JC:Boolean("Q", "Use Human Q in JunglerClear", true)
-	ConfigMenu.Champ.JC:Boolean("W", "Use Human W in JunglerClear", true)
-	ConfigMenu.Champ.JC:Boolean("SQ", "Use Spider Q in JunglerClear", true)
-	ConfigMenu.Champ.JC:Boolean("SW", "Use Spider W in JunglerClear", true)
-	ConfigMenu.Champ.JC:Boolean("S", "Use Logic R JunglerClear", true)
+		ConfigMenu.Champ.JC:SubMenu("H", "Human Combo")
+			ConfigMenu.Champ.JC.H:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.JC.H:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.JC:SubMenu("S", "Spider Combo")
+			ConfigMenu.Champ.JC.S:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.JC.S:Boolean("W", "Use W", true)
+
+	ConfigMenu.Champ:Menu("LC", "LaneClear")
+		ConfigMenu.Champ.LC:SubMenu("H", "Human Combo")
+			ConfigMenu.Champ.LC.H:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.LC.H:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.LC:SubMenu("S", "Spider Combo")
+			ConfigMenu.Champ.LC.S:Boolean("Q", "Use Q", true)
+			ConfigMenu.Champ.LC.S:Boolean("W", "Use W", true)
 
 	ConfigMenu.Champ:Menu("KS", "KillSteal")
-	ConfigMenu.Champ.KS:Boolean("Q", "Use Human Q in KillSteal", true)
-	ConfigMenu.Champ.KS:Boolean("W", "Use Human W in KillSteal", true)
-	ConfigMenu.Champ.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
-	ConfigMenu.Champ.KS:Boolean("SW", "Use Spider W in KillSteal", true)
+		ConfigMenu.Champ.KS:Boolean("Q", "Use Human Q in KillSteal", true)
+		ConfigMenu.Champ.KS:Boolean("W", "Use Human W in KillSteal", true)
+		ConfigMenu.Champ.KS:Boolean("SQ", "Use Spider Q in KillSteal", true)
+		ConfigMenu.Champ.KS:Boolean("SW", "Use Spider W in KillSteal", true)
 
-	ConfigMenu.Champ:Menu("M", "Misc")
-	ConfigMenu.Champ.M:DropDown("AL", "Autolvl", 1, {"Q-E-W", "E-Q-W", "Off"})
+	ConfigMenu.Champ:Menu("D", "Draws")
+		ConfigMenu.Champ.D:Boolean("F", "Draw different form CD?", true)
+		ConfigMenu.Champ.D:SubMenu("HD", "Human Draws")
+			ConfigMenu.Champ.D.HD:Boolean("Q", "Draw Q range", true)
+			ConfigMenu.Champ.D.HD:Boolean("W", "Draw W range", true)
+			ConfigMenu.Champ.D.HD:Boolean("E", "Draw E range", true)
+		ConfigMenu.Champ.D:SubMenu("SD", "Spider Draws")
+			ConfigMenu.Champ.D.SD:Boolean("Q", "Draw Q range", true)
+			ConfigMenu.Champ.D.SD:Boolean("E", "Draw E range", true)		
+		ConfigMenu.Champ.D:Slider("Q", "Quality", 155, 1, 255)
+		ConfigMenu.Champ.D:Boolean("DD", "Draw Total Dmg?", true)
+      	ConfigMenu.Champ.D:SubMenu("S", "Sprites")
+      		ConfigMenu.Champ.D.S:SubMenu("X", "X Pos")
+	      		ConfigMenu.Champ.D.S.X:Slider("QX", "PosX", 0, -1000, 1000)
+	      	ConfigMenu.Champ.D.S:SubMenu("Y", "Y Pos")
+	      		ConfigMenu.Champ.D.S.Y:Slider("QY", "PosX", 0, -1000, 1000)
+	      	ConfigMenu.Champ.D.S:Boolean("H", "Horizontal?", true)
+	      	ConfigMenu.Champ.D.S:Slider("T", "Move ur time", 0, -50, 50)
 
 	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
-	ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
-	--ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
-	ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 
-	ConfigMenu.Champ:Menu("E", "E Options")
+	--ConfigMenu.Champ:Menu("E", "E Options")
+		--ConfigMenu.Champ.E:SubMenu("SE", "Spider E")
 
 	ConfigMenu.Champ:Menu("HC", "HitChance")
-	ConfigMenu.Champ.HC:Slider("E", "E HitChance", 20, 1, 100)
+		ConfigMenu.Champ.HC:Slider("E", "E HitChance", 20, 1, 100)
+	self:Sprites()
+	self:Download()
 
-	DelayAction(function()
-		for _, enemies in pairs(GetEnemyHeroes()) do
-			ConfigMenu.Champ.E:Boolean("Pleb"..GetObjectName(enemies), "Use E on "..GetObjectName(enemies), true)
+	--[[DelayAction(function()
+
+		for k, v in pairs(self.SpellsTable) do
+			if ConfigMenu.Champ.E.SE[v.charName] then
+				local wow = {[0] = "Q", [1] = "W", [2] = "E", [3] = "R"}
+					ConfigMenu.Champ.E.SE[v.charName]:Boolean(v.charName, "Evade "..wow[v.slot], true)
+			end
 		end
-	end, 0.1)
+	end, 0.001)]]
 
 	OnTick(function(myHero) self:Tick(myHero) end)
-	OnProcessSpell(function(unit, spellProc) self:OnProc(unit, spellProc) end)
-	OnUpdateBuff(function(unit, buffproc) self:OnUpdate(unit, buffproc) end)
-	OnRemoveBuff(function(unit, buffproc) self:OnRemove(unit, buffproc) end)
+	OnDraw(function(myHero) self:Draw(myHero) end)
+	OnProcessSpellCast(function(unit, spell) self:OnCast(unit, spell) end)
+	--OnProcessSpellComplete(function(Object, spellProc) self:OnProcComplete(Object, spellProc) end)
+	--[[OnCreateObj(function(Object) self:OnCreate(Object) end)
+	OnDeleteObj(function(Object) self:OnDelete(Object) end)]]
+end
+--><
+
+function Elise:Sprites()
+	for i = 1,16,1 do
+		if FileExist(SPRITE_PATH..self.Sprite[i].FName) then
+        	self.Sprite[i].Sprite = CreateSpriteFromFile(self.Sprite[i].FName, 1)
+		end
+	end
 end
 
 function Elise:Tick(myHero)
-	if not IsDead(myHero) then
-		if ConfigMenu.Champ.Orb.C:Value() then
-			self:Combo(GetCurrentTarget())
-		end
-		if ConfigMenu.Champ.Orb.LC:Value() then
-			self:LaneClear()
-		end
-		self:KS()
+	local target = DickSelector:Targets(1000)
+	self:Checks()
+	if target and ConfigMenu.Champ.Orb.C:Value() then
+		self.Stuff["Combo"][ConfigMenu.Champ.C.F:Value()][Human](target)
 	end
-end
 
-function Elise:Combo(Unit)
-	if not Spider then
-		self:CastQ(Unit)
-		self:CastW(Unit)
-		self:CastE()
-		if not Spider and not self.HReady[0] and not self.HReady[1] and (self.HReady[2] or not self.HReady[2]) and self.SReady[0] and self.SReady[1] and Ready(3) then
-			CastSpell(3)
-		end
-	end
-	if not Spider and not Ready(3) then
-		local E = GetPrediction(Unit, self.HSpells[2])
-		self:CastQ(Unit)
-		self:CastW(Unit)
-		if self.HReady[2] and E and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and ValidTarget(Unit, self.HSpells[2].range) and not Spider then
-			CastSkillShot(2, E.castPos)
-		end
-	end
-	if Spider and ValidTarget(Unit, self.SSpells[0].range) then
-		if self.SReady[0] then
-			CastTargetSpell(Unit, 0)
-		end
-		if self.SReady[1] then
-			CastSpell(1)
-		end
-		if Ready(3) and not self.WBuff and self.HReady[0] and self.HReady[1] and not self.SReady[0] and not self.SReady[1] then
-			CastSpell(3)
+	if ConfigMenu.Champ.Orb.LC:Value() then
+		for k, v in ipairs(minionManager.objects) do
+			if ValidTarget(v, 1000) then
+				self.Stuff["LaneClear"][GetTeam(v)][Human](v)
+			end
 		end
 	end
 end
 
-function Elise:LaneClear()
-	for k, mobs in pairs(minionManager.objects) do
-		if GetTeam(mobs) == 300 and ValidTarget(mobs, self.HSpells[2].range) then
-			if Spider then
-				if self.SReady[1] then
-					CastSpell(1)
-				end
-				if self.SReady[0] then
-					CastTargetSpell(mobs, 0)
-				end
-			end
-			if not Spider then
-				self:CastQ(mobs)
-				self:CastW(mobs)
-				if not Spider and not self.HReady[0] and not self.HReady[1] then
-					CastSpell(3)
-				end
-			end
-		elseif GetTeam(mobs) == 200 and ValidTarget(mobs, self.HSpells[2].range) then
-			if Spider then
-				if self.SReady[1] then
-					CastSpell(1)
-				end
-				if self.SReady[0] then
-					CastTargetSpell(mobs, 0)
-				end
-			elseif not Spider then
-				self:CastQ(mobs)
-				self:CastW(mobs)
-				if not Spider and not self.HReady[0] and not self.HReady[1] then
-					CastSpell(3)
+
+function Elise:Draw(myHero)
+	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
+		if ConfigMenu.Champ.D.F:Value() then
+			for k = 0, 3, 1 do
+				if Human then
+					self.Dick2[k][self.Spells2[k].Ready](Unit)
+				else
+					self.Dick[k][self.Spells[k].Ready](Unit)
 				end
 			end
 		end
 	end
 end
+
+function Elise:Checks()
+	if GetCastName(myHero, 0) == "EliseHumanQ" then
+		Human = true
+	else
+		Human = false
+	end
+
+	if self.aaTimeReady ~= nil then
+		self.aaTimer = self.aaTimeReady - GetGameTimer()
+		if self.aaTimer <= 0 then
+			self.aaTimer = 0
+		end
+	end
+
+	for i = 0, 3, 1 do
+		self.Spells[i].Timer = self.Spells[i].CDT + self.Spells[i].CD(myHero) - GetGameTimer()
+		self.Spells2[i].Timer = self.Spells2[i].CDT + self.Spells2[i].CD(myHero) - GetGameTimer()
+		if self.Spells[i].Timer <= 0 then
+			self.Spells[i].Ready = true
+			self.Spells[i].Timer = 0
+		else
+			self.Spells[i].Ready = false
+		end
+
+		if self.Spells2[i].Timer <= 0 then
+			self.Spells2[i].Ready = true
+			self.Spells2[i].Timer = 0
+		else
+			self.Spells2[i].Ready = false
+		end
+
+		if GetCastLevel(myHero, i) == 0 then
+			self.Spells[i].Ready = false
+			self.Spells2[i].Ready = false
+		end
+	end
+end
+
+function Elise:OnCast(unit, spell)
+	if unit == myHero then
+		for i = 0, 3, 1 do
+			if Human then
+				if spell.name == self.Spells[i].Name then
+					self.Spells[i].CDT = GetGameTimer()
+				end
+			else
+				if spell.name == self.Spells2[i].Name then
+					self.Spells2[i].CDT = GetGameTimer()
+				end				
+			end
+		end
+	end
+end
+
+--[[function Elise:OnProcComplete(Object, spellProc)
+	local V1 = nil
+	local Unit = nil
+	if Object == myHero and not Human then
+		if spellProc.name:lower():find("attack") then
+			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
+			self.windUP = spellProc.windUpTime
+			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
+			--if ConfigMenu.Champ.Orb.LC:Value() then
+			self.Unit = spellProc.target
+			Unit = spellProc.target
+					if self.aaTimer ~= 0 then
+						V1 = Unit.pos + Vector(Vector(GetOrigin(myHero)) - Vector(Unit.pos)):normalized()*GetMoveSpeed(myHero)
+						self.Point = V1
+					else
+						V1 = Unit.pos + Vector(Vector(GetOrigin(myHero)) - Vector(Unit.pos)):normalized()*(GetMoveSpeed(myHero)*self.aaTimer)
+						self.Point = V1
+					end
+					self:Orb(false)
+					--MoveToXYZ(V1)
+					DelayAction(function() self:Orb(true) end, GetDistance(V1)/GetMoveSpeed(myHero))
+			--end
+		end
+	end
+end]]
 
 function Elise:KS()
-	for k, enemies in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and GetCurrentHP(enemies) <= Dmg[0](enemies) then
-			self:CastQ(enemies)
-		elseif ValidTarget(enemies, self.HSpells[1].range) and self.HReady[1] and GetCurrentHP(enemies) <= Dmg[1](enemies) then
-			self:CastW(enemies)
-		elseif ValidTarget(enemies, self.HSpells[0].range) and self.HReady[0] and self.HReady[1] and GetCurrentHP(enemies) <= Dmg[0](enemies) + Dmg[1](enemies) then
-			self:CastW(enemies)
-			DelayAction(function() self:CastW(enemies) end, GetDistance(enemies)/1200)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and not Spider and self.HReady[0] and self.HReady[1] and self.SReady[0] and Ready(3) and GetCurrentHP(enemies) <= Dmg[0](enemies) + Dmg[1](enemies) + Dmg[3](enemies) then
-			self:CastW(enemies)
-			self:CastQ(enemies)
-			DelayAction(function() CastSpell(3) end, 0.1)
-			DelayAction(function() self:CastSQ(enemies) end, 0.3)
-		elseif ValidTarget(enemies, self.SSpells[0].range) and Spider and self.SReady[0] and GetCurrentHP(enemies) <= Dmg[3](enemies) then
-			self:CastSQ(enemies)
+	for k, v in ipairs(GetEnemyHeroes()) do
+		if Human then
+			if GetCurrentHP(v) <= Dmg[0](v) then
+				self:CastQ(v)
+			end
+
+			if GetCurrentHP(v) <= Dmg[0](v) + Dmg[1](v) then
+				self:CastQ(v)
+				self:CastW(v)
+			end
+
+			if GetCurrentHP(v) <= Dmg[0](v) + Dmg[1](v) + Dmg[2](v) and self.Spells2[3].Ready then
+				self:CastQ(v)
+				self:CastW(v)
+				DelayAction(function() CastSpell(3) end, 0.1)
+				DelayAction(function() self:CastSQ(v) end, 0.2)
+			end
+		else
+			if GetCurrentHP(v) <= Dmg[0](v) then
+				self:CastSQ(v)
+			end
 		end
 	end
 end
 
+--[[function Elise:Orb(Boolean)
+	if _G.IOW then
+		IOW.attacksEnabled = Boolean
+		IOW.movementEnabled = Boolean
+	elseif _G.DAC_Loaded then
+		DAC:AttacksEnabled(Boolean)
+		DAC:movementEnabled(Boolean)
+	elseif _G.AutoCarry_Loaded then
+		DACR.attacksEnabled(Boolean)
+		DACR.movementEnabled(Boolean)
+	elseif _G.PW then
+		PW.attacksEnabled = Boolean
+		PW.movementEnabled = Boolean
+	elseif _G.GoSWalkLoaded then
+		GoSWalk:EnableAttack(Boolean)
+		GoSWalk:EnableMovement(Boolean)
+	end
+end]]
+
 function Elise:CastQ(Unit)
-	if self.HReady[0] and ValidTarget(Unit, self.HSpells[0].range) then
+	if not Human then return end
+	if ValidTarget(Unit, 626) and self.Spells[0].Ready then
 		CastTargetSpell(Unit, 0)
 	end
 end
 
 function Elise:CastW(Unit)
-	local W = GetPrediction(Unit, self.HSpells[1])
-	if self.HReady[1] and ValidTarget(Unit, self.HSpells[1].range) then
-		CastSkillShot(1, W.castPos)
+	if not Human then return end
+	if ValidTarget(Unit, 950) and self.Spells[1].Ready then
+		CastSkillShot(1, GetOrigin(Unit))
 	end
 end
 
-function Elise:CastE()
-	if not Spider then
-		for k, enemies in pairs(GetEnemyHeroes()) do
-			if ValidTarget(enemies, self.HSpells[2].range) then
-				local E = GetPrediction(enemies, self.HSpells[2])
-				if ConfigMenu.Champ.E["Pleb"..GetObjectName(enemies)] and self.HReady[2] and E and E.hitChance >= (ConfigMenu.Champ.HC.E:Value())/100 and not E:mCollision(1) then
-					CastSkillShot(2, E.castPos)
-				end
-			end
-		end
+function Elise:CastE(Unit)
+	if not Human then return end
+	local EPred = GetPrediction(Unit, self.Spells[2])
+	if ValidTarget(Unit, self.Spells[2].range) and self.Spells[2].Ready and EPred and EPred.hitChance >= (ConfigMenu.Champ.HC.E:Value()/100) and not EPred:mCollision(1) then
+		CastSkillShot(2, EPred.castPos)
 	end
 end
 
---[[function Elise:CastSE()
-
-end]]
-
-function Elise:OnProc(unit, spellProc)
-	if unit == myHero then
-		if spellProc.name == "EliseHumanQ" then
-			self.HReady[0] = false
-			DelayAction(function() self.HReady[0] = true end, (6*100-GetCDR(myHero))/100)
-		elseif spellProc.name == "EliseHumanW" then
-			self.HReady[1] = false
-			DelayAction(function() self.HReady[1] = true end, (12*100-GetCDR(myHero))/100)
-		elseif spellProc.name == "EliseHumanE" then
-			self.HReady[2] = false
-			DelayAction(function() self.HReady[2] = true end, (15-1*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
-		elseif spellProc.name == "EliseSpiderQCast" then
-			self.SReady[0] = false
-			DelayAction(function() self.SReady[0] = true end, (6*100-GetCDR(myHero))/100)
-		elseif spellProc.name == "EliseSpiderW" then
-			self.SReady[1] = false
-			DelayAction(function() self.SReady[1] = true end, (12*100-GetCDR(myHero))/100)
-		elseif spellProc.name == "EliseSpiderEInitial" then
-			self.SReady[2] = false
-			DelayAction(function() self.SReady[2] = true end, (27-3*GetCastLevel(myHero, 2)*100-GetCDR(myHero))*100)
-		end
-	end
+function Elise:CastSQ(Unit)
+	if Human then return end
+	if ValidTarget(Unit, 425) and self.Spells2[0].Ready then
+		CastTargetSpell(Unit, 0)
+	end	
 end
 
-function Elise:OnUpdate(unit, buffproc)
-	if unit == myHero then
-		if buffproc.Name == "EliseR" then
-			Spider = true
-		end
-		if buffproc.Name == "EliseSpiderW" then
-			self.WBuff = true
-		end
-	end
+function Elise:CastSW(Unit)
+	if Human then return end
+	if ValidTarget(Unit, 425) and self.Spells2[1].Ready then
+		CastSpell(1)
+	end	
 end
 
-function Elise:OnRemove(unit, buffproc)
-	if unit == myHero then
-		if buffproc.Name == "EliseR" then
-			Spider = false
+function Elise:Download()
+	for i = 1,16,1 do
+		if FileExist(SPRITE_PATH..self.Sprite[i].FName) then self.abc = true return end
+		if not DirExists(SPRITE_PATH.."Elise") then
+			CreateDir(SPRITE_PATH.."Elise")
 		end
-		if buffproc.Name == "EliseSpiderW" then
-			self.WBuff = false
+
+		if DirExists(SPRITE_PATH.."Elise") then
+			DownloadFileAsync("https://raw.githubusercontent.com/Hanndel/GoS/master/Sprites/Elise/"..self.Sprite[i].Web, SPRITE_PATH .. "Elise\\"..self.Sprite[i].Web, function() PrintChat("Downloading "..self.Sprite[i].Web.." F6x2!") return end)
 		end
 	end
 end
@@ -1785,6 +2415,7 @@ function Irelia:__init()
 	self.aaTimeReady = 0
 	self.windUP = 0
 	self.baseAS = GetBaseAttackSpeed(myHero)
+	self.Target = nil
 
 	ConfigMenu.Champ:Menu("C", "Combo")
 		ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
@@ -1846,6 +2477,7 @@ function Irelia:__init()
 		ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
 		ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
 		ConfigMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("Q", "LastHit Q", string.byte("T"), false)
 		--ConfigMenu.Champ.Orb:KeyBinding("F", "Flee", string.byte("T"), false)
 
 	OnTick(function(myHero) self:Tick(myHero) end)
@@ -1859,6 +2491,7 @@ end
 
 function Irelia:Tick(myHero)
 	self.WTimer = self.WEndBuff - GetGameTimer()
+	self.Target = DickSelector:Targets(1000)
 
 	if self.aaTimeReady ~= nil then
 		self.aaTimer = self.aaTimeReady - GetGameTimer()
@@ -1867,18 +2500,22 @@ function Irelia:Tick(myHero)
 		end
 	end
 
-	if CustomTarget ~= nil then
+	if self.Target ~= nil then
 		if ConfigMenu.Champ.Orb.C:Value() then
-			self:Combo(CustomTarget)
+			self:Combo(self.Target)
 		end
 
 		if ConfigMenu.Champ.Orb.H:Value() then
-			self:Harass(CustomTarget)
+			self:Harass(self.Target)
 		end
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
 		self:LaneClear()
+	end
+
+	if ConfigMenu.Champ.Orb.LH:Value() then
+		self:LastHit()
 	end
 end
 
@@ -1958,7 +2595,6 @@ function Irelia:Gapcloser(Unit)
 end
 
 function Irelia:Combo(Unit)
-	--print"lel"
 	self:Gapcloser(Unit)
 	if not self:Gapcloser(Unit) and ValidTarget(Unit, self.Spells[0].range) and Ready(0) and ConfigMenu.Champ.C.Q:Value() then
 		CastTargetSpell(Unit, 0)
@@ -2004,12 +2640,18 @@ function Irelia:Items(Unit)
 		CastSpell(GetItemSlot(myHero, 3142))
 	end
 end
-
+--><
 function Irelia:LastHit()
 	for k, v in ipairs(minionManager.objects) do
-		if ValidTarget(v, 650) and self.aaTimer ~= 0 then
-			if GetCurrentHP(v) - GetDamagePrediction(v, self.aaTimer*1000) == 0 then
-				CastTargetSpell(v, 0)
+		if ValidTarget(v, 650) and Ready(0) then
+			if GetDistance(v + GetHitBox(v)) > GetRange(myHero) + GetHitBox(myHero) then
+				if GetCurrentHP(v) - GetHealthPrediction(v, (GetDistance(v + GetHitBox(v)) - GetRange(myHero) + GetHitBox(myHero))/GetMoveSpeed(myHero) + self.aaTimer) < 1 then
+					CastTargetSpell(v, 0)
+				end
+			else
+				if GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer) < 1 then
+					CastTargetSpell(v, 0)
+				end
 			end
 		end
 	end
@@ -2084,24 +2726,24 @@ function Irelia:Ks()
 end
 
 function Irelia:OnProcComplete(Object, spellProc)
-	if Object == myHero and CustomTarget ~= nil then
+	if Object == myHero then
 		if spellProc.name:lower():find("attack") then
 			ASDelay = 1/(self.baseAS*GetAttackSpeed(myHero))
 			self.windUP = spellProc.windUpTime
 			self.aaTimeReady = ASDelay + GetGameTimer() - self.windUP/1000
-			if ConfigMenu.Champ.Orb.C:Value() then
-				if Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.C.E:Value() == 1 then
-					CastTargetSpell(CustomTarget, 2)
-				elseif Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.C.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
-					CastTargetSpell(CustomTarget, 2)
+			if ConfigMenu.Champ.Orb.C:Value() and self.Target ~= nil then
+				if Ready(2) and ValidTarget(self.Target, 425) and ConfigMenu.Champ.C.E:Value() == 1 then
+					CastTargetSpell(self.Target, 2)
+				elseif Ready(2) and ValidTarget(self.Target, 425) and ConfigMenu.Champ.C.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(self.Target) then
+					CastTargetSpell(self.Target, 2)
 				end
 			end
 		
-			if ConfigMenu.Champ.Orb.H:Value() then
-				if Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.H.E:Value() == 1 then
-					CastTargetSpell(CustomTarget, 2)
-				elseif Ready(2) and ValidTarget(CustomTarget, 425) and ConfigMenu.Champ.H.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(CustomTarget) then
-					CastTargetSpell(CustomTarget, 2)
+			if ConfigMenu.Champ.Orb.H:Value() and self.Target ~= nil then
+				if Ready(2) and ValidTarget(self.Target, 425) and ConfigMenu.Champ.H.E:Value() == 1 then
+					CastTargetSpell(self.Target, 2)
+				elseif Ready(2) and ValidTarget(self.Target, 425) and ConfigMenu.Champ.H.E:Value() == 2 and GetPercentHP(myHero) < GetPercentHP(self.Target) then
+					CastTargetSpell(self.Target, 2)
 				end
 			end
 
@@ -2181,7 +2823,6 @@ function Nidalee:__init()
 
 	self.Color = ARGB(255,255,255,255)
 	Human = true
-	self.Cat = false
 	self.Recalling = false
 	self.QCDmg = {[1] = 4, [2] = 20, [3] = 50, [4] = 90}
 	self.QCDmgM = {[1] = 1, [2] = 1.25, [3] = 1.5, [4] = 1.75}
@@ -2190,27 +2831,25 @@ function Nidalee:__init()
 	self.aaTimeReady = 0
 	self.windUP = 0
 	self.baseAS = GetBaseAttackSpeed(myHero)
-	self.Pos = {pos = nil, pos2 = nil, pos3 = nil, time = 0, time2 = 0}
 	self.abc = false
-	self.asd = {[1] = false, [2] = false, [3] = false, [4] = false, [5] = false, [6] = false}
 
 	self.Sprite = 
 	{
-		[1] 	= 	{FName = "Nidalee\\Q_H.png", 		Sprite = nil,		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_H.png"},
+		[1] 	= 	{FName = "Nidalee\\Q_H.png", 		Sprite = nil,		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_H.png"},
 		[2] 	= 	{FName = "Nidalee\\W_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "W_H.png"},
 		[3] 	= 	{FName = "Nidalee\\E_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2		else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "E_H.png"},
 		[4] 	= 	{FName = "Nidalee\\R_H.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "R_H.png"},
-		[5] 	= 	{FName = "Nidalee\\Q_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_H_CD.png"},
+		[5] 	= 	{FName = "Nidalee\\Q_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_H_CD.png"},
 		[6] 	= 	{FName = "Nidalee\\W_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "W_H_CD.png"},
 		[7] 	= 	{FName = "Nidalee\\E_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2	 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "E_H_CD.png"},
 		[8] 	= 	{FName = "Nidalee\\R_H_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "R_H_CD.png"},
-		[9] 	= 	{FName = "Nidalee\\Q_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_C.png"},
+		[9] 	= 	{FName = "Nidalee\\Q_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_C.png"},
 		[10] 	= 	{FName = "Nidalee\\W_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75 	else return GetResolution().x/2-127	end end,		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "W_C.png"},
 		[11] 	= 	{FName = "Nidalee\\E_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2	 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "E_C.png"},
 		[12] 	= 	{FName = "Nidalee\\R_C.png", 		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "R_C.png"},
-		[13] 	= 	{FName = "Nidalee\\Q_C_CD.png",		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_C_CD.png"},
+		[13] 	= 	{FName = "Nidalee\\Q_C_CD.png",		Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-150 else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+50  end end, Web = "Q_C_CD.png"},
 		[14] 	= 	{FName = "Nidalee\\W_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2-75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+125 end end, Web = "W_C_CD.png"},
-		[15] 	= 	{FName = "Nidalee\\E_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2 		else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "E_C_CD.png"},
+		[15] 	= 	{FName = "Nidalee\\E_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+200 end end, Web = "E_C_CD.png"},
 		[16] 	= 	{FName = "Nidalee\\R_C_CD.png", 	Sprite = nil, 		PosX = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().x/2+75 	else return GetResolution().x/2-127	end end, 		PosY = function(Unit) if ConfigMenu.Champ.D.S.H:Value() then return GetResolution().y/2+250 else return GetResolution().y/2+275 end end, Web = "R_C_CD.png"},
 	}
 
@@ -2440,9 +3079,350 @@ function Nidalee:__init()
 		[2] = function(Unit) return CalcDamage(myHero,Unit, 0, 10+60*GetCastLevel(myHero, 3) + GetBonusAP(myHero)*0.45) 	end,
 	}
 
+	self.Stuff =
+	{
+		["Combo"] =
+		{
+			[1] =
+			{
+				[true] = 	function()			
+								if ConfigMenu.Champ.C.H.Q:Value() and self.Target then
+									self:CastQH(self.Target)
+								end
+								if ConfigMenu.Champ.C.H.W:Value() and self.Target then
+									self:CastWH(self.Target)
+								end
+							end,
+
+				[false] = 	function()
+								if not self.Spells2[3].Ready then
+									if ConfigMenu.Champ.C.C.Q:Value() and self.Target then
+										self:CastQC(self.Target)
+									end
+
+									if ConfigMenu.Champ.C.C.W:Value() and self.Target then
+										self:CastWC(self.Target)
+									end
+
+									if ConfigMenu.Champ.C.C.E:Value() and self.Target then
+										self:CastEC(self.Target)
+									end
+								else
+									self:CastRC(self.Target)
+								end
+							end,
+			},
+
+			[2] =
+			{
+				[true] = 	function()
+								if self.Spells[3].Ready and self.Target then
+									self:CastRH(self.Target)
+								else
+									if ConfigMenu.Champ.C.H.Q:Value() and self.Target then
+										self:CastQH(self.Target)
+									end
+
+									if ConfigMenu.Champ.C.H.W:Value() and self.Target then
+										self:CastWH(self.Target)
+									end
+								end
+							end,
+
+				[false] = 	function()
+								if ConfigMenu.Champ.C.C.Q:Value() and self.Target then
+									self:CastQC(self.Target)
+								end
+								if ConfigMenu.Champ.C.C.W:Value() and self.Target then
+									self:CastWC(self.Target)
+								end
+
+								if ConfigMenu.Champ.C.C.E:Value() and self.Target then
+									self:CastEC(self.Target)
+								end
+							end,
+
+			},
+
+			[3] =
+			{
+				[true] = 	function()
+								if ConfigMenu.Champ.C.H.Q:Value() and self.Target then
+									self:CastQH(self.Target)
+								end
+
+								if ConfigMenu.Champ.C.H.W:Value() and self.Target then
+									self:CastWH(self.Target)
+								end
+
+								if not self.Spells[0].Ready and self.Spells[3].Ready and self.Target then
+									self:CastRH(self.Target)
+								end
+							end,
+
+				[false] = 	function()
+								if ConfigMenu.Champ.C.C.Q:Value() and self.Target then
+									self:CastQC(self.Target)
+								end
+
+								if ConfigMenu.Champ.C.C.W:Value() and self.Target then
+									self:CastWC(self.Target)
+								end
+
+								if ConfigMenu.Champ.C.C.E:Value() and self.Target then
+									self:CastEC(self.Target)
+								end
+
+								if self.Spells2[3].Ready and self.Spells[0].Ready and self.Target then
+									self:CastRC(self.Target)
+								end
+							end,	
+			},		
+		},
+
+		["Harass"] =
+		{
+			[true] = 	function()
+							if ConfigMenu.Champ.H.Q:Value() and self.Spells[0].Ready and self.Target then
+								self:CastQH(self.Target)
+							end
+						end,
+
+			[false] = 	function()
+							if ConfigMenu.Champ.H.R:Value() and self.Spells2[3].Ready and self.Target then
+								self:CastRC(self.Target)
+							end
+						end
+		},
+
+		["LastHit"] =
+		{
+			[MINION_ENEMY] =
+			{
+				[1] = 
+				{
+					[true] = 	function(Unit)
+									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
+										self:CastQH(Unit)
+									end
+								end,
+
+					[false] = 	function(Unit)
+									if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
+										self:CastRC(Unit)
+									end
+								end
+				},
+
+				[2] = 
+				{
+					[true] = 	function(Unit)
+									if self.Spells[3].Ready and v.valid then
+										self:CastRH(Unit)
+									end
+								end,
+
+					[false] = 	function(Unit)
+									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
+										self:CastQC(Unit)
+									end
+								end
+				},
+
+				[3] = 
+				{
+					[true] = 	function(Unit)
+									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
+										self:CastQH(Unit)
+									end
+
+									if not self.Spells[0].Ready and self.Spells[3].Ready and Unit.valid then
+										self:CastRC(Unit)
+									end
+								end,
+
+					[false] = 	function(Unit)
+									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
+										self:CastQC(Unit)
+									end
+
+									if not self.Spells2[0].Ready and self.Spells[0].Ready and Unit.valid then
+										self:CastRC(Unit)
+									end
+								end
+				},
+			},
+		},
+
+		["LaneClear"] =
+		{
+			[MINION_ENEMY] = 
+			{
+				[1] =
+				{
+					[true] = 	function(Unit)
+									if ConfigMenu.Champ.F.LC.H.Q:Value() then
+										self:CastQH(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+								end,
+
+					[false] =	function(Unit)
+									self:CastRC(Unit)
+								end
+				},
+
+				[2] =
+				{
+					[true] = 	function(Unit)
+									self:CastRH(Unit)
+								end,
+
+					[false] =	function(Unit)
+									if ConfigMenu.Champ.F.LC.C.Q:Value() then
+										self:CastQC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+								end
+				},
+
+				[3] =
+				{
+					[true] = 	function(Unit)
+									if ConfigMenu.Champ.F.LC.H.Q:Value() then
+										self:CastQH(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+
+									if not self.Spells[0].Ready and not self.Spells[1].Ready then
+										self:CastRH(Unit)
+									end
+								end,
+
+					[false] =	function(Unit)
+									if ConfigMenu.Champ.F.LC.C.Q:Value() then
+										self:CastQC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.LC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+
+									if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
+										self:CastRC(Unit)
+									end
+								end
+				},
+			},
+
+			[MINION_JUNGLE] = 
+			{
+				[1] =
+				{
+					[true] = 	function(Unit)
+									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+
+									if not self.Spells[0].Ready and self.Spells[3].Ready then
+										self:CastRH(Unit)
+									end
+								end,
+
+					[false] =	function(Unit)
+									if ConfigMenu.Champ.F.JC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.JC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+
+									if self.Spells[0].Ready and self.Spells2[3].Ready then
+										self:CastRC(Unit)
+									end
+								end
+				},
+
+				[2] =
+				{
+					[true] = 	function(Unit)
+									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+
+									if not self.Spells[0].Ready and self.Spells[3].Ready then
+										self:CastRH(Unit)
+									end
+								end,
+
+					[false] =	function(Unit)
+									if ConfigMenu.Champ.F.JC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.JC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+
+									if self.Spells[0].Ready and self.Spells2[3].Ready then
+										self:CastRC(Unit)
+									end
+								end
+				},
+
+				[3] =
+				{
+					[true] = 	function(Unit)
+									if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+										CastSkillShot(1, GetOrigin(Unit))
+									end
+
+									if not self.Spells[0].Ready and self.Spells[3].Ready then
+										self:CastRH(Unit)
+									end
+								end,
+
+					[false] =	function(Unit)
+									if ConfigMenu.Champ.F.JC.C.W:Value() then
+										self:CastWC(Unit)
+									end
+
+									if ConfigMenu.Champ.F.JC.C.E:Value() then
+										self:CastEC(Unit)
+									end
+
+									if self.Spells[0].Ready and self.Spells2[3].Ready then
+										self:CastRC(Unit)
+									end
+								end
+				},	
+			},
+		},
+	}
+
+
 	self.DebuffTable = {[5] = true, [8] = true, [11] = true, [21] = true, [22] = true, [24] = true, [28] = true, [29] = true, [30] = true}
 	self.Fucked = {}
 	self.Hunted = {}
+	self.Target = nil
 
 	ConfigMenu.Champ:Menu("C", "Combo")
 		ConfigMenu.Champ.C:SubMenu("H", "Human Combo")
@@ -2476,7 +3456,7 @@ function Nidalee:__init()
 				ConfigMenu.Champ.F.LC.C:Boolean("Q", "Use Q", true)
 				ConfigMenu.Champ.F.LC.C:Boolean("W", "Use W", true)
 				ConfigMenu.Champ.F.LC.C:Boolean("E", "Use E", true)
-			ConfigMenu.Champ.F.LC:Slider("MLC", "Minimun mana to JunglerClear", 20, 1, 100)
+			--ConfigMenu.Champ.F.LC:Slider("MLC", "Minimun mana to JunglerClear", 20, 1, 100)
 		ConfigMenu.Champ.F.LC:DropDown("F", "Choose ur form", 3, {"Human", "Cat", "Both"})
 
 		ConfigMenu.Champ.F:SubMenu("JC", "JunglerClear")
@@ -2487,7 +3467,7 @@ function Nidalee:__init()
 				ConfigMenu.Champ.F.JC.C:Boolean("Q", "Use Q", true)
 				ConfigMenu.Champ.F.JC.C:Boolean("W", "Use W", true)
 				ConfigMenu.Champ.F.JC.C:Boolean("E", "Use E", true)
-			ConfigMenu.Champ.F.JC:Slider("MJC", "Minimun mana to JunglerClear", 20, 1, 100)
+			--ConfigMenu.Champ.F.JC:Slider("MJC", "Minimun mana to JunglerClear", 20, 1, 100)
 
 
 	ConfigMenu.Champ:Menu("HE", "Heals")
@@ -2540,7 +3520,6 @@ function Nidalee:__init()
 	OnRemoveBuff(function(unit, buff) self:OnRemove(unit, buff) end)
 	self:Download()
 	self:Sprites()
-
 end
 
 function Nidalee:Sprites()
@@ -2552,18 +3531,6 @@ function Nidalee:Sprites()
 end
 
 function Nidalee:Draw(myHero)
-	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
-		if ConfigMenu.Champ.D.F:Value() then
-			for k = 0, 3, 1 do
-				if Human then
-					self.Dick2[k][self.Spells2[k].Ready](Unit)
-				else
-					self.Dick[k][self.Spells[k].Ready](Unit)
-				end
-			end
-		end
-	end
-
 	if not IsDead(myHero) then
 		if self.Spells[0].Ready and ConfigMenu.Champ.D.HD.Q:Value() then
 			DrawCircle(GetOrigin(myHero), self.Spells[0].range, 1, ConfigMenu.Champ.D.Q:Value(), GoS.Pink)
@@ -2575,29 +3542,6 @@ function Nidalee:Draw(myHero)
 
 		if self.Spells[2].Ready and ConfigMenu.Champ.D.HD.E:Value() then
 			DrawCircle(GetOrigin(myHero), self.Spells[2].range, 1, ConfigMenu.Champ.D.Q:Value(), GoS.Black)
-		end
-
-		if self.Spells[2].Ready and ConfigMenu.Champ.D.HD.E:Value() then
-			local asd = 5 + 40*GetCastLevel(myHero, 2) + GetBonusAP(myHero)/2
-			local HpBar = GetHPBarPos(myHero)
-			local What = (asd*100)/GetMaxHP(myHero)
-			local hp = (GetCurrentHP(myHero)*100/GetMaxHP(myHero))
-			if GetMaxHP(myHero) - GetCurrentHP(myHero) ~= 0 then
-				if GetMaxHP(myHero) - GetCurrentHP(myHero) < asd then
-					FillRect(HpBar.x+hp+What*1.03,HpBar.y,What*1.03,5,GoS.Red)
-				end
-			end
-
-			for k, v in ipairs(GetAllyHeroes()) do
-				local HpBar = GetHPBarPos(v)
-				local What = (asd*100)/GetMaxHP(v)
-				local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
-				if GetMaxHP(v) - GetCurrentHP(v) ~= 0 then
-					if GetMaxHP(v) - GetCurrentHP(v) < asd then
-						FillRect(HpBar.x+hp+What*1.03,HpBar.y,What*1.03,5,GoS.Red)
-					end
-				end
-			end
 		end
 
 		if ConfigMenu.Champ.D.DD:Value() then
@@ -2615,6 +3559,17 @@ function Nidalee:Draw(myHero)
 				end
 			end
 		end
+		if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
+			if ConfigMenu.Champ.D.F:Value() then
+				for k = 0, 3, 1 do
+					if Human then
+						self.Dick2[k][self.Spells2[k].Ready](Unit)
+					else
+						self.Dick[k][self.Spells[k].Ready](Unit)
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -2622,22 +3577,27 @@ function Nidalee:Tick(myHero)
 	self:Checks()
 	self:CastEH()
 	self:Walljump()
-
-	if ConfigMenu.Champ.Orb.C:Value() and CustomTarget ~= nil then
-		self:Combo(CustomTarget)
+	self.Target = DickSelector:Targets(1500)
+	
+	if ConfigMenu.Champ.Orb.C:Value() then
+		self.Stuff["Combo"][ConfigMenu.Champ.C.F:Value()][Human]()
 	end
 
-	if ConfigMenu.Champ.Orb.H:Value() and CustomTarget ~= nil then
-		self:Harass(CustomTarget)
-	end
-
-	if ConfigMenu.Champ.Orb.LH:Value() then
-		self:LastHit()
+	if ConfigMenu.Champ.Orb.H:Value() then
+		self.Stuff["Harass"][ConfigMenu.Champ.C.F:Value()][Human]()
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
-		self:LaneClear()
+		for k, v in ipairs(minionManager.objects) do
+			self.Stuff["LaneClear"][GetTeam(v)][ConfigMenu.Champ.F.LC.F:Value()][Human](v)
+		end
 	end
+
+	if ConfigMenu.Champ.Orb.LH:Value() then
+		for k, v in ipairs(minionManager.objects) do
+			self.Stuff["LastHit"][GetTeam(v)][ConfigMenu.Champ.F.LH.F:Value()][Human](v)
+		end	
+	end	
 
 	if ConfigMenu.Champ.Orb.F:Value() then
 		self:Flee()
@@ -2645,6 +3605,7 @@ function Nidalee:Tick(myHero)
 end
 
 function Nidalee:Flee()
+	local LastTick = 0
 	if Human then
 		if self.Spells[3].Ready and ConfigMenu.Champ.S.R:Value() then
 			CastSpell(3)
@@ -2653,20 +3614,24 @@ function Nidalee:Flee()
 		if self.Spells2[1].Ready and ConfigMenu.Champ.S.W:Value() then
 			CastSkillShot(1, GetMousePos())
 		end
+	end
+
+	if LastTick + 300 < GetGameTimer() then
 		MoveToXYZ(GetMousePos())
 	end
 end
 
 function Nidalee:Walljump()
+	local Pos = {pos = nil, pos2 = nil, pos3 = nil, time = 0, time2 = 0}
 	local V1 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*375
 	local V2 = GetMousePos() + Vector(Vector(GetOrigin(myHero)) - Vector(GetMousePos())):normalized()*187
 	if ConfigMenu.Champ.Orb.WJ:Value() then
 		if not MapPosition:inWall(GetMousePos()) and not MapPosition:inWall(V1) and MapPosition:inWall(V2) then
-			self.Pos[1] = GetMousePos()
-			self.Pos[2] = V1
-			self.Pos[3] = GetOrigin(myHero)
-			DelayAction(function() self.Pos[4] = GetDistance(self.Pos[1])/GetMoveSpeed(myHero) end, 0.1)
-			self.Pos[5] = self.Spells2[3].Timer
+			Pos[1] = GetMousePos()
+			Pos[2] = V1
+			Pos[3] = GetOrigin(myHero)
+			DelayAction(function() Pos[4] = GetDistance(Pos[1])/GetMoveSpeed(myHero) end, 0.1)
+			Pos[5] = self.Spells2[3].Timer
 			MoveToXYZ(V1)
 		end
 --><
@@ -2674,121 +3639,21 @@ function Nidalee:Walljump()
 			if self.Spells[3].Ready then
 				CastSpell(3)
 			else
-				if self.Pos[4] ~= nil then
-					if self.Pos[5] < self.Pos[4] and (self.Pos[5] - self.Pos[4]) > 1 then
-						DelayAction(function() CastSpell(3) end, self.Pos[5])
+				if Pos[4] ~= nil then
+					if Pos[5] < Pos[4] and (Pos[5] - Pos[4]) > 1 then
+						DelayAction(function() CastSpell(3) end, Pos[5])
 					else
-						DelayAction(function() CastSpell(3) end, self.Pos[5])
+						DelayAction(function() CastSpell(3) end, Pos[5])
 					end
 				end
 			end
 		end
 	end
 
-	if not Human and self.Pos[1] ~= nil and self.Pos[2] ~= nil then
-		if GetDistance(self.Pos[2]) < 50 and self.Spells[1].Ready then
-			CastSkillShot(1, self.Pos[1])
-			DelayAction(function() HoldPosition() self.Pos[1] = nil self.Pos[2] = nil self.Pos[4] = 0 end, 0.1)
-		end
-	end
-end
-
-function Nidalee:Combo(Unit)
-	if ConfigMenu.Champ.C.F:Value() == 1 then
-		if Human then
-			if ConfigMenu.Champ.C.H.Q:Value() then
-				self:CastQH(Unit)
-			end
-			if ConfigMenu.Champ.C.H.W:Value() then
-				self:CastWH(Unit)
-			end
-		else
-			if not self.Spells2[3].Ready then
-				if ConfigMenu.Champ.C.C.Q:Value() then
-					self:CastQC(Unit)
-				end
-
-				if ConfigMenu.Champ.C.C.W:Value() then
-					self:CastWC(Unit)
-				end
-
-				if ConfigMenu.Champ.C.C.E:Value() then
-					self:CastEC(Unit)
-				end
-			else
-				self:CastRC(Unit)
-			end
-		end
-	elseif ConfigMenu.Champ.C.F:Value() == 2 then
-		if Human then
-			if self.Spells[3].Ready then
-				self:CastRH(Unit)
-			else
-				if ConfigMenu.Champ.C.H.Q:Value() then
-					self:CastQH(Unit)
-				end
-
-				if ConfigMenu.Champ.C.H.W:Value() then
-					self:CastWH(Unit)
-				end
-			end
-		else
-			if ConfigMenu.Champ.C.C.Q:Value() then
-				self:CastQC(Unit)
-			end
-			if ConfigMenu.Champ.C.C.W:Value() then
-				self:CastWC(Unit)
-			end
-
-			if ConfigMenu.Champ.C.C.E:Value() then
-				self:CastEC(Unit)
-			end
-		end
-	elseif ConfigMenu.Champ.C.F:Value() == 3 then
-		if Human then
-			if ConfigMenu.Champ.C.H.Q:Value() then
-				self:CastQH(Unit)
-			end
-
-			if ConfigMenu.Champ.C.H.W:Value() then
-				self:CastWH(Unit)
-			end
-
-			if not self.Spells[0].Ready and self.Spells[3].Ready then
-				self:CastRH(Unit)
-			end
-		else
-			if ConfigMenu.Champ.C.C.Q:Value() then
-				self:CastQC(Unit)
-			end
-
-			if ConfigMenu.Champ.C.C.W:Value() then
-				self:CastWC(Unit)
-			end
-
-			if ConfigMenu.Champ.C.C.E:Value() then
-				self:CastEC(Unit)
-			end
-
-			if self.Spells2[3].Ready and self.Spells[0].Ready then
-				self:CastRC(Unit)
-			end
-		end
-	end
-
-	if Human then
-		self:CastWH(Unit)
-	end
-end
-
-function Nidalee:Harass(Unit)
-	if not Human then
-		if ConfigMenu.Champ.H.R:Value() and self.Spells2[3].Ready then
-			self:CastRC(Unit)
-		end
-	else
-		if ConfigMenu.Champ.H.Q:Value() and self.Spells[0].Ready then
-			self:CastQH(Unit)
+	if not Human and Pos[1] ~= nil and Pos[2] ~= nil then
+		if GetDistance(Pos[2]) < 50 and self.Spells[1].Ready then
+			CastSkillShot(1, Pos[1])
+			DelayAction(function() HoldPosition() Pos[1] = nil Pos[2] = nil Pos[4] = 0 end, 0.1)
 		end
 	end
 end
@@ -2817,151 +3682,11 @@ function Nidalee:TotalDmg(Unit)
 	return TDmg
 end
 
-function Nidalee:LastHit()
-	for k, v in ipairs(minionManager.objects) do
-		if GetTeam(v) == 200 then
-			if ConfigMenu.Champ.F.LH.F:Value() == 1 then
-				if Human then
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
-						self:CastQH(v)
-					end
-				else
-					if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
-						self:CastRC(v)
-					end
-				end
-			elseif ConfigMenu.Champ.F.LH.F:Value() == 2 then
-				if Human then
-					if self.Spells[3].Ready and v.valid then
-						self:CastRH(v)
-					end
-				else
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and v.valid then
-						self:CastQC(v)
-					end
-				end
-			elseif ConfigMenu.Champ.F.LH.F:Value() == 3 then
-				if Human then
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and v.valid then
-						self:CastQH(v)
-					end
-
-					if not self.Spells[0].Ready and self.Spells[3].Ready and v.valid then
-						self:CastRC(v)
-					end
-				else
-					if (GetCurrentHP(v) - GetHealthPrediction(v, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and v.valid then
-						self:CastQC(v)
-					end
-
-					if not self.Spells2[0].Ready and self.Spells[0].Ready and v.valid then
-						self:CastRC(v)
-					end
-				end
-			end
-		end
-	end		
-end
-
-function Nidalee:LaneClear()
-	for k, v in ipairs(minionManager.objects) do
-		if ValidTarget(v, 1000) then
-			if GetTeam(v) == 200 then
-				if ConfigMenu.Champ.F.LC.F:Value() == 1 then
-					if Human then
-						if ConfigMenu.Champ.F.LC.H.Q:Value() then
-							self:CastQH(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-							CastSkillShot(1, GetOrigin(v))
-						end
-					else
-						self:CastRC(v)
-					end
-				elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
-					if Human then
-						self:CastRH(v)
-					else
-						if ConfigMenu.Champ.F.LC.C.Q:Value() then
-							self:CastQC(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.C.W:Value() then
-							self:CastWC(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.C.E:Value() then
-							self:CastEC(v)
-						end
-					end
-				elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
-					if Human then
-						if ConfigMenu.Champ.F.LC.H.Q:Value() then
-							self:CastQH(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-							CastSkillShot(1, GetOrigin(v))
-						end
-
-						if not self.Spells[0].Ready and not self.Spells[1].Ready then
-							self:CastRH(v)
-						end
-					else
-						if ConfigMenu.Champ.F.LC.C.Q:Value() then
-							self:CastQC(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.C.W:Value() then
-							self:CastWC(v)
-						end
-
-						if ConfigMenu.Champ.F.LC.C.E:Value() then
-							self:CastEC(v)
-						end
-
-						if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
-							self:CastRC(v)
-						end
-					end
-				end
-			end
-
-			if GetTeam(v) == 300 then
-				if Human then
-					if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
-						CastSkillShot(1, GetOrigin(v))
-					end
-
-					if not self.Spells[0].Ready and self.Spells[3].Ready then
-						self:CastRH(v)
-					end
-				else
-					if ConfigMenu.Champ.F.JC.C.W:Value() then
-						self:CastWC(v)
-					end
-
-					if ConfigMenu.Champ.F.JC.C.E:Value() then
-						self:CastEC(v)
-					end
-
-					if self.Spells[0].Ready and self.Spells2[3].Ready then
-						self:CastRC(v)
-					end
-				end
-			end
-		end
-	end
-end
-
 function Nidalee:Checks()
 	if GetCastName(myHero, 0) ~= "JavelinToss" then
 		Human = false
-		self.Cat = true
 	else
 		Human = true
-		self.Cat = false
 	end
 
 	for i = 0, 3, 1 do
@@ -2969,85 +3694,28 @@ function Nidalee:Checks()
 		self.Spells2[i].Timer = self.Spells2[i].CDT + self.Spells2[i].CD(myHero) - GetGameTimer()
 		if self.Spells[i].Timer <= 0 then
 			self.Spells[i].Ready = true
+			self.Spells[i].Timer = 0
 		else
 			self.Spells[i].Ready = false
 		end
 
-		if self.Spells[i].Timer <= 0 then
-			self.Spells[i].Timer = 0
-		end
-
 		if self.Spells2[i].Timer <= 0 then
 			self.Spells2[i].Ready = true
+			self.Spells2[i].Timer = 0
 		else
 			self.Spells2[i].Ready = false
 		end
 
-		if self.Spells2[i].Timer <= 0 then
-			self.Spells2[i].Timer = 0
-		end	
+		if GetCastLevel(myHero, i) == 0 then
+			self.Spells[i].Ready = false
+			self.Spells2[i].Ready = false
+		end
 	end
 
 	if self.aaTimeReady ~= nil then
 		self.aaTimer = self.aaTimeReady - GetGameTimer()
 		if self.aaTimer <= 0 then
 			self.aaTimer = 0
-		end
-	end
-
-	if Human then
-		if self.Spells[0].Ready and GetCastLevel(myHero, 0) == 0 and not self.asd[1] then
-			self.Spells[0].Ready = false
-			self.Spells2[0].Ready = false
-		end
-
-		if self.Spells[1].Ready and GetCastLevel(myHero, 1) == 0 and not self.asd[2] then
-			self.Spells[1].Ready = false
-			self.Spells2[1].Ready = false
-		end
-
-		if self.Spells[2].Ready and GetCastLevel(myHero, 2) == 0 and not self.asd[3] then
-			self.Spells[2].Ready = false
-			self.Spells2[2].Ready = false
-		end
-
-		if Ready(3) and not self.Spells2[3].Ready then
-			self.Spells[3].Ready = true
-			self.Spells2[3].Ready = true
-			self.Spells[3].Timer = 0
-			self.Spells2[3].Timer = 0
-		end
-	else
-		if self.Spells2[0].Ready and GetCastLevel(myHero, 0) == 0 and not self.asd[1] then
-			self.Spells[0].Ready = false
-			self.Spells2[0].Ready = false
-		end
-
-		if self.Spells2[1].Ready and GetCastLevel(myHero, 1) == 0 and not self.asd[2] then
-			self.Spells[1].Ready = false
-			self.Spells2[1].Ready = false
-		end
-
-		if self.Spells2[2].Ready and GetCastLevel(myHero, 2) == 0 and not self.asd[3] then
-			self.Spells[2].Ready = false
-			self.Spells2[2].Ready = false
-		end
-
-		if Ready(1) and not self.Spells2[1].Ready then
-			self.Spells2[1].Ready = true
-		end
-
-		if Ready(3) and not self.Spells[3].Ready then
-			self.Spells2[3].Ready = true
-			self.Spells[3].Ready = true
-			self.Spells[3].Timer = 0
-			self.Spells2[3].Timer = 0
-		end
-	end
-
-	for i = 1, 3, 1 do
-		if GetCastLevel(myHero, i-1) ~= 0 then
-			self.asd[i] = true
 		end
 	end
 end
@@ -3062,19 +3730,15 @@ function Nidalee:UnderTower(Object)
 end
 
 function Nidalee:Hunteds(Unit)
-	for i = 1, #self.Hunted, 1 do
-		if self.Hunted[i] == Unit then
-			return true
-		end
+	if Unit ~= nil and self.Hunted[GetNetworkID(Unit)] then
+		return true
 	end
 	return false
 end
 
 function Nidalee:CC(Unit)
-	for i = 1, #self.Fucked, 1 do
-		if self.Fucked[i] == Unit then
-			return true
-		end
+	if Unit ~= nil and self.Fucked[GetNetworkID(Unit)] then
+		return true
 	end
 	return false
 end
@@ -3241,10 +3905,10 @@ end
 function Nidalee:OnUpdate(unit, buff)
 	if GetTeam(unit) ~= GetTeam(myHero) and GetObjectType(unit) == Obj_AI_Hero or GetObjectType(unit) == Obj_AI_Camp and buff and unit.valid then
 		if self.DebuffTable[buff.Type] then
-			table.insert(self.Fucked, 1, unit)
+			self.Fucked[GetNetworkID(unit)] = true
 		end
 		if buff.Name == "NidaleePassiveHunted" then
-			table.insert(self.Hunted, 1, unit)
+			self.Hunted[GetNetworkID(unit)] = true
 		end
 	end
 	if buff.Name == "recall" or buff.Name == "OdinRecall" and unit == myHero then
@@ -3254,15 +3918,11 @@ end
 
 function Nidalee:OnRemove(unit, buff)
 	if GetTeam(unit) ~= GetTeam(myHero) and GetObjectType(unit) == Obj_AI_Hero and buff then
-		for i = 1, #self.Fucked, 1 do
-			if self.Fucked[i] == unit and self.DebuffTable[buff.Type] then
-				self.Fucked[i] = nil
-			end
+		if self.Fucked[GetNetworkID(unit)] then
+			self.Fucked[GetNetworkID(unit)] = nil
 		end
-		for i = 1, #self.Hunted, 1 do
-			if self.Hunted[i] == unit then
-				self.Hunted[i] = nil
-			end
+		if self.Hunted[GetNetworkID(unit)] then
+			self.Hunted[GetNetworkID(unit)] = nil
 		end
 	end
 	if buff.Name == "recall" or buff.Name == "OdinRecall" and unit == myHero then
@@ -3283,31 +3943,212 @@ function Nidalee:Download()
 	end
 end
 
+class "Singed"
+
+function Singed:__init()
+	self.Spot = nil
+	self.Target = nil
+	self.Poison = nil
+
+	ConfigMenu.Champ:Menu("C", "Combo")
+		ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.C:Boolean("W", "Use W", true)
+		ConfigMenu.Champ.C:Boolean("E", "Use E", true)
+		ConfigMenu.Champ.C:Boolean("R", "Use R", true)
+
+	ConfigMenu.Champ:Menu("JC", "JunglerClear")
+		ConfigMenu.Champ.JC:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.JC:Boolean("E", "Use E", true)
+
+	ConfigMenu.Champ:Menu("LC", "LaneClear")
+		ConfigMenu.Champ.LC:Boolean("Q", "Use Q", true)
+		ConfigMenu.Champ.LC:Boolean("E", "Use E", true)
+
+	ConfigMenu.Champ:Menu("HC", "Hitchance")
+		ConfigMenu.Champ.HC:Slider("W", "W HitChance", 20, 1, 100)
+
+	ConfigMenu.Champ:Menu("Orb", "Hotkeys")
+		ConfigMenu.Champ.Orb:KeyBinding("C", "Combo", string.byte(" "), false)
+		--ConfigMenu.Champ.Orb:KeyBinding("H", "Harass", string.byte("C"), false)
+		ConfigMenu.Champ.Orb:KeyBinding("LC", "LaneClear", string.byte("V"), false)
+		--ConfigMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
+
+	OnTick(function(myHero) self:Tick(myHero) end)
+	OnUpdateBuff(function(unit, buff) self:OnUpdate(unit, buff) end)
+	OnRemoveBuff(function(unit, buff) self:OnRemove(unit, buff) end)
+	OnProcessWaypoint(function(unit, way) self:OnWay(unit, way) end)
+end
+
+
+function Singed:Tick(myHero)
+	self.Target = DickSelector:Targets(1000)
+	Autolvl:Autolvl(myHero)
+
+	if ConfigMenu.Champ.Orb.C:Value() and self.Target then
+		self:Combo(self.Target)
+	end
+
+	if ConfigMenu.Champ.Orb.LC:Value() then
+		self:LaneClear()
+	end
+end
+
+function Singed:OnUpdate(unit, buff)
+	if unit == myHero and buff.Name == "PoisonTrail" then
+		self.Poison = true
+	end
+end
+
+function Singed:OnRemove(unit, buff)
+	if unit == myHero and buff.Name == "PoisonTrail" then
+		self.Poison = false
+	end
+end
+
+function Singed:OnWay(unit, way)
+	if unit and unit == self.Target then
+		if way.index == 1 then
+			self.Spot = way.position
+		end
+	end
+end
+--><
+
+function Singed:Combo(Unit)
+	if ConfigMenu.Champ.C.Q:Value() then
+		self:CastQ(Unit)
+	end
+
+	if ConfigMenu.Champ.C.W:Value() then
+		self:CastW(Unit)
+	end
+
+	if ConfigMenu.Champ.C.E:Value() then
+		self:CastE(Unit)
+	end
+
+	if ConfigMenu.Champ.C.R:Value() then
+		self:CastR(Unit)
+	end
+end
+
+function Singed:LaneClear()
+	--[[for k, v in ipairs(minionManager.objects) do
+		if GetTeam(v) == MINION_ENEMY then
+			if ConfigMenu.Champ.LC.Q:Value() then
+				self:CastQ(v)
+			end
+			if ConfigMenu.Champ.LC.Q:Value() then
+				self:CastE(Unit)
+			end
+		elseif GetTeam(v) == MINION_JUNGLE then
+			if ConfigMenu.Champ.JC.Q:Value() then
+				self:CastQ(v)
+			end
+			if ConfigMenu.Champ.JC.Q:Value() then
+				self:CastE(Unit)
+			end
+		end
+	end]]
+end
+
+function Singed:JunglerClear(Unit)
+	if ConfigMenu.Champ.JC.Q:Value() then
+		if ValidTarget(Unit, 500) then
+			if not self.Poison and Ready(0) then
+				CastSpell(3)
+			end
+		else
+			if self.Poison then
+				CastSpell(3)
+			end
+		end
+	end
+
+	if ConfigMenu.Champ.JC.Q:Value() then
+		self:CastE(Unit)
+	end
+end
+
+function Singed:CastQ(Unit)
+	if ValidTarget(Unit, 500) then
+		if self.Spot then
+			local V = GetOrigin(myHero) - Vector(Vector(self.Spot) - Vector(GetOrigin(myHero))):normalized()*100
+			if GetDistance(V, Unit) < self.Spot and Ready(0) and not self.Poison then
+				CastSpell(0)
+			end
+		end
+	else
+		if self.Poison and Ready(0) then
+			CastSpell(0)
+		end
+	end
+end
+
+function Singed:CastW(Unit)
+	local W = {range = 1000, delay = 0.5, radius = 175, speed = 1200}
+	local WPRed = GetPrediction(Unit, W)
+	if ValidTarget(Unit, W.range) and Ready(1) then
+		if GetDistance(Unit) > 200 then
+			if WPred and WPred.hitChance >= (ConfigMenu.Champ.HC.W:Value())/100 then
+				CastSkillShot(1, WPred.castPos)
+			end
+		else
+			local V = GetOrigin(myHero) - Vector(Vector(GetOrigin(Unit)) - Vector(GetOrigin(myHero))):normalized()*550
+			if Ready(2) then
+				CastSkillShot(1, V)
+				DelayAction(function() CastTargetSpell(Unit, 2) end, 0.6)
+			end
+		end
+	end
+end
+
+function Singed:CastE(Unit)
+	if ValidTarget(Unit, 200) and Ready(2) and not Ready(1) then
+		CastTargetSpell(Unit, 2)
+	end
+end
+
+function Singed:CastR(Unit)
+	local R = {[1] = 7, [2] = 10, [3] = 16}
+	if ValidTarget(Unit, 500) and Ready(3) then
+		if GetMaxHP(myHero) - GetCurrentHP(myHero) < 25*R[GetCastLevel(myHero, 3)] and GetMaxMana(myHero) - GetCurrentMana(myHero) < 25*R[GetCastLevel(myHero, 3)] then
+			CastSpell(3)
+		end
+	end
+end
+
 class "DmgDraw"
 
 function DmgDraw:__init()
 
 	ConfigMenu:Menu("DD", "Draw Dmg")
 		ConfigMenu.DD:Boolean("DTD", "Draw Total Damage", true)
-		ConfigMenu.DD:ColorPick("DColor", "Damage Color", {255,255,0,255})	
+		ConfigMenu.DD:ColorPick("DColor", "Damage Color", {255,255,0,255})
 
 	OnDraw(function(myHero) self:Draw(myHero) end)
 end
+
+
 
 function DmgDraw:Draw(myHero)
 	local Keepo = {0, 0, 0, 0}
 	for k, v in pairs(GetEnemyHeroes()) do
 		for i = 0, 3, 1 do
-			Keepo[i+1] = Dmg[i](v)
-			local asd = Keepo[1] + Keepo[2] + Keepo[3] + Keepo[4]
-			local HpBar = GetHPBarPos(v)
-			local What = (asd*100)/GetMaxHP(v)
-			local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
-			if IsVisible(v) and ValidTarget(v, 2000) then
-				if GetCurrentHP(v) > asd then
-					FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5,ConfigMenu.DD.DColor:Value())
-				else
-					FillRect(HpBar.x+1,HpBar.y,hp*1.03,5,ConfigMenu.DD.DColor:Value())
+			if Dmg[i] then
+				if Ready(i) then
+					Keepo[i+1] = Dmg[i](v)
+				end
+				local asd = Keepo[1] + Keepo[2] + Keepo[3] + Keepo[4]
+				local HpBar = GetHPBarPos(v)
+				local What = (asd*100)/GetMaxHP(v)
+				local hp = (GetCurrentHP(v)*100/GetMaxHP(v))
+				if IsVisible(v) and ValidTarget(v, 2000) then
+					if GetCurrentHP(v) > asd then
+						FillRect(HpBar.x+4+hp-What*1.03,HpBar.y,What*1.03,5,ConfigMenu.DD.DColor:Value())
+					else
+						FillRect(HpBar.x+1,HpBar.y,hp*1.03,5,ConfigMenu.DD.DColor:Value())
+					end
 				end
 			end
 		end
