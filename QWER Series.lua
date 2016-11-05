@@ -2015,71 +2015,6 @@ function Elise:__init()
 							end,	
 			},		
 		},
-
-		["LaneClear"] =
-		{
-			[MINION_ENEMY] = 
-			{
-				[true] = 	function(Unit)
-								if ConfigMenu.Champ.LC.H.Q:Value() then
-									self:CastQ(Unit)
-								end
-
-								if ConfigMenu.Champ.LC.H.W:Value() then
-									self:CastW(Unit)
-								end
-
-								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
-									CastSpell(3)
-								end
-							end,
-
-				[false] =	function(Unit)
-								if ConfigMenu.Champ.LC.H.Q:Value() then
-									self:CastSQ(Unit)
-								end
-
-								if ConfigMenu.Champ.LC.H.W:Value() then
-									self:CastSW(Unit)
-								end
-
-								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
-									CastSpell(3)
-								end
-							end
-			},
-
-			[MINION_JUNGLE] = 
-			{
-				[true] = 	function(Unit)
-								if ConfigMenu.Champ.JC.H.Q:Value() then
-									self:CastQ(Unit)
-								end
-
-								if ConfigMenu.Champ.JC.H.W:Value() then
-									self:CastW(Unit)
-								end
-
-								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
-									CastSpell(3)
-								end
-							end,
-
-				[false] =	function(Unit)
-								if ConfigMenu.Champ.JC.H.Q:Value() then
-									self:CastSQ(Unit)
-								end
-
-								if ConfigMenu.Champ.JC.H.W:Value() then
-									self:CastSW(Unit)
-								end
-
-								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
-									CastSpell(3)
-								end
-							end			
-			},
-		},
 	}
 
 
@@ -2191,14 +2126,68 @@ function Elise:Tick(myHero)
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
-		for k, v in ipairs(minionManager.objects) do
-			if ValidTarget(v, 1000) then
-				self.Stuff["LaneClear"][GetTeam(v)][Human](v)
+		self:LaneClear()
+	end
+end
+
+
+function Elise:LaneClear()
+	for k, v in ipairs(minionManager.objects) do
+		if GetTeam(v) == 200 then 
+			if Human then
+								if ConfigMenu.Champ.LC.H.Q:Value() then
+									self:CastQ(Unit)
+								end
+
+								if ConfigMenu.Champ.LC.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
+									CastSpell(3)
+								end
+			else
+								if ConfigMenu.Champ.LC.H.Q:Value() then
+									self:CastSQ(Unit)
+								end
+
+								if ConfigMenu.Champ.LC.H.W:Value() then
+									self:CastSW(Unit)
+								end
+
+								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
+									CastSpell(3)
+								end
+			end
+		elseif GetTeam(v) == 300 then
+			if Human then 
+								if ConfigMenu.Champ.JC.H.Q:Value() then
+									self:CastQ(Unit)
+								end
+
+								if ConfigMenu.Champ.JC.H.W:Value() then
+									self:CastW(Unit)
+								end
+
+								if self.Spells[3].Ready and not self.Spells[0].Ready and not self.Spells[1].Ready then
+									CastSpell(3)
+								end
+			else 
+								if ConfigMenu.Champ.JC.H.Q:Value() then
+									self:CastSQ(Unit)
+								end
+
+								if ConfigMenu.Champ.JC.H.W:Value() then
+									self:CastSW(Unit)
+								end
+
+								if self.Spells2[3].Ready and not self.Spells2[0].Ready and not self.WBuff and self.Spells[0].Ready and self.Spells[1].Ready then
+									CastSpell(3)
+								end
 			end
 		end
 	end
 end
-
 
 function Elise:Draw(myHero)
 	if FileExist(SPRITE_PATH..self.Sprite[16].FName) then
@@ -4002,7 +3991,7 @@ function Singed:Combo(Unit)
 end
 
 function Singed:LaneClear()
-	--[[for k, v in ipairs(minionManager.objects) do
+	for k, v in ipairs(minionManager.objects) do
 		if GetTeam(v) == MINION_ENEMY then
 			if ConfigMenu.Champ.LC.Q:Value() then
 				self:CastQ(v)
@@ -4018,7 +4007,7 @@ function Singed:LaneClear()
 				self:CastE(Unit)
 			end
 		end
-	end]]
+	end
 end
 
 function Singed:JunglerClear(Unit)
