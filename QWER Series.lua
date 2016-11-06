@@ -60,7 +60,7 @@ end)
 
 
 
-local ver = "0.3"
+local ver = "0.2"
 
 class "Start"
 
@@ -112,7 +112,7 @@ function Autolvl:__init()
 	ConfigMenu:Menu("AL", "Auto Lvl")
 		ConfigMenu.AL:DropDown("ALT", "Auto lvl table", 7, {"QWE", "QEW", "WQE", "WEQ", "EWQ", "EQW", "Off"})
 
-	self.Table = 
+	self.Table2 = 
 				{
 				[1] = {_Q,_W,_E,_Q,_Q,_R,_Q,_W,_Q,_W,_R,_W,_W,_E,_E,_R,_E,_E},
 				[2] = {_Q,_E,_W,_Q,_Q,_R,_Q,_E,_Q,_E,_R,_E,_E,_W,_W,_R,_W,_W},
@@ -127,7 +127,7 @@ end
 function Autolvl:Autolvl(myHero)
 	if ConfigMenu.AL.ALT:Value() ~= 7 then
 		if GetLevelPoints(myHero) >= 1 then
-			DelayAction(function() LevelSpell(self.Table[ConfigMenu.AL.ALT:Value()][GetLevel(myHero) - GetLevelPoints(myHero) + 1]) end, math.random(1, 2))
+			--DelayAction(function() LevelSpell(self.Table2[ConfigMenu.AL.ALT:Value()][GetLevel(myHero) - GetLevelPoints(myHero) + 1]) end, math.random(1, 2))
 		end
 	end
 end
@@ -2132,8 +2132,8 @@ end
 
 
 function Elise:LaneClear()
-	for k, v in ipairs(minionManager.objects) do
-		if GetTeam(v) == 200 then 
+	for k, Unit in ipairs(minionManager.objects) do
+		if GetTeam(Unit) == 200 then 
 			if Human then
 								if ConfigMenu.Champ.LC.H.Q:Value() then
 									self:CastQ(Unit)
@@ -2159,7 +2159,7 @@ function Elise:LaneClear()
 									CastSpell(3)
 								end
 			end
-		elseif GetTeam(v) == 300 then
+		elseif GetTeam(Unit) == 300 then
 			if Human then 
 								if ConfigMenu.Champ.JC.H.Q:Value() then
 									self:CastQ(Unit)
@@ -3025,9 +3025,9 @@ function Nidalee:__init()
 
 	self.Spells2 =
 	{
-		[0] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Takedown", 			Timer = 0, Ready = false},
-		[1] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Pounce", 				Timer = 0, Ready = false},
-		[2] = 	{CD = function(myHero) return 	5 								+ 5*GetCDR(myHero) 									end, CDT = 0, Name = "Swipe", 				Timer = 0, Ready = false},
+		[0] = 	{CD = function(myHero) return 	6								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "Takedown", 			Timer = 0, Ready = false, range = 200},
+		[1] = 	{CD = function(myHero) return 	6								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "Pounce", 				Timer = 0, Ready = false},
+		[2] = 	{CD = function(myHero) return 	6								+ 6*GetCDR(myHero) 									end, CDT = 0, Name = "Swipe", 				Timer = 0, Ready = false},
 		[3] = 	{CD = function(myHero) return 	3 								+ 3*GetCDR(myHero) 									end, CDT = 0, Name = "AspectOfTheCougar", 	Timer = 0, Ready = false},
 	}
 --><
@@ -3182,65 +3182,6 @@ function Nidalee:__init()
 								self:CastRC(self.Target)
 							end
 						end
-		},
-
-		["LastHit"] =
-		{
-			[MINION_ENEMY] =
-			{
-				[1] = 
-				{
-					[true] = 	function(Unit)
-									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
-										self:CastQH(Unit)
-									end
-								end,
-
-					[false] = 	function(Unit)
-									if self.Spells2[3].Ready and self.Spells[0].Ready and v.valid then
-										self:CastRC(Unit)
-									end
-								end
-				},
-
-				[2] = 
-				{
-					[true] = 	function(Unit)
-									if self.Spells[3].Ready and v.valid then
-										self:CastRH(Unit)
-									end
-								end,
-
-					[false] = 	function(Unit)
-									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
-										self:CastQC(Unit)
-									end
-								end
-				},
-
-				[3] = 
-				{
-					[true] = 	function(Unit)
-									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and ConfigMenu.Champ.F.LH.H.Q:Value() and Unit.valid then
-										self:CastQH(Unit)
-									end
-
-									if not self.Spells[0].Ready and self.Spells[3].Ready and Unit.valid then
-										self:CastRC(Unit)
-									end
-								end,
-
-					[false] = 	function(Unit)
-									if (GetCurrentHP(Unit) - GetHealthPrediction(Unit, self.aaTimer)) == 0 and self.Spells2[0].Ready and ConfigMenu.Champ.F.LH.C.Q:Value() and Unit.valid then
-										self:CastQC(Unit)
-									end
-
-									if not self.Spells2[0].Ready and self.Spells[0].Ready and Unit.valid then
-										self:CastRC(Unit)
-									end
-								end
-				},
-			},
 		},
 	}
 
@@ -3410,7 +3351,7 @@ function Nidalee:Tick(myHero)
 	end
 
 	if ConfigMenu.Champ.Orb.H:Value() then
-		self.Stuff["Harass"][ConfigMenu.Champ.C.F:Value()][Human]()
+		self.Stuff["Harass"][Human]()
 	end
 
 	if ConfigMenu.Champ.Orb.LC:Value() then
@@ -3445,86 +3386,92 @@ end
 
 function Nidalee:LaneClear()
 	for k, Unit in ipairs(minionManager.objects) do
-		if GetTeam(Unit) == 200 then
-			if ConfigMenu.Champ.F.LC.F:Value() == 1 then 
-				if Human then 
-									if ConfigMenu.Champ.F.LC.H.Q:Value() then
-										self:CastQH(Unit)
-									end
+		if ValidTarget(Unit, 1500) then 
+			if GetTeam(Unit) == 200 then
+				if ConfigMenu.Champ.F.LC.F:Value() == 1 then 
+					if Human then 
+										if ConfigMenu.Champ.F.LC.H.Q:Value() then
+											self:CastQH(Unit)
+										end
 
-									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end		
-				else
-					self:CastRC(Unit)
+										if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+											CastSkillShot(1, GetOrigin(Unit))
+										end		
+					else
+						self:CastRC(Unit)
+					end
+				elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
+					if Human then 
+						self:CastRH(Unit)
+					else
+										if ConfigMenu.Champ.F.LC.C.Q:Value() then
+											self:CastQC(Unit)
+										end
+
+										if ConfigMenu.Champ.F.LC.C.W:Value() then
+											self:CastWC(Unit)
+										end
+
+										if ConfigMenu.Champ.F.LC.C.E:Value() then
+											self:CastEC(Unit)
+										end
+					end
+				elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
+					if Human then
+										if ConfigMenu.Champ.F.LC.H.Q:Value() then
+											self:CastQH(Unit)
+										end
+
+										if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
+											CastSkillShot(1, GetOrigin(Unit))
+										end
+
+										if not self.Spells[0].Ready and not self.Spells[1].Ready then
+											self:CastRH(Unit)
+										end
+					else
+										if ConfigMenu.Champ.F.LC.C.Q:Value() then
+											self:CastQC(Unit)
+										end
+
+										if ConfigMenu.Champ.F.LC.C.W:Value() then
+											self:CastWC(Unit)
+										end
+
+										if ConfigMenu.Champ.F.LC.C.E:Value() then
+											self:CastEC(Unit)
+										end
+
+										if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
+											self:CastRC(Unit)
+										end
+					end
 				end
-			elseif ConfigMenu.Champ.F.LC.F:Value() == 2 then
-				if Human then 
-					self:CastRH(Unit)
-				else
-									if ConfigMenu.Champ.F.LC.C.Q:Value() then
-										self:CastQC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.W:Value() then
-										self:CastWC(Unit)
-									end
-
-									if ConfigMenu.Champ.F.LC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-				end
-			elseif ConfigMenu.Champ.F.LC.F:Value() == 3 then
+			elseif GetTeam(Unit) == 300 then
 				if Human then
-									if ConfigMenu.Champ.F.LC.H.Q:Value() then
-										self:CastQH(Unit)
-									end
+					if ConfigMenu.Champ.F.JC.H.Q:Value() then
+						self:CastQH(Unit)
+					end
 
-									if ConfigMenu.Champ.F.LC.H.W:Value() and self.Spells[1].Ready then
-										CastSkillShot(1, GetOrigin(Unit))
-									end
+					if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
+						CastSkillShot(1, GetOrigin(Unit))
+					end
 
-									if not self.Spells[0].Ready and not self.Spells[1].Ready then
-										self:CastRH(Unit)
-									end
+					if not self.Spells[0].Ready and self.Spells[3].Ready then
+						self:CastRH(Unit)
+					end
 				else
-									if ConfigMenu.Champ.F.LC.C.Q:Value() then
-										self:CastQC(Unit)
-									end
+					if ConfigMenu.Champ.F.JC.C.W:Value() then
+						self:CastWC(Unit)
+					end
 
-									if ConfigMenu.Champ.F.LC.C.W:Value() then
-										self:CastWC(Unit)
-									end
+					if ConfigMenu.Champ.F.JC.C.E:Value() then
+						self:CastEC(Unit)
+					end
 
-									if ConfigMenu.Champ.F.LC.C.E:Value() then
-										self:CastEC(Unit)
-									end
-
-									if not self.Spells2[0].Ready and not self.Spells2[1].Ready and not self.Spells2[2].Ready and self.Spells2[3].Ready then
-										self:CastRC(Unit)
-									end
-				end
-			end
-		elseif GetTeam(Unit) == 300 then
-			if Human then 
-				if ConfigMenu.Champ.F.JC.H.W:Value() and self.Spells[1].Ready then
-					CastSkillShot(1, GetOrigin(Unit))
-				end
-
-				if not self.Spells[0].Ready and self.Spells[3].Ready then
-					self:CastRH(Unit)
-				end
-			else
-				if ConfigMenu.Champ.F.JC.C.W:Value() then
-					self:CastWC(Unit)
-				end
-
-				if ConfigMenu.Champ.F.JC.C.E:Value() then
-					self:CastEC(Unit)
-				end
-
-				if self.Spells[0].Ready and self.Spells2[3].Ready then
-					self:CastRC(Unit)
+					if self.Spells[0].Ready and self.Spells2[3].Ready then
+						self:CastRC(Unit)
+					end
 				end
 			end
 		end
@@ -3906,7 +3853,7 @@ class "Singed"
 function Singed:__init()
 	self.Spot = nil
 	self.Target = nil
-	self.Poison = nil
+	self.Poison = false
 
 	ConfigMenu.Champ:Menu("C", "Combo")
 		ConfigMenu.Champ.C:Boolean("Q", "Use Q", true)
@@ -3932,8 +3879,6 @@ function Singed:__init()
 		--ConfigMenu.Champ.Orb:KeyBinding("LH", "LastHit", string.byte("X"), false)
 
 	OnTick(function(myHero) self:Tick(myHero) end)
-	OnUpdateBuff(function(unit, buff) self:OnUpdate(unit, buff) end)
-	OnRemoveBuff(function(unit, buff) self:OnRemove(unit, buff) end)
 	OnProcessWaypoint(function(unit, way) self:OnWay(unit, way) end)
 end
 
@@ -3992,55 +3937,55 @@ end
 
 function Singed:LaneClear()
 	for k, v in ipairs(minionManager.objects) do
-		if GetTeam(v) == MINION_ENEMY then
-			if ConfigMenu.Champ.LC.Q:Value() then
-				self:CastQ(v)
-			end
-			if ConfigMenu.Champ.LC.Q:Value() then
-				self:CastE(Unit)
-			end
-		elseif GetTeam(v) == MINION_JUNGLE then
-			if ConfigMenu.Champ.JC.Q:Value() then
-				self:CastQ(v)
-			end
-			if ConfigMenu.Champ.JC.Q:Value() then
-				self:CastE(Unit)
-			end
-		end
-	end
-end
-
-function Singed:JunglerClear(Unit)
-	if ConfigMenu.Champ.JC.Q:Value() then
-		if ValidTarget(Unit, 500) then
-			if not self.Poison and Ready(0) then
-				CastSpell(3)
-			end
-		else
-			if self.Poison then
-				CastSpell(3)
+		if ValidTarget(v, 1000) then
+			if GetTeam(v) == MINION_ENEMY then
+				if ConfigMenu.Champ.LC.Q:Value() then
+					self:CastQ(v)
+				end
+				if ConfigMenu.Champ.LC.Q:Value() then
+					self:CastE(v)
+				end
+			elseif GetTeam(v) == MINION_JUNGLE then
+				if ConfigMenu.Champ.JC.Q:Value() then
+					self:CastQ(v)
+				end
+				if ConfigMenu.Champ.JC.Q:Value() then
+					self:CastE(v)
+				end
 			end
 		end
-	end
-
-	if ConfigMenu.Champ.JC.Q:Value() then
-		self:CastE(Unit)
 	end
 end
 
 function Singed:CastQ(Unit)
-	if ValidTarget(Unit, 500) then
-		if self.Spot then
-			local V = GetOrigin(myHero) - Vector(Vector(self.Spot) - Vector(GetOrigin(myHero))):normalized()*100
-			if GetDistance(V, Unit) < self.Spot and Ready(0) and not self.Poison then
-				CastSpell(0)
+		if GetObjectType(Unit) ~= Obj_AI_Minion then 
+			if ValidTarget(Unit, 500) then
+				if self.Spot then
+					local V = GetOrigin(myHero) - Vector(Vector(self.Spot) - Vector(GetOrigin(myHero))):normalized()*100
+					if GetDistance(V, Unit) < GetDistance(Unit, myHero) and Ready(0) and not self.Poison then
+						CastSpell(0)
+						self.Poison = true
+					end
+				end
+			else
+				if self.Poison and Ready(0) then
+					CastSpell(0)
+					self.Poison = false
+				end
+			end
+		else
+			if ValidTarget(Unit, 500) then
+				if Ready(0) and not self.Poison then
+					CastSpell(0)
+					self.Poison = true
+				end
+			else
+				if self.Poison and Ready(0) then
+					CastSpell(0)
+					self.Poison = false
+				end
 			end
 		end
-	else
-		if self.Poison and Ready(0) then
-			CastSpell(0)
-		end
-	end
 end
 
 function Singed:CastW(Unit)
@@ -4093,7 +4038,7 @@ function DmgDraw:Draw(myHero)
 	local Keepo = {0, 0, 0, 0}
 	for k, v in pairs(GetEnemyHeroes()) do
 		for i = 0, 3, 1 do
-			if Dmg[i] then
+			if Dmg ~= nil and Dmg[i] then
 				if Ready(i) then
 					Keepo[i+1] = Dmg[i](v)
 				end
