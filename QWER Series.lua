@@ -40,7 +40,7 @@ end)
 
 
 
-local ver = "0.3"
+local ver = "0.5"
 
 class "Start"
 
