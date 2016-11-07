@@ -12,26 +12,6 @@ local ChampTable =
 	["Singed"] 		= true,
 	}
 
-local Towers = {}
-
-Callback.Add("CreateObj", function(Object)
-	if GetObjectName(myHero) == "Nidalee" then
-		if GetObjectType(Object) == Obj_AI_Turret and GetTeam(Object) ~= GetTeam(myHero) then
-			table.insert(Towers, 1, Object)
-		end
-	end
-end)
-
-Callback.Add("DeleteObj", function(Object)
-	if Towers then
-		for i = 1, #Towers, 1 do
-			if Object == Towers[i] then
-				Towers[i] = nil
-			end
-		end
-	end
-end)
-
 
 Callback.Add("Load", function()
 	if ChampTable[GetObjectName(myHero)] then
@@ -60,7 +40,7 @@ end)
 
 
 
-local ver = "0.4"
+local ver = "0.2"
 
 class "Start"
 
@@ -3705,11 +3685,11 @@ function Nidalee:CastWC(Unit)
 				end
 			else
 				if self:Hunteds(Unit) then
-					if ValidTarget(Unit, 750) and not self:UnderTower(Unit) then
+					if ValidTarget(Unit, 750) and not UnderTurret(GetOrigin(Unit)) then
 						CastTargetSpell(Unit, 1)
 					end
 				else
-					if ValidTarget(Unit, 375) and not self:UnderTower(V1) then
+					if ValidTarget(Unit, 375) and not UnderTurret(V1) then
 						CastSkillShot(1, GetOrigin(Unit))
 					end
 				end
